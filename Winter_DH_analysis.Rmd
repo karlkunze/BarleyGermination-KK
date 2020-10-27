@@ -7,5 +7,13 @@ editor_options:
   chunk_output_type: console
 ---
 ```{r}
+getwd()
 
+TP1<-as.data.frame(read.csv("data/Winter_DH/TP1/DHtp1_full_F.csv",stringsAsFactors = FALSE))
+TP2<-as.data.frame(read.csv("data/Winter_DH/TP2/DHtp2_all_F.csv",stringsAsFactors = FALSE))
+TP3<-as.data.frame(read.csv("data/Winter_DH/TP3/DHtp3_all_F.csv",stringsAsFactors = FALSE))
+
+str(TP1)
+str(TP2)
+str(TP3)
 ```
