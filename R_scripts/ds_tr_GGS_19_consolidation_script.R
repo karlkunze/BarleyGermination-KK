@@ -3,9 +3,8 @@ library(tidyverse)
 
 
 #this is where data has been stored; could change this? 
-setwd("D:/Dropbox/Cornell Small Grains Breeding/2019/Spring Grains19/Spring malting barley19/GerminationTests/GenGainSel/final data")
 
-file_list <- list.files(path="D:/Dropbox/Cornell Small Grains Breeding/2019/Spring Grains19/Spring malting barley19/GerminationTests/GenGainSel/final data")
+file_list <- list.files(path="C:/Users/Karl/Dropbox/Cornell Small Grains Breeding/2019/Spring Grains19/Spring malting barley19/GerminationTests/GenGainSel/final data")
 TP1=which(substr(file_list,8,10)=="TP1")
 TP2=which(substr(file_list,8,10)=="TP2")
 TP3=which(substr(file_list,8,10)=="TP3")
