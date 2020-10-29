@@ -31,13 +31,33 @@ DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)
 DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all.x = TRUE)
 
 ```
-merging field phenotypes with TP data
+converting PHS scores
 ```{r}
 str(DH_2020_field)
 str(TP_all)
 colnames(DH_2020_field)
 #reduce 
+# Phs conversion
+five_avg=function(df,pheno,new_pheno,missing_phenos=F){
+  df[[pheno]]=as.numeric(df[[pheno]])
+  df <- cbind(df, "ID" = outer(df[[pheno]], 10^c(4:0), function(a, b) a %/% b %% 10))
+  if(missing_phenos==T){
+    df$ID.1[which(df$note=="*")]=NA
+  }
+  df$new_pheno=apply(df[,c((ncol(df)-4):ncol(df))],1,function(x) mean(x, na.rm=T))
+  df$new_pheno=as.numeric(df$new_pheno)
+  # df$var=as.numeric(apply(df[,c((ncol(df)-4):ncol(df))], 1,var))
+  #df$sd=as.numeric(apply(df[,c((ncol(df)-5):(ncol(df)-1))], 1,function(x) sd(x, na.rm=T)))
+  #df=df[,c(1:(ncol(df)-9),(ncol(df)-2),(ncol(df)-1), ncol(df))]
 
+}
+
+
+
+DH_2020_field$Sprout.Score
+DH_2020_field$phs=five_avg(df=DH_2020_field,pheno='Sprout.Score',new_pheno='phs')
+DH_2020_field$phs
+  
 
 ```
 
@@ -52,7 +72,7 @@ Germ_traits=function(df){
   df$GI=apply(df[,8:13],1, function(x) {(sum(as.numeric(x[1:3]))/(as.numeric(x[1])+2*as.numeric(x[2])+ 3*as.numeric(x[3])))*10})
   df$GIscale=apply(df[,c(13,14)],1, function(x) {as.numeric(x[1])*as.numeric(x[2])}) #GI*GE
   df$GE_5D=apply(df[,8:13],1,function(x) {sum(as.numeric(x[1:5]))/sum(as.numeric(x[1:6]))})
-  df$PM=as.factor(df$PM_at_plating)
+  df$Plus_PM=as.factor(df$PM_at_plating)
  
   df$replication=as.factor(df$replication)
   df$Timepoint=as.factor(df$Timepoint)
@@ -60,9 +80,11 @@ Germ_traits=function(df){
 }
 TPall=Germ_traits(TP_all)
 colnames(TPall)
-
-
-save(TPall, file="WMB DH 2020 all data for analysis.RData")
+colnames(DH_2020_field)
+All_pheno_TPall<-merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all = TRUE)
+str(All_pheno_TPall)
+View(All_pheno_TPall)
+save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
 
 ```
 
