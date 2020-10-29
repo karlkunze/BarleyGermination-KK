@@ -9,6 +9,7 @@ editor_options:
 reading in files
 ```{r}
 getwd()
+library(readxl)
 
 TP1_half<-as.data.frame(read.csv("data/Winter_DH/TP1/DHtp1_full_F.csv",stringsAsFactors = FALSE))
 TP2<-as.data.frame(read.csv("data/Winter_DH/TP2/DHtp2_all_F.csv",stringsAsFactors = FALSE))
@@ -18,6 +19,26 @@ str(TP1)
 str(TP2)
 str(TP3)
 TP_all<-rbind(TP1_half,TP2,TP3)
+```
+add field phenotype data
+```{r}
+DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
+DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
+DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
+
+DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)
+
+DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all.x = TRUE)
+
+```
+merging field phenotypes with TP data
+```{r}
+str(DH_2020_field)
+str(TP_all)
+colnames(DH_2020_field)
+#reduce 
+
+
 ```
 
 
