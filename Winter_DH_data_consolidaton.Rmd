@@ -102,7 +102,8 @@ colnames(TPall)
 colnames(DH_2020_field)
 All_pheno_TPall<-merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all = TRUE)
 str(All_pheno_TPall)
-
+View(All_pheno_TPall)
 save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
+
 ```
 
