@@ -67,6 +67,31 @@ DH_2020_field$phs
 
 
 ```{r}
+####taking apart functions that calculate GE, GI, GIScale to develop 5 day(5D) caluclatios
+#TP_all0<-TP_all
+#df<-TP_all0
+#df$GE=apply(df[,8:13],1,function(x) {sum(as.numeric(x[1:3]))/sum(as.numeric(x[1:6]))})  #does not count dead kernels in total count
+
+  #df$GC=apply(df[,6:10],1,function(x) {sum(as.numeric(x[1:4]))/sum(as.numeric(x[1:5]))}) #does count dead kernels
+
+ # df$GI=apply(df[,8:13],1, function(x) {(sum(as.numeric(x[1:3]))/(as.numeric(x[1])+2*as.numeric(x[2])+ 3*as.numeric(x[3])))*10})
+
+
+#df$GIscale=apply(df[,c(27,28)],1, function(x) {as.numeric(x[1])*as.numeric(x[2])}) #GI*GE
+#df$GIscale
+ # df$GE_5D=apply(df[,8:13],1,function(x) {sum(as.numeric(x[1:5]))/sum(as.numeric(x[1:6]))})
+
+## Need to add 5 day extension to denominator of GI below
+
+  #df$GI_5D=apply(df[,8:13],1, function(x) {(sum(as.numeric(x[1:5]))/(as.numeric(x[1])+2*as.numeric(x[2])+ 3*as.numeric(x[3])+4*as.numeric(x[4])+5*as.numeric(x[5])))*10})
+ 
+  #df$GIscale_5D=apply(df[,c(29,30)],1, function(x) {as.numeric(x[1])*as.numeric(x[2])}) #GI*GE
+  
+  
+
+
+```
+```{r}
 colnames(TP_all)
 Germ_traits=function(df){
   df$GE=apply(df[,8:13],1,function(x) {sum(as.numeric(x[1:3]))/sum(as.numeric(x[1:6]))})  #does not count dead kernels in total count
