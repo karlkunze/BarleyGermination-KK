@@ -8,8 +8,14 @@ load(here( "WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
 
 str(WDH20_pheno)
+#####
+#test for time point 1
+# *note we only did half the samples for this timepoint
 
-WDHphs.lm=lm(phs~ PM + Entry, data=WDH20_pheno)
+
+WDH20_pheno$Plus_PM<-as.factor(WDH20_pheno$Plus_PM)
+WDH20_pheno$PM<-as.factor(WDH20_pheno$PM)
+WDHphs.lm=lm(phs~ Plus_PM + Entry, data=WDH20_pheno)
 anova(WDHphs.lm) #all factors signif
 
 WDHge1.lm=lm(GE~ Location + Entry + PM, data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
@@ -18,6 +24,9 @@ anova(WDHge1.lm) #location, #PM significant
 WDHgil.lm=lm(GIscale~ Location+ Entry + PM, data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
 anova(WDHgil.lm)#location sign, PM date ns
 
+
+#Time point 2
+#*for this and following time points the full sample amounts were used
 WDHge2.lm=lm(GE~ Location+ Entry + PM + PM:replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
 anova(WDHge2.lm) #PM:replication ns
 
@@ -25,9 +34,18 @@ WDHgI2.lm=lm(GI~ Location+ Entry + PM + PM:replication, data=WDH20_pheno[WDH20_p
 anova(WDHgI2.lm) #PM:replication ns
 GGge3.lm=lm(GE~ Location + Entry + PM + PM:replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
 anova(GGge3.lm) #PMe and PMe:rep, loc:block ns
-GGgi3.lm=lm(GIscale~ Location+ Location:Block + Entry + PMe + PMe:rep, data=TP3all_30k)
+
+
+GGgi3.lm=lm(GIscale~ Location+ Entry + PM + PM:replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
 anova(GGgi3.lm) #all factors signif
 
+
+#Time point 4 
+WDHge4.lm=lm(GE~ Location+ Entry + PM + PM:replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+anova(WDHge4.lm) #PM:replication ns
+
+WDHgI4.lm=lm(GI~ Location+ Entry + PM + PM:replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+anova(WDHgI4.lm)
 # random effects
 
 WDHphs.lmer=lmer(phs~ PM + (1|Entry), data=WDH20_pheno)
@@ -37,6 +55,11 @@ WDHGE_TP2.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=WDH20_pheno[WDH20_pheno
 WDHGI_TP2.lmer=lmer(GIscale~  Location +PM + (1|Entry) + (1|PM:replication) , data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
 WDHGE_TP3.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
 WDHGI_TP3.lmer=lmer(GIscale~  Location + PM + (1|Entry) + (1|PM:replication) , data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+
+WDHGE_TP4.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+WDHGI_TP4.lmer=lmer(GIscale~  Location + PM + (1|Entry) + (1|PM:replication) , data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+
+
 #plotting
 str(WDH20_pheno)
 WDH20_sub<-WDH20_pheno[,c("Entry","Pedigree","Location","Timepoint","phs","GE","GI","GIscale","GE_5D")]
