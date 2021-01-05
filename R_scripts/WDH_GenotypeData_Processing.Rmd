@@ -1,12 +1,51 @@
 ---
 title: "R Notebook"
 output: html_notebook
+editor_options: 
+  chunk_output_type: console
 ---
-
+Filling in Missing Chr positions
 ```{r}
+library(readxl)
+Paired_samples<- read.delim("data/Genotype_data/Paired Sample Table WDH 50K.txt",stringsAsFactors = FALSE)
+str(Paired_samples)
+
+Barley50K<-read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = 'EXCAP markers')
+#there is also a 9K sheet if needed, although not all positions from the 9K are validated
+Barley50K=Barley50K[,c(1:3)]
+library(stringr)
+Barley50K$`EXCAP marker name`<-str_split_fixed(Barley50K$`EXCAP marker name`,"-0_" , 2)[,1]
+colnames(Barley50K)<-c("Name","Chr","bp")
+Barley50K$Type<-"50K"
+
+#9K
+Barley9K<-as.data.frame(read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = '9k markers'))
+str(Barley9K)
+Barley9K<-Barley9K[,c(1,2)]
+str(Barley9K)
+Barley9K$chr<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 1)
+Barley9K$chr<-sapply(strsplit(Barley9K$chr,":"), "r", 2)
+Barley9K$bp<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 2)
+Barley9K$bp<-sapply(strsplit(Barley9K$bp,"\\("), "[", 1)
+Barley9K<-Barley9K[,-2]
+str(Barley9K)
+colnames(Barley9K)<-c("Name","Chr","bp")
+Barley9K$Type<-"9K"
+Barley50_9K<-rbind(Barley50K,Barley9K)
+
+Barley50_9K<-Barley50_9K[with(Barley50_9K, order(Chr, bp)),]
 
 
+Paired_samples$Position
+str(Paired_samples)
+hist(Paired_samples$Position)
+str(Paired_samples)
+allsnps<-merge(Barley50_9K,Paired_samples,all=T)
+allsnps$Chr=substr(allsnps$Chr, 4,5)
+allsnps$Chr
+allsnps$Name
 
-
-
+allsnps=allsnps[which(allsnps$Name %in% Paired_samples$Name),]
+str(allsnps)
 ```
+
