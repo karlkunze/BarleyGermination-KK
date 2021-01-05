@@ -49,7 +49,24 @@ allsnps$Name
 
 allsnps=allsnps[which(allsnps$Name %in% Paired_samples$Name),]
 str(allsnps)
-table(allsnps$Chr)
-table(Paired_samples$Chr)
+hist(as.numeric(allsnps$bp))
+
+#there are more callend positions at 4H for the pairwise than 50k +9k data
+
+```
+
+Winter DH 50K GENOTYPING PROCESSING
+
+```{r}
+
+getwd()
+library(here)
+load(here("WMB DH 2020 all data for analysis.RData"))
+WDH20_pheno<-All_pheno_TPall
+WDH20_pheno$Entry
+wdh<-read.delim("data/Genotype_data/Cornell2020Sorrells-50k Project_Standard1Filte-numeric.hmp.txt",header = T,sep = "\t")
+
+colnames(wdh)
+wdh$BS613.14
 ```
 
