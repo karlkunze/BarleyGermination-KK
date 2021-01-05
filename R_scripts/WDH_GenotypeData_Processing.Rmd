@@ -24,7 +24,7 @@ str(Barley9K)
 Barley9K<-Barley9K[,c(1,2)]
 str(Barley9K)
 Barley9K$chr<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 1)
-Barley9K$chr<-sapply(strsplit(Barley9K$chr,":"), "r", 2)
+Barley9K$chr<-sapply(strsplit(Barley9K$chr,"r"), "[", 2)
 Barley9K$bp<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 2)
 Barley9K$bp<-sapply(strsplit(Barley9K$bp,"\\("), "[", 1)
 Barley9K<-Barley9K[,-2]
@@ -32,20 +32,24 @@ str(Barley9K)
 colnames(Barley9K)<-c("Name","Chr","bp")
 Barley9K$Type<-"9K"
 Barley50_9K<-rbind(Barley50K,Barley9K)
-
+table(Barley50_9K$Chr)
 Barley50_9K<-Barley50_9K[with(Barley50_9K, order(Chr, bp)),]
 
 
 Paired_samples$Position
 str(Paired_samples)
 hist(Paired_samples$Position)
+table(Paired_samples$Chr)
+table(Barley50_9K$Chr)
 str(Paired_samples)
-allsnps<-merge(Barley50_9K,Paired_samples,all=T)
-allsnps$Chr=substr(allsnps$Chr, 4,5)
-allsnps$Chr
+allsnps<-merge(Barley50_9K,Paired_samples[,c(1,2,3,4)],all=T)
+#when merging, particularly with Chr, I'm not sure what is happening with Chr and Positions, but I would want to retain the positions from the downloaded 50k and 9k data
+
 allsnps$Name
 
 allsnps=allsnps[which(allsnps$Name %in% Paired_samples$Name),]
 str(allsnps)
+table(allsnps$Chr)
+table(Paired_samples$Chr)
 ```
 
