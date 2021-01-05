@@ -165,9 +165,15 @@ TPall$GI
 
 TPall=Germ_traits(TP_all)
 colnames(TPall)
+
+TPall$GIscale
+TPall$GIscale_5D
+
 colnames(DH_2020_field)
 All_pheno_TPall<-merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all = TRUE)
 str(All_pheno_TPall)
+All_pheno_TPall$GIscale_5D
+All_pheno_TPall$GIscale
 #View(All_pheno_TPall)
 save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
 
