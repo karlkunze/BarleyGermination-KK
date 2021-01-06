@@ -128,23 +128,75 @@ library(rrBLUP)
 wdh=as.data.frame(A.mat(wdh-1, return.imputed = T)$imputed+1)
 
 v2<-read.delim("C:/Users/Karl/50k_data/Winter DH population/barley50kMarkerPositions_Morex2019Assembly/barley50kMarkerPositions_Morex2019Assembly.gff",header = F,skip = 1)
-head(v2)
+
 colnames(v2)<-c("Chromo","Platform","Type","pos","pos2","unknown_1","strand","unknown_2","SNP")
+head(v2)
 v2$Chromo<-sapply(strsplit(v2$Chromo,"r"), "[", 2)
+#v2$Chromo<-sapply(strsplit(v2$Chromo,"H"), "[",1)
+v2$Chromo
+
 v2$SNP<-sapply(strsplit(v2$SNP,"D="), "[", 2)
 
-rm(myGM20)
+
 myGM20=data.frame(SNP=colnames(wdh))
 myGM20
-v2$
-myGM20$Chromosome = v2$Chromo[match(myGM20$SNP, v2$SNP)]
 
+myGM20$Chromosome = v2$Chromo[match(myGM20$SNP, v2$SNP)]; myGM20$Chromosome = substr(myGM20$Chromosome ,1,1)
+myGM20$Chromosome
 myGM20$Chromosome[which(myGM20$Chromosome=="U")]="8"
+
 myGM20$Position = as.character(v2$pos[match(myGM20$SNP, v2$SNP)])
 
 myGD20=as.data.frame(cbind(rownames(wdh), wdh)); colnames(myGD20)[1]="taxa"
 str(myGD20)
 str(myGM20)
+
+
+```
+
+```{r}
+library(tidyverse)
+
+DH_Entry<-WDH20_pheno[,'Entry'][!duplicated(WDH20_pheno[,'Entry'])]
+DH_Entry
+library(gdsfmt)
+library(SNPRelate)
+myGM20$Chromosome
+chr=as.integer(myGM20$Chromosome)
+snpgdsCreateGeno("test.gds", genmat = as.matrix(round(wdh,0)), sample.id=row.names(wdh), snp.id = colnames(wdh), snp.chromosome = chr,
+                 snp.position = as.integer(myGM20$Position), snpfirstdim = F)
+
+(gdsfile <- snpgdsOpen("test.gds"))
+
+pca <- snpgdsPCA(gdsfile)
+pc.percent <- pca$varprop*100
+head(round(pc.percent, 2))
+plot(1:10,pc.percent[1:10])
+
+library(ggplot2)
+test=data.frame(pca$eigenvect)
+test$population=GGS_20_names$Population[match(pca$sample.id, GGS_20_names$Entry)]
+test$population[which(is.na(test$population ))] = "JIC"
+test$population[which(test$population %in% c("check", "C1G", "C1P","C2G","base"))] = "GGS"
+six=c("DH133529", "DH133535", "MS1054111_01", "MS1054115_03", "Tamalpais", "BB5","BB28","BBB528","Purple_Valley","Morex","Steptoe","ND20448","Bohmische_Nackte",
+      "Larker","Tamparkorn","Chevron","Bere","Sativum_Jessen_England","Mestny","Odessa","Tiree_6_row","Austrian_Early","Asplund","Kagelkorn","Hatif_de_Grignon","Manchuria","Monte_Cristo","Riojana","Oderbrucker","Klages")
+test$row_type=as.factor(ifelse(pca$sample.id %in% six, 6, 2))
+
+
+ggplot(test, aes(x=X1, y=X2, color=row_type ))+
+  geom_point(size=2) +
+  theme_bw() +
+  ggtitle("PCA by row type") +
+  xlab("PC1: 13.9%") +
+  ylab("PC2: 5.1%")
+
+ggplot(test, aes(x=X1, y=X2, color=population ))+
+  geom_point(size=2) +
+  theme_bw() +
+  ggtitle("PCA by Population")+
+  xlab("PC1: 13.9%") +
+  ylab("PC2: 5.1%")
+
 
 
 ```
