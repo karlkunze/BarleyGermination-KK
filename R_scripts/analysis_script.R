@@ -3,9 +3,10 @@ library(here)
 library(lme4)
 library(reshape2)
 getwd()
-
+library(here)
 load(here("WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
+table(WDH20_pheno$Entry)
 All_pheno_TPall$GIscale
 All_pheno_TPall$GIscale_5D
 View(cbind(All_pheno_TPall$Plus_PM,All_pheno_TPall$Entry,All_pheno_TPall$GIscale,All_pheno_TPall$GIscale_5D))
