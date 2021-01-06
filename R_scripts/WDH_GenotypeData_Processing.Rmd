@@ -76,7 +76,7 @@ Check Marker names
 colnames(wdh)=gsub("\\.","-",colnames(wdh))
 which(colnames(wdh)%in%allsnps$Name)
 ncol(wdh)
-nrow(allsnps)
+
 #13142 entries match
 #allsnps retained 39,621 but we only want the 13,143 in the genotype file beacause those are the filtered ones
 
@@ -87,8 +87,12 @@ allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
 ```
 Check Entry Names
 ```{r}
+wdh[1:8,1:8]
 colnames(wdh)[1]<-"Entry"
 colnames(wdh)[1]
+wdh[,1]
+rownames(wdh)<-wdh[,1]
+wdh<-wdh[,-1]
 #Entry names appear unchanged in genotype file from phenotype entry list(maybe
 #every line we use should have a non name entry)
 
@@ -98,18 +102,20 @@ This step should be modified if using GAPIT or rrBLUP
 ```{r}
 #convert to 0/1/2 coding
 nrow(wdh)
-
+colnames(wdh)
+wdh[c(1:8),c(1:8)]
+wdh[c(1:8),c(1:8)]
 
 
 wdh=as.data.frame(apply(wdh,1, function(x) { 
+  
   x[which(x == 1)] = 2
   x[which(x == 0.5)] = 1
   x[which(x == 0)] = 0
   x
   }))
-
-rm(numeric_matrix)
-
+#be careful not to run this recursively(i e more than once)
+wdh[1:8,1:8]
 
 
 
