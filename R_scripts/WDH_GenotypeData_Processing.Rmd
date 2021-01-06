@@ -107,7 +107,7 @@ wdh[c(1:8),c(1:8)]
 wdh[c(1:8),c(1:8)]
 
 
-wdh=as.data.frame(apply(wdh,1, function(x) { 
+wdh2=as.data.frame(apply(wdh,1, function(x) { 
   
   x[which(x == 1)] = 2
   x[which(x == 0.5)] = 1
@@ -115,9 +115,8 @@ wdh=as.data.frame(apply(wdh,1, function(x) {
   x
   }))
 #be careful not to run this recursively(i e more than once)
-wdh[1:8,1:8]
-
-
-
+#this aparently inverted the matrix
+wdh2[1:5,1:5]
+wdh[1:5,1:5]
 
 ```
