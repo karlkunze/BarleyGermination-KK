@@ -64,9 +64,9 @@ library(here)
 load(here("WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
 WDH20_pheno$Entry
-wdh<-read.delim("data/Genotype_data/Cornell2020Sorrells-50k Project_Standard1Filte-numeric.hmp.txt",header = T,sep = "\t")
-
-colnames(wdh)
+wdh<-read.table("data/Genotype_data/Cornell2020Sorrells-50k Project_Standard1Filte-numeric.hmp.txt",skip=1, header=T,sep ='\t')
+#need to skip because there is an extra header, first being numeric 'skip=1' skips the <numeric> 
+str(wdh)
 wdh$BS613.14
 ```
 
