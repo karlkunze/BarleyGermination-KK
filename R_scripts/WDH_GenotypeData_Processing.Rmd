@@ -99,16 +99,18 @@ This step should be modified if using GAPIT or rrBLUP
 #convert to 0/1/2 coding
 nrow(wdh)
 
-numeric_matrix<-as.numeric(as.matrix(wdh[c(1:nrow(wdh)),c(2:ncol(wdh))]))
-numeric_matrix[which(numeric_matrix==1)]= 2
-numeric_matrix[which(numeric_matrix==0.5)]= 1
-wdh[c(1:nrow(wdh)),c(2:ncol(wdh))]<-numeric_matrix
-wdh[c(1:8),c(1:8)]
+
+
+wdh=as.data.frame(apply(wdh,1, function(x) { 
+  x[which(x == 1)] = 2
+  x[which(x == 0.5)] = 1
+  x[which(x == 0)] = 0
+  x
+  }))
 
 rm(numeric_matrix)
 
-wdh[which(wdh ==1)] = 2
-wdh[which(wdh == 0.5)] = 1 #these should be removed, we shouldn't have heterozygous positions with double haploids
+
 
 
 
