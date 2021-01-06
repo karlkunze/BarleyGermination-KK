@@ -43,6 +43,7 @@ table(Paired_samples$Chr)
 table(Barley50_9K$Chr)
 str(Paired_samples)
 allsnps<-merge(Barley50_9K,Paired_samples[,c(1,2,3,4)],all=T)
+allsnps<-allsnps[with(allsnps,order(Chr, bp)),]
 #when merging, particularly with Chr, I'm not sure what is happening with Chr and Positions, but I would want to retain the positions from the downloaded 50k and 9k data
 
 allsnps$Name
@@ -60,13 +61,55 @@ Winter DH 50K GENOTYPING PROCESSING
 ```{r}
 
 getwd()
+
 library(here)
 load(here("WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
 WDH20_pheno$Entry
 wdh<-read.table("data/Genotype_data/Cornell2020Sorrells-50k Project_Standard1Filte-numeric.hmp.txt",skip=1, header=T,sep ='\t')
 #need to skip because there is an extra header, first being numeric 'skip=1' skips the <numeric> 
-str(wdh)
-wdh$BS613.14
 ```
+Check Marker names
+```{r}
+#Check marker names
+#txt tab delimited files replace "-" character with ".", need to replace "." with "-"
+colnames(wdh)=gsub("\\.","-",colnames(wdh))
+which(colnames(wdh)%in%allsnps$Name)
+ncol(wdh)
+nrow(allsnps)
+#13142 entries match
+#allsnps retained 39,621 but we only want the 13,143 in the genotype file beacause those are the filtered ones
 
+#remove markers in allsnps(paired sample file) not in the genotype file
+
+allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
+
+```
+Check Entry Names
+```{r}
+colnames(wdh)[1]<-"Entry"
+colnames(wdh)[1]
+#Entry names appear unchanged in genotype file from phenotype entry list(maybe
+#every line we use should have a non name entry)
+
+```
+Change coding
+This step should be modified if using GAPIT or rrBLUP
+```{r}
+#convert to 0/1/2 coding
+nrow(wdh)
+
+numeric_matrix<-as.numeric(as.matrix(wdh[c(1:nrow(wdh)),c(2:ncol(wdh))]))
+numeric_matrix[which(numeric_matrix==1)]= 2
+numeric_matrix[which(numeric_matrix==0.5)]= 1
+wdh[c(1:nrow(wdh)),c(2:ncol(wdh))]<-numeric_matrix
+wdh[c(1:8),c(1:8)]
+
+rm(numeric_matrix)
+
+wdh[which(wdh ==1)] = 2
+wdh[which(wdh == 0.5)] = 1 #these should be removed, we shouldn't have heterozygous positions with double haploids
+
+
+
+```
