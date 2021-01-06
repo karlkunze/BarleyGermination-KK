@@ -107,7 +107,7 @@ wdh[c(1:8),c(1:8)]
 wdh[c(1:8),c(1:8)]
 
 
-wdh2=as.data.frame(apply(wdh,1, function(x) { 
+wdh=as.data.frame(apply(wdh,1, function(x) { 
   
   x[which(x == 1)] = 2
   x[which(x == 0.5)] = 1
@@ -115,8 +115,15 @@ wdh2=as.data.frame(apply(wdh,1, function(x) {
   x
   }))
 #be careful not to run this recursively(i e more than once)
-#this aparently inverted the matrix
-wdh2[1:5,1:5]
-wdh[1:5,1:5]
+#this aparently inverted the matrix, which you want
+
+#check for entries as rows, markers as columns
+
+wdh=as.data.frame(t(wdh))
+wdh[c(1:5),c(1:5)]
+```
+add marker data if available
+```{r}
+
 
 ```
