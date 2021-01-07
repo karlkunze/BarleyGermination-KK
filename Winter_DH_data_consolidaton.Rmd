@@ -192,6 +192,14 @@ str(All_pheno_TPall)
 All_pheno_TPall$GIscale_5D
 All_pheno_TPall$GIscale
 table(All_pheno_TPall$Entry)
+which(All_pheno_TPall$Entry=="Check 3-DH130911")
+which(All_pheno_TPall$Entry=="Check 3-SY Tepee")
+which(All_pheno_TPall$Entry=="Check 4-Sy Tepee")
+#if this is present correct it
+All_pheno_TPall[c(6353,6354),]$Entry<-"Check 4-SY Tepee"
+All_pheno_TPall[c(11,571,1060,1596,2210,2805),]$Entry<-"Check 4-SY Tepee"
+All_pheno_TPall[3752,]$Entry<-"Check 3-DH130910"
+table(All_pheno_TPall$Entry)
 #View(All_pheno_TPall)
 save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
 
