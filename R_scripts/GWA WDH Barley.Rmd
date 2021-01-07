@@ -11,6 +11,7 @@ read in phenotype files
 library(here)
 load(here("WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
+View(WDH20_pheno)
 str(WDH20_pheno)
 #make separate data object for field phenotypes
 colnames(WDH20_pheno)
@@ -37,8 +38,182 @@ library(compiler)
 #source code for GAPIT functions since GAPIT is not on CRAN
 source("http://zzlab.net/GAPIT/gapit_functions.txt")
 
+```
+Germination Time point models
+```{r}
+#separate data based on timepoints
+str(WDH20_pheno)
+TP1WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="1",])
+TP2WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+TP3WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+TP4WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+str(TP4WDH)
+
+View(TP4WDH)
+
+TP1WDH<-TP1WDH[!is.na(TP1WDH$PLOT),]
+TP2WDH<-TP2WDH[!is.na(TP2WDH$PLOT),]
+TP3WDH<-TP3WDH[!is.na(TP3WDH$PLOT),]
+TP4WDH<-TP4WDH[!is.na(TP4WDH$PLOT),]
+```
+
+```{r}
+WDH20phs.lm=lm(phs~Entry+ Harv, data=WDH20_pheno)
+
+anova(WDH20phs.lm) #all factors signif
+#TP1
+wdhge1.lm=lm(GE~ Entry +Location+ PM, data=TP1WDH)
+anova(wdhge1.lm) #location and PM sg
+wdhgi1.lm=lm(GIscale~ Entry +Location + PM, data=TP1WDH)
+anova(wdhgi1.lm) #location slightly s, PM
+
+wdhge1_5D.lm=lm(GE_5D~ Entry +Location+ PM, data=TP1WDH)
+anova(wdhge1_5D.lm) #location and PM sg
+wdhgi1_5D.lm=lm(GIscale_5D~ Entry +Location + PM, data=TP1WDH)
+anova(wdhgi1_5D.lm) #location slightly s, PM
+
+wdhge1.lm
+wdhgi1.lm
+wdhge1_5D.lm
+wdhgi1_5D.lm
+
+
+
+#TP2
+wdhge2.lm=lm(GE~ Entry +Location+ PM, data=TP2WDH)
+anova(wdhge2.lm) # all signif
+wdhgi2.lm=lm(GIscale~ Entry +Location + PM, data=TP2WDH)
+anova(wdhgi2.lm) #all signif
+
+wdhge2_5D.lm=lm(GE_5D~ Entry +Location+ PM, data=TP2WDH)
+anova(wdhge2_5D.lm) # all signif
+wdhgi2_5D.lm=lm(GIscale_5D~ Entry +Location + PM, data=TP2WDH)
+anova(wdhgi2_5D.lm) #all signif
+#TP3
+wdhge3.lm=lm(GE~ Entry +Location+ PM+PM:replication, data=TP3WDH)
+anova(wdhge3.lm) # all signif
+wdhgi3.lm=lm(GIscale~ Entry +Location + PM+PM:replication, data=TP3WDH)
+anova(wdhgi3.lm) #all signif
+
+wdhge3_5D.lm=lm(GE_5D~ Entry +Location+ PM+PM:replication, data=TP3WDH)
+anova(wdhge3_5D.lm) # only Entry is significant
+wdhgi3_5D.lm=lm(GIscale_5D~ Entry +Location + PM +PM:replication, data=TP3WDH)
+anova(wdhgi3_5D.lm) #all signif
+#TP4
+wdhge4.lm=lm(GE~ Entry +Location+ PM+PM:replication, data=TP4WDH)
+anova(wdhge4.lm) # rep slightly sign
+wdhgi4.lm=lm(GIscale~ Entry +Location + PM+PM:replication, data=TP4WDH)
+anova(wdhgi4.lm) #all signif
+
+wdhge4_5D.lm=lm(GE_5D~ Entry +Location+ PM+PM:replication, data=TP4WDH)
+anova(wdhge4_5D.lm) # only Entry is significant
+wdhgi4_5D.lm=lm(GIscale_5D~ Entry +Location + PM +PM:replication, data=TP4WDH)
+anova(wdhgi4_5D.lm) #all signif
+
+
+##BLUPS
+#base mixed model for each trait for genotypic BLUPs
+wdhphs.lmer=lmer(phs~ PM+ (1|Entry), data=WDH20_pheno)
+summary(wdhphs.lmer)
+
+wdhGE_TP1.lmer=lmer(GE~ Location + PM + (1|Entry), data=TP1WDH)
+wdhGI_TP1.lmer=lmer(GIscale~ Location + PM + (1|Entry), data=TP1WDH)
+wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location + PM + (1|Entry), data=TP1WDH)
+wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + PM + (1|Entry), data=TP1WDH)
+
+wdhGE_TP2.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=TP2WDH)
+wdhGI_TP2.lmer=lmer(GIscale~  Location +PM + (1|Entry), data=TP2WDH)
+wdhGE_TP2_5D.lmer=lmer(GE_5D~  Location + PM+ (1|Entry) , data=TP2WDH)
+wdhGI_TP2_5D.lmer=lmer(GIscale_5D~  Location +PM + (1|Entry), data=TP2WDH)
+
+wdhGE_TP3.lmer=lmer(GE~  Location + PM+PM:replication +(1|Entry) , data=TP3WDH)
+wdhGI_TP3.lmer=lmer(GIscale~  Location +PM+PM:replication + (1|Entry), data=TP3WDH)
+wdhGE_TP3_5D.lmer=lmer(GE_5D~  Location + PM+PM:replication + (1|Entry) , data=TP3WDH)
+wdhGI_TP3_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP3WDH)
+
+wdhGE_TP4.lmer=lmer(GE~  Location + PM+PM:replication +(1|Entry) , data=TP4WDH)
+wdhGI_TP4.lmer=lmer(GIscale~  Location +PM+PM:replication + (1|Entry), data=TP4WDH)
+wdhGE_TP4_5D.lmer=lmer(GE_5D~  Location + PM+PM:replication + (1|Entry) , data=TP4WDH)
+wdhGI_TP4_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP4WDH)
+
+
+
+```
+Cullis Heritability for unbalanced designs
+```{r}
+Cullis_H2=function(model){
+  library(arm)
+  ses<- se.ranef(model)$'Entry' #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
+  v_BLUP<- ses^2
+  sigma2_g=VarCorr(model, comp="Variance")$'Entry'[1]
+  Reliability<- 1- v_BLUP/ (2*sigma2_g)  #where sigma2_g is the genetic variance estimated with the model saved in 'm'
+  H2<- round(mean(Reliability),3) #This is equivalent to broad-sense heritability on the line-mean (or family-mean, if your individuals are non-inbred families) basis
+  H2
+}
+Cullis_H2(ggphs.lmer) 
+Cullis_H2(ggGE_TP1.lmer) 
+Cullis_H2(ggGI_TP1.lmer) 
+Cullis_H2(ggGE_TP2.lmer) 
+Cullis_H2(ggGI_TP2.lmer) #0.96
+Cullis_H2(ggGE_TP3.lmer) 
+Cullis_H2(ggGI_TP3.lmer) 
+Cullis_H2(ggWS_TP3.lmer) #0.79
+Cullis_H2(ggWSI_TP3.lmer) #0.86
+Cullis_H2(ggsWSI_TP3.lmer) 
+#TP1
+Cullis_H2(wdhGE_TP1.lmer)
+Cullis_H2(wdhGI_TP1.lmer)
+Cullis_H2(wdhGE_TP1_5D.lmer)
+Cullis_H2(wdhGI_TP1_5D.lmer)
+#TP2
+Cullis_H2(wdhGE_TP2.lmer)
+Cullis_H2(wdhGI_TP2.lmer)
+Cullis_H2(wdhGE_TP2_5D.lmer)
+Cullis_H2(wdhGI_TP2_5D.lmer)
+#TP3
+Cullis_H2(wdhGE_TP3.lmer)
+Cullis_H2(wdhGI_TP3.lmer)
+Cullis_H2(wdhGE_TP3_5D.lmer)
+Cullis_H2(wdhGI_TP3_5D.lmer)
+
+Cullis_H2(wdhGE_TP4.lmer)
+Cullis_H2(wdhGI_TP4.lmer)
+Cullis_H2(wdhGE_TP4_5D.lmer)
+Cullis_H2(wdhGI_TP4_5D.lmer)
+
+
 
 ```
 
+```{r}
+get_entry_fixed_Effects = function(model, trait){
+  x = data.frame(coef(model))
+  x$names = rownames(x)
+  x$names2 = substr(x$names,1,5)
+  x = subset(x, x$names2 %in% c('(Inte', 'Entry'))
+  x$taxa = substring(x$names, 6)
+  x$taxa[1] = model$xlevels$Entry[1]
+  intercept = x$coef.model.[1]
+  x$coef.model.[1] = 0
+  x = data.frame(taxa = x$taxa, x$coef.model.)
+  colnames(x)[2] = trait
+  return(x)
+}
+wdhge1.lm
+wdhgi1.lm
+wdhge1_5D.lm
+wdhgi1_5D.lm
+
+GETP1.blues = get_entry_fixed_Effects(wdhge1.lm, 'GE_TP1')
+GITP1.blues = get_entry_fixed_Effects(wdhgi1.lm, 'GI_TP1')
+
+GETP1_5D.blues = get_entry_fixed_Effects(wdhge1_5D.lm, 'GE_5D_TP1')
+GITP1_5D.blues = get_entry_fixed_Effects(wdhgi1_5D.lm, 'GI_5D_TP1')
 
 
+GETP2.blues = get_entry_fixed_Effects(wdhge2.lm, 'GE_TP2')
+GITP2.blues = get_entry_fixed_Effects(wdhgi2.lm, 'GI_TP2')
+
+GETP2_5D.blues = get_entry_fixed_Effects(wdhge2_5D.lm, 'GE_5D_TP2')
+GITP2_5D.blues = get_entry_fixed_Effects(wdhgi2_5D.lm, 'GI_5D_TP2')
+```
