@@ -1,0 +1,16 @@
+---
+title: "GWA WDH Barley"
+author: "Karl Kunze"
+date: "1/7/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+read in phenotype files
+```{r}
+library(here)
+load(here("WMB DH 2020 all data for analysis.RData"))
+WDH20_pheno<-All_pheno_TPall
+str(WDH20_pheno)
+
+```
