@@ -82,9 +82,9 @@ add field phenotype data
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
 DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
-
+table(DH_2020_PHS$Entry)
 DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)
-
+##issue with Ketola and Snyder of DH130910 naming
 DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all = TRUE)
 
 ```
@@ -184,12 +184,14 @@ colnames(TPall)
 
 TPall$GIscale
 TPall$GIscale_5D
-
+table(TPall$Entry)
 colnames(DH_2020_field)
+table(DH_2020_field$Entry)
 All_pheno_TPall<-merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all = TRUE)
 str(All_pheno_TPall)
 All_pheno_TPall$GIscale_5D
 All_pheno_TPall$GIscale
+table(All_pheno_TPall$Entry)
 #View(All_pheno_TPall)
 save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
 
