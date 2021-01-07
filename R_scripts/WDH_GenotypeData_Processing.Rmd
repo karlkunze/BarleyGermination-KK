@@ -163,7 +163,9 @@ str(myGM20)
 library(tidyverse)
 
 DH_Entry<-WDH20_pheno[,c(1,2,3,7,10)]
-DH_Entry[!duplicated('Entry')]
+DH_Entry<-DH_Entry[!duplicated(DH_Entry['PLOT']),]
+
+
 library(gdsfmt)
 library(SNPRelate)
 myGM20$Chromosome
