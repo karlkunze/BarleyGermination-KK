@@ -4,6 +4,10 @@ output: html_notebook
 editor_options: 
   chunk_output_type: console
 ---
+
+Workflow:
+Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
+
 Filling in Missing Chr positions
 ```{r}
 library(readxl)
