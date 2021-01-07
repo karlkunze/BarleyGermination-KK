@@ -162,16 +162,17 @@ str(myGM20)
 ```{r}
 library(tidyverse)
 
-DH_Entry<-WDH20_pheno[,'Entry'][!duplicated(WDH20_pheno[,'Entry'])]
-DH_Entry
+DH_Entry<-WDH20_pheno[,c(1,2,3,7,10)]
+DH_Entry[!duplicated('Entry')]
 library(gdsfmt)
 library(SNPRelate)
 myGM20$Chromosome
 chr=as.integer(myGM20$Chromosome)
+str(wdh)
 snpgdsCreateGeno("test.gds", genmat = as.matrix(round(wdh,0)), sample.id=row.names(wdh), snp.id = colnames(wdh), snp.chromosome = chr,
                  snp.position = as.integer(myGM20$Position), snpfirstdim = F)
 
-(gdsfile <- snpgdsOpen("test.gds"))
+gdsfile <- snpgdsOpen("test.gds")
 
 pca <- snpgdsPCA(gdsfile)
 pc.percent <- pca$varprop*100
