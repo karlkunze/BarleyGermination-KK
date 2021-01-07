@@ -12,5 +12,33 @@ library(here)
 load(here("WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
 str(WDH20_pheno)
+#make separate data object for field phenotypes
+colnames(WDH20_pheno)
+WDH20_phenoF<-WDH20_pheno[,c(1:27)]
+WDH20_phenoF<-WDH20_phenoF[!duplicated(WDH20_phenoF$PLOT), ]#remove duplication
+str(WDH20_phenoF)
+```
+Read in packages and functions
+```{r}
+#GAPIT functions
+
+library(rrBLUP)
+library(lme4)
+library(readxl)
+library(readr)
+library(gplots)
+library(LDheatmap)
+library(genetics)
+library(ape)
+library(EMMREML)
+library("scatterplot3d")
+library(compiler)
+
+#source code for GAPIT functions since GAPIT is not on CRAN
+source("http://zzlab.net/GAPIT/gapit_functions.txt")
+
 
 ```
+
+
+
