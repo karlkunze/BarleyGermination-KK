@@ -183,27 +183,18 @@ plot(1:10,pc.percent[1:10])
 
 library(ggplot2)
 test=data.frame(pca$eigenvect)
-test$population=GGS_20_names$Population[match(pca$sample.id, GGS_20_names$Entry)]
-test$population[which(is.na(test$population ))] = "JIC"
-test$population[which(test$population %in% c("check", "C1G", "C1P","C2G","base"))] = "GGS"
-six=c("DH133529", "DH133535", "MS1054111_01", "MS1054115_03", "Tamalpais", "BB5","BB28","BBB528","Purple_Valley","Morex","Steptoe","ND20448","Bohmische_Nackte",
-      "Larker","Tamparkorn","Chevron","Bere","Sativum_Jessen_England","Mestny","Odessa","Tiree_6_row","Austrian_Early","Asplund","Kagelkorn","Hatif_de_Grignon","Manchuria","Monte_Cristo","Riojana","Oderbrucker","Klages")
-test$row_type=as.factor(ifelse(pca$sample.id %in% six, 6, 2))
+DH_Entry$Pedigree
+test$pedigree=DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
 
 
-ggplot(test, aes(x=X1, y=X2, color=row_type ))+
+
+
+ggplot(test, aes(x=X1, y=X2, color=pedigree))+
   geom_point(size=2) +
   theme_bw() +
-  ggtitle("PCA by row type") +
-  xlab("PC1: 13.9%") +
-  ylab("PC2: 5.1%")
-
-ggplot(test, aes(x=X1, y=X2, color=population ))+
-  geom_point(size=2) +
-  theme_bw() +
-  ggtitle("PCA by Population")+
-  xlab("PC1: 13.9%") +
-  ylab("PC2: 5.1%")
+  ggtitle("PCA by Pedigree")+
+  xlab("PC1: 17.26%") +
+  ylab("PC2: 5.08%")
 
 
 
