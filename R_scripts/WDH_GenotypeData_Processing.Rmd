@@ -132,19 +132,20 @@ add marker data if available
 library(rrBLUP)
 wdh=as.data.frame(A.mat(wdh-1, return.imputed = T)$imputed+1)
 
-v2<-read.delim("C:/Users/Karl/50k_data/Winter DH population/barley50kMarkerPositions_Morex2019Assembly/barley50kMarkerPositions_Morex2019Assembly.gff",header = F,skip = 1)
+v2<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",header = F,skip = 1)
+
 
 colnames(v2)<-c("Chromo","Platform","Type","pos","pos2","unknown_1","strand","unknown_2","SNP")
 head(v2)
 v2$Chromo<-sapply(strsplit(v2$Chromo,"r"), "[", 2)
 #v2$Chromo<-sapply(strsplit(v2$Chromo,"H"), "[",1)
-v2$Chromo
+
 
 v2$SNP<-sapply(strsplit(v2$SNP,"D="), "[", 2)
 
 
 myGM20=data.frame(SNP=colnames(wdh))
-myGM20
+
 
 myGM20$Chromosome = v2$Chromo[match(myGM20$SNP, v2$SNP)]; myGM20$Chromosome = substr(myGM20$Chromosome ,1,1)
 myGM20$Chromosome
@@ -170,11 +171,13 @@ library(gdsfmt)
 library(SNPRelate)
 myGM20$Chromosome
 chr=as.integer(myGM20$Chromosome)
+getwd()
+ls -l
 str(wdh)
-snpgdsCreateGeno("test.gds", genmat = as.matrix(round(wdh,0)), sample.id=row.names(wdh), snp.id = colnames(wdh), snp.chromosome = chr,
+snpgdsCreateGeno("test1.gds", genmat = as.matrix(round(wdh,0)), sample.id=row.names(wdh), snp.id = colnames(wdh), snp.chromosome = chr,
                  snp.position = as.integer(myGM20$Position), snpfirstdim = F)
 
-gdsfile <- snpgdsOpen("test.gds")
+gdsfile <- snpgdsOpen("test1.gds")
 
 pca <- snpgdsPCA(gdsfile)
 pc.percent <- pca$varprop*100
@@ -196,6 +199,32 @@ ggplot(test, aes(x=X1, y=X2, color=pedigree))+
   xlab("PC1: 17.26%") +
   ylab("PC2: 5.08%")
 
+snpgdsClose(gdsfile)
 
+
+```
+
+LD Pruning
+
+```{r}
+
+chr=as.integer(myGM20$Chromosome)
+snpgdsCreateGeno("test2.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.id=myGD20$taxa, snp.id = colnames(myGD20)[-1], snp.chromosome = chr,
+                 snp.position = as.integer(myGM20$Position), snpfirstdim = F)
+
+(gdsfile <- snpgdsOpen("test2.gds"))
+
+set.seed(1000)
+
+snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 25000)
+
+snpset_names=unlist(snpset)
+myGD20_prune=myGD20[,c(1,which(colnames(myGD20) %in% snpset_names))]
+myGM20_prune=myGM20[which(myGM20$SNP %in% colnames(myGD20_prune)),]
+
+save(myGD20_prune, file="myGD20_LDprune.Rdata")
+save(myGM20_prune, file="myGM20_LDprune.Rdata")
+
+snpgdsClose(gdsfile)
 
 ```
