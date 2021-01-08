@@ -9,7 +9,15 @@ editor_options:
 read in phenotype files
 ```{r}
 library(here)
+dir1<-"C:/Users/Karl/git/BarleyGermination-KK"
+setwd(dir1)
+getwd()
 load(here("WMB DH 2020 all data for analysis.RData"))
+load(here("myGM20_LDprune.Rdata"))
+load(here("myGD20_LDprune.Rdata"))
+load(here("myGD20.Rdata"))
+load(here("myGM20.Rdata"))
+
 WDH20_pheno<-All_pheno_TPall
 
 str(WDH20_pheno)
@@ -319,10 +327,14 @@ GITP4_5D.blups=gapit_blup(wdhGI_TP4_5D.lmer, "GI_TP4")
 
 ```{r}
 # GETP1
-GWAS.GETP1.blues.mlm  =GAPIT(Y= GETP1.blues, GD=myGD, GM=myGM, PCA.total=2,file.output=F, Geno.View.output=F, model="MLM", Major.allele.zero = F)
-GWAS.GETP1.blues.mlmm =GAPIT(Y= GETP1.blues, GD=myGD, GM=myGM, PCA.total=1,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
-GWAS.GETP1.blups.mlm  =GAPIT(Y= GETP1.blups, GD=myGD, GM=myGM, PCA.total=1,file.output=F, Geno.View.output=F, model="MLM", Major.allele.zero = F)
-GWAS.GETP1.blups.mlmm =GAPIT(Y= GETP1.blups, GD=myGD, GM=myGM, PCA.total=1,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
+getwd()
+local<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT"
+setwd(local)
+getwd()
+GWAS.GETP2.blues.mlm  =GAPIT(Y= GETP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.GETP2.blues.mlmm =GAPIT(Y= GETP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP2.blups.mlm  =GAPIT(Y= GETP2.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.GETP2.blups.mlmm =GAPIT(Y= GETP2.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
 
 
 ```
