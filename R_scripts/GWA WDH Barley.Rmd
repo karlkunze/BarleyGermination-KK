@@ -11,7 +11,7 @@ read in phenotype files
 library(here)
 load(here("WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
-View(WDH20_pheno)
+
 str(WDH20_pheno)
 #make separate data object for field phenotypes
 colnames(WDH20_pheno)
@@ -121,6 +121,7 @@ wdhGI_TP1.lmer=lmer(GIscale~ Location + PM + (1|Entry), data=TP1WDH)
 wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location + PM + (1|Entry), data=TP1WDH)
 wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + PM + (1|Entry), data=TP1WDH)
 
+
 wdhGE_TP2.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=TP2WDH)
 wdhGI_TP2.lmer=lmer(GIscale~  Location +PM + (1|Entry), data=TP2WDH)
 wdhGE_TP2_5D.lmer=lmer(GE_5D~  Location + PM+ (1|Entry) , data=TP2WDH)
@@ -150,36 +151,35 @@ Cullis_H2=function(model){
   H2<- round(mean(Reliability),3) #This is equivalent to broad-sense heritability on the line-mean (or family-mean, if your individuals are non-inbred families) basis
   H2
 }
-Cullis_H2(ggphs.lmer) 
-Cullis_H2(ggGE_TP1.lmer) 
-Cullis_H2(ggGI_TP1.lmer) 
-Cullis_H2(ggGE_TP2.lmer) 
-Cullis_H2(ggGI_TP2.lmer) #0.96
-Cullis_H2(ggGE_TP3.lmer) 
-Cullis_H2(ggGI_TP3.lmer) 
-Cullis_H2(ggWS_TP3.lmer) #0.79
-Cullis_H2(ggWSI_TP3.lmer) #0.86
-Cullis_H2(ggsWSI_TP3.lmer) 
-#TP1
-Cullis_H2(wdhGE_TP1.lmer)
-Cullis_H2(wdhGI_TP1.lmer)
-Cullis_H2(wdhGE_TP1_5D.lmer)
-Cullis_H2(wdhGI_TP1_5D.lmer)
-#TP2
-Cullis_H2(wdhGE_TP2.lmer)
-Cullis_H2(wdhGI_TP2.lmer)
-Cullis_H2(wdhGE_TP2_5D.lmer)
-Cullis_H2(wdhGI_TP2_5D.lmer)
-#TP3
-Cullis_H2(wdhGE_TP3.lmer)
-Cullis_H2(wdhGI_TP3.lmer)
-Cullis_H2(wdhGE_TP3_5D.lmer)
-Cullis_H2(wdhGI_TP3_5D.lmer)
 
-Cullis_H2(wdhGE_TP4.lmer)
-Cullis_H2(wdhGI_TP4.lmer)
-Cullis_H2(wdhGE_TP4_5D.lmer)
-Cullis_H2(wdhGI_TP4_5D.lmer)
+wdhGE_TP1.lmer=lmer(GE~ Location + PM + (1|Entry), data=TP1WDH)
+wdhGI_TP1.lmer=lmer(GIscale~ Location + PM + (1|Entry), data=TP1WDH)
+wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location + PM + (1|Entry), data=TP1WDH)
+wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + PM + (1|Entry), data=TP1WDH)
+
+Cullis_H2(wdhphs.lmer)#0.999
+
+ 
+#TP1
+Cullis_H2(wdhGE_TP1.lmer)#0.982
+Cullis_H2(wdhGI_TP1.lmer)#0.973
+Cullis_H2(wdhGE_TP1_5D.lmer)#0.97
+Cullis_H2(wdhGI_TP1_5D.lmer)#0.97
+#TP2
+Cullis_H2(wdhGE_TP2.lmer)#0.984
+Cullis_H2(wdhGI_TP2.lmer)#0.989
+Cullis_H2(wdhGE_TP2_5D.lmer)#0.958
+Cullis_H2(wdhGI_TP2_5D.lmer)#0.988
+#TP3
+Cullis_H2(wdhGE_TP3.lmer)#0.923
+Cullis_H2(wdhGI_TP3.lmer)#0.976
+Cullis_H2(wdhGE_TP3_5D.lmer)#0.762
+Cullis_H2(wdhGI_TP3_5D.lmer)#0.974
+#TP4
+Cullis_H2(wdhGE_TP4.lmer)#0.855
+Cullis_H2(wdhGI_TP4.lmer)#0.939
+Cullis_H2(wdhGE_TP4_5D.lmer)#0.7
+Cullis_H2(wdhGI_TP4_5D.lmer)#0.934
 
 
 
@@ -203,6 +203,7 @@ wdhge1.lm
 wdhgi1.lm
 wdhge1_5D.lm
 wdhgi1_5D.lm
+phs.blues = get_entry_fixed_Effects(ph, 'GE_TP1')
 
 GETP1.blues = get_entry_fixed_Effects(wdhge1.lm, 'GE_TP1')
 GITP1.blues = get_entry_fixed_Effects(wdhgi1.lm, 'GI_TP1')
@@ -216,4 +217,112 @@ GITP2.blues = get_entry_fixed_Effects(wdhgi2.lm, 'GI_TP2')
 
 GETP2_5D.blues = get_entry_fixed_Effects(wdhge2_5D.lm, 'GE_5D_TP2')
 GITP2_5D.blues = get_entry_fixed_Effects(wdhgi2_5D.lm, 'GI_5D_TP2')
+
+
+GETP3.blues = get_entry_fixed_Effects(wdhge3.lm, 'GE_TP3')
+GITP3.blues = get_entry_fixed_Effects(wdhgi3.lm, 'GI_TP3')
+
+GETP3_5D.blues = get_entry_fixed_Effects(wdhge3_5D.lm, 'GE_5D_TP3')
+GITP3_5D.blues = get_entry_fixed_Effects(wdhgi3_5D.lm, 'GI_5D_TP3')
+
+
+
+GETP4.blues = get_entry_fixed_Effects(wdhge4.lm, 'GE_TP4')
+GITP4.blues = get_entry_fixed_Effects(wdhgi4.lm, 'GI_TP4')
+
+GETP4_5D.blues = get_entry_fixed_Effects(wdhge4_5D.lm, 'GE_5D_TP4')
+GITP4_5D.blues = get_entry_fixed_Effects(wdhgi4_5D.lm, 'GI_5D_TP4')
+
+###
+library(lsmeans)
+library(emmeans)
+Entry = GITP3_5D.blues$taxa
+Entry
+wdhge1.lm
+wdhgi1.lm
+wdhge1_5D.lm
+wdhgi1_5D.lm
+GETP1 = data.frame(lsmeans(wdhge1.lm, 'Entry'))
+GETP2 = data.frame(lsmeans(wdhge2.lm, 'Entry'))
+GETP3 = data.frame(lsmeans(wdhge3.lm, 'Entry'))
+GETP4 = data.frame(lsmeans(wdhge4.lm, 'Entry'))
+
+GITP1 = data.frame(lsmeans(wdhgi1.lm, 'Entry'))
+GITP2 = data.frame(lsmeans(wdhgi2.lm, 'Entry'))
+GITP3 = data.frame(lsmeans(wdhgi3.lm, 'Entry'))
+GITP4 = data.frame(lsmeans(wdhgi4.lm, 'Entry'))
+
+GETP1_5D = data.frame(lsmeans(wdhge1_5D.lm, 'Entry'))
+GETP2_5D = data.frame(lsmeans(wdhge2_5D.lm, 'Entry'))
+GETP3_5D = data.frame(lsmeans(wdhge3_5D.lm, 'Entry'))
+GETP4_5D = data.frame(lsmeans(wdhge4_5D.lm, 'Entry'))
+
+GITP1_5D = data.frame(lsmeans(wdhgi1_5D.lm, 'Entry'))
+GITP2_5D = data.frame(lsmeans(wdhgi2_5D.lm, 'Entry'))
+GITP3_5D = data.frame(lsmeans(wdhgi3_5D.lm, 'Entry'))
+GITP4_5D = data.frame(lsmeans(wdhgi4_5D.lm, 'Entry'))
+
+
+PHSlsmeans = data.frame(lsmeans(WDH20phs.lm, 'Entry'))
+
+WDH_BLUEs_2020 = Reduce(function(x, y) merge(x, y, all = TRUE,by = 'Entry'), 
+                        list(PHSlsmeans[,1:2], GETP1[,1:2], GETP2[,1:2], GETP3[,1:2],GETP4[,1:2], GITP1[,1:2], GITP2[,1:2], GITP3[,1:2],GITP4[,1:2],GETP1_5D[,1:2],GETP2_5D[,1:2],GETP3_5D[,1:2],GETP4_5D[,1:2],GITP1_5D[,1:2],GITP2_5D[,1:2],GITP3_5D[,1:2],GITP4_5D[,1:2]))
+                             
+colnames(WDH_BLUEs_2020) = c('Entry','PHS','GETP1','GETP2','GETP3','GETP4',
+                             'GITP1','GITP2','GITP3','GITP4','GETP1_5D','GETP2_5D','GETP4_5D','GETP4_5D','GITP1_5D','GITP2_5D','GITP3_5D','GITP4_5D'
+                             )
+save(WDH_BLUEs_2020,file ="data/Winter_DH/WDH_BLUEs_2020.RData")
+
+
+
+
+```
+
+```{r}
+gapit_blup=function(mod,trait){
+  df=ranef(mod)$'Entry'+fixef(mod)[[1]]; 
+  df=cbind(rownames(df), df); 
+  colnames(df)=c("taxa", trait); 
+  df[,1]=as.character(df[,1])
+  df
+}
+
+wdhGE_TP1.lmer
+wdhGI_TP1.lmer
+wdhGE_TP1_5D.lmer
+wdhGI_TP1_5D.lmer
+
+
+PHS.blups=gapit_blup(wdhphs.lmer, "PHS")
+
+GETP1.blups=gapit_blup(wdhGE_TP1.lmer, "GE_TP1")
+GITP1.blups=gapit_blup(wdhGI_TP1.lmer, "GI_TP1")
+GETP1_5D.blups=gapit_blup(wdhGE_TP1_5D.lmer, "GE_TP1")
+GITP1_5D.blups=gapit_blup(wdhGI_TP1_5D.lmer, "GI_TP1")
+
+GETP2.blups=gapit_blup(wdhGE_TP2.lmer, "GE_TP2")
+GITP2.blups=gapit_blup(wdhGI_TP2.lmer, "GI_TP2")
+GETP2_5D.blups=gapit_blup(wdhGE_TP2_5D.lmer, "GE_TP2")
+GITP2_5D.blups=gapit_blup(wdhGI_TP2_5D.lmer, "GI_TP2")
+
+GETP3.blups=gapit_blup(wdhGE_TP3.lmer, "GE_TP3")
+GITP3.blups=gapit_blup(wdhGI_TP3.lmer, "GI_TP3")
+GETP3_5D.blups=gapit_blup(wdhGE_TP3_5D.lmer, "GE_TP3")
+GITP3_5D.blups=gapit_blup(wdhGI_TP3_5D.lmer, "GI_TP3")
+
+GETP4.blups=gapit_blup(wdhGE_TP4.lmer, "GE_TP4")
+GITP4.blups=gapit_blup(wdhGI_TP4.lmer, "GI_TP4")
+GETP4_5D.blups=gapit_blup(wdhGE_TP4_5D.lmer, "GE_TP4")
+GITP4_5D.blups=gapit_blup(wdhGI_TP4_5D.lmer, "GI_TP4")
+
+```
+
+```{r}
+# GETP1
+GWAS.GETP1.blues.mlm  =GAPIT(Y= GETP1.blues, GD=myGD, GM=myGM, PCA.total=2,file.output=F, Geno.View.output=F, model="MLM", Major.allele.zero = F)
+GWAS.GETP1.blues.mlmm =GAPIT(Y= GETP1.blues, GD=myGD, GM=myGM, PCA.total=1,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
+GWAS.GETP1.blups.mlm  =GAPIT(Y= GETP1.blups, GD=myGD, GM=myGM, PCA.total=1,file.output=F, Geno.View.output=F, model="MLM", Major.allele.zero = F)
+GWAS.GETP1.blups.mlmm =GAPIT(Y= GETP1.blups, GD=myGD, GM=myGM, PCA.total=1,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
+
+
 ```
