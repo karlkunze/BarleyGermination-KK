@@ -13,8 +13,10 @@ dir1<-"C:/Users/Karl/git/BarleyGermination-KK"
 setwd(dir1)
 getwd()
 load(here("WMB DH 2020 all data for analysis.RData"))
-load(here("myGM20_LDprune.Rdata"))
-load(here("myGD20_LDprune.Rdata"))
+#load(here("myGM20_LDprune.Rdata"))
+#load(here("myGD20_LDprune.Rdata"))
+
+
 load(here("myGD20.Rdata"))
 load(here("myGM20.Rdata"))
 
@@ -26,6 +28,7 @@ colnames(WDH20_pheno)
 WDH20_phenoF<-WDH20_pheno[,c(1:27)]
 WDH20_phenoF<-WDH20_phenoF[!duplicated(WDH20_phenoF$PLOT), ]#remove duplication
 str(WDH20_phenoF)
+table(WDH20_phenoF$Scald)
 ```
 Read in packages and functions
 ```{r}
@@ -57,7 +60,7 @@ TP3WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="3",])
 TP4WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="4",])
 str(TP4WDH)
 
-View(TP4WDH)
+
 
 TP1WDH<-TP1WDH[!is.na(TP1WDH$PLOT),]
 TP2WDH<-TP2WDH[!is.na(TP2WDH$PLOT),]
@@ -66,7 +69,7 @@ TP4WDH<-TP4WDH[!is.na(TP4WDH$PLOT),]
 ```
 
 ```{r}
-WDH20phs.lm=lm(phs~Entry+ Harv, data=WDH20_pheno)
+WDH20phs.lm=lm(phs~Entry+ PM, data=WDH20_pheno)
 
 anova(WDH20phs.lm) #all factors signif
 #TP1
@@ -119,6 +122,13 @@ wdhgi4_5D.lm=lm(GIscale_5D~ Entry +Location + PM +PM:replication, data=TP4WDH)
 anova(wdhgi4_5D.lm) #all signif
 
 
+#Field Phenotypes
+WDH20_phenoF$Scald<-as.numeric(WDH20_phenoF$Scald)
+WDH20_phenoF$wh_percent
+wdhscald.lmer=lmer(Scald~Location+(1|Entry),data=WDH20_phenoF)
+summary(wdhscald.lmer)
+wdh_wh.lmer=lmer(wh_percent~location+(1|Entry),data=WDH20_phenoF)
+summary(wdh_wh.lmer)
 ##BLUPS
 #base mixed model for each trait for genotypic BLUPs
 wdhphs.lmer=lmer(phs~ PM+ (1|Entry), data=WDH20_pheno)
@@ -137,6 +147,8 @@ wdhGI_TP2_5D.lmer=lmer(GIscale_5D~  Location +PM + (1|Entry), data=TP2WDH)
 
 wdhGE_TP3.lmer=lmer(GE~  Location + PM+PM:replication +(1|Entry) , data=TP3WDH)
 wdhGI_TP3.lmer=lmer(GIscale~  Location +PM+PM:replication + (1|Entry), data=TP3WDH)
+
+
 wdhGE_TP3_5D.lmer=lmer(GE_5D~  Location + PM+PM:replication + (1|Entry) , data=TP3WDH)
 wdhGI_TP3_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP3WDH)
 
@@ -166,8 +178,8 @@ wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location + PM + (1|Entry), data=TP1WDH)
 wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + PM + (1|Entry), data=TP1WDH)
 
 Cullis_H2(wdhphs.lmer)#0.999
-
- 
+Cullis_H2(wdhscald.lmer)#0.728
+Cullis_H2(wdh_wh.lmer)#0.706
 #TP1
 Cullis_H2(wdhGE_TP1.lmer)#0.982
 Cullis_H2(wdhGI_TP1.lmer)#0.973
@@ -211,7 +223,7 @@ wdhge1.lm
 wdhgi1.lm
 wdhge1_5D.lm
 wdhgi1_5D.lm
-phs.blues = get_entry_fixed_Effects(ph, 'GE_TP1')
+phs.blues = get_entry_fixed_Effects(WDH20phs.lm, 'phs')
 
 GETP1.blues = get_entry_fixed_Effects(wdhge1.lm, 'GE_TP1')
 GITP1.blues = get_entry_fixed_Effects(wdhgi1.lm, 'GI_TP1')
@@ -323,6 +335,9 @@ GITP4.blups=gapit_blup(wdhGI_TP4.lmer, "GI_TP4")
 GETP4_5D.blups=gapit_blup(wdhGE_TP4_5D.lmer, "GE_TP4")
 GITP4_5D.blups=gapit_blup(wdhGI_TP4_5D.lmer, "GI_TP4")
 
+
+wdhscald.blups=gapit_blup(wdhscald.lmer, "Scald")
+wh_percent.blups<-gapit_blup(wdh_wh.lmer, "wh_percent")
 ```
 
 ```{r}
@@ -331,10 +346,37 @@ getwd()
 local<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT"
 setwd(local)
 getwd()
-GWAS.GETP2.blues.mlm  =GAPIT(Y= GETP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
-GWAS.GETP2.blues.mlmm =GAPIT(Y= GETP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
-GWAS.GETP2.blups.mlm  =GAPIT(Y= GETP2.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
-GWAS.GETP2.blups.mlmm =GAPIT(Y= GETP2.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
+
+
+
+GWAS.GITP4.blues.mlm  =GAPIT(Y= GITP4.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+
+
+GWAS.GITP4.blues.mlm  =GAPIT(Y= GITP4.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+
+GWAS.GITP4.blues.mlmm =GAPIT(Y= GITP4.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.GITP4.blues_5D.mlm  =GAPIT(Y= GITP4_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+
+
+GWAS.GITP4.blues_5D.mlmm =GAPIT(Y= GITP4_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+####BLUPS####
+
+PHS.blups.mlm  =GAPIT(Y= PHS.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+PHS.blups.mlmm  =GAPIT(Y= PHS.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+
+GWAS.GITP3.blups.mlm  =GAPIT(Y= GITP3.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.GITP3.blups.mlmm =GAPIT(Y= GITP3.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.GITP3_5D.blups.mlm  =GAPIT(Y= GITP3_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.GITP3_5D.blups.mlmm =GAPIT(Y= GITP3_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+#Field Phenotypes
+GWAS.Scald.blups.farmcpu =GAPIT(Y= wdhscald.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
+wh_percent.blups
+GWAS.wh_percent.blups.farmcpu=GAPIT(Y= wh_percent.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
+
 
 
 ```
