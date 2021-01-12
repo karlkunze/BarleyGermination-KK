@@ -69,18 +69,19 @@ TP4WDH<-TP4WDH[!is.na(TP4WDH$PLOT),]
 ```
 
 ```{r}
-WDH20phs.lm=lm(phs~Entry+ PM, data=WDH20_pheno)
+WDH20phs.lm=lm(phs~Entry+PM, data=WDH20_pheno)
 
 anova(WDH20phs.lm) #all factors signif
 #TP1
-wdhge1.lm=lm(GE~ Entry +Location+ PM, data=TP1WDH)
+wdhge1.lm=lm(GE~Entry + Location, data=TP1WDH)
 anova(wdhge1.lm) #location and PM sg
-wdhgi1.lm=lm(GIscale~ Entry +Location + PM, data=TP1WDH)
+str(TP1WDH)
+wdhgi1.lm=lm(GIscale~ Entry+Location, data=TP1WDH)
 anova(wdhgi1.lm) #location slightly s, PM
 
-wdhge1_5D.lm=lm(GE_5D~ Entry +Location+ PM, data=TP1WDH)
+wdhge1_5D.lm=lm(GE_5D~ Entry +Location+Scald, data=TP1WDH)
 anova(wdhge1_5D.lm) #location and PM sg
-wdhgi1_5D.lm=lm(GIscale_5D~ Entry +Location + PM, data=TP1WDH)
+wdhgi1_5D.lm=lm(GIscale_5D~ Entry+Scald, data=TP1WDH)
 anova(wdhgi1_5D.lm) #location slightly s, PM
 
 wdhge1.lm
@@ -91,72 +92,93 @@ wdhgi1_5D.lm
 
 
 #TP2
-wdhge2.lm=lm(GE~ Entry +Location+ PM, data=TP2WDH)
+wdhge2.lm=lm(GE~ Entry +Location, data=TP2WDH)
 anova(wdhge2.lm) # all signif
-wdhgi2.lm=lm(GIscale~ Entry +Location + PM, data=TP2WDH)
+wdhgi2.lm=lm(GIscale~ Entry +Location, data=TP2WDH)
 anova(wdhgi2.lm) #all signif
 
-wdhge2_5D.lm=lm(GE_5D~ Entry +Location+ PM, data=TP2WDH)
+wdhge2_5D.lm=lm(GE_5D~ Entry +Location, data=TP2WDH)
 anova(wdhge2_5D.lm) # all signif
-wdhgi2_5D.lm=lm(GIscale_5D~ Entry +Location + PM, data=TP2WDH)
+wdhgi2_5D.lm=lm(GIscale_5D~ Entry +Location, data=TP2WDH)
 anova(wdhgi2_5D.lm) #all signif
 #TP3
-wdhge3.lm=lm(GE~ Entry +Location+ PM+PM:replication, data=TP3WDH)
+wdhge3.lm=lm(GE~ Entry +Location+ replication, data=TP3WDH)
 anova(wdhge3.lm) # all signif
-wdhgi3.lm=lm(GIscale~ Entry +Location + PM+PM:replication, data=TP3WDH)
+wdhgi3.lm=lm(GIscale~ Entry +Location, data=TP3WDH)
 anova(wdhgi3.lm) #all signif
 
-wdhge3_5D.lm=lm(GE_5D~ Entry +Location+ PM+PM:replication, data=TP3WDH)
+wdhge3_5D.lm=lm(GE_5D~ Entry, data=TP3WDH)
 anova(wdhge3_5D.lm) # only Entry is significant
-wdhgi3_5D.lm=lm(GIscale_5D~ Entry +Location + PM +PM:replication, data=TP3WDH)
+wdhgi3_5D.lm=lm(GIscale_5D~ Entry +Location + replication, data=TP3WDH)
 anova(wdhgi3_5D.lm) #all signif
 #TP4
-wdhge4.lm=lm(GE~ Entry +Location+ PM+PM:replication, data=TP4WDH)
+wdhge4.lm=lm(GE~ Entry +Location+ replication, data=TP4WDH)
 anova(wdhge4.lm) # rep slightly sign
-wdhgi4.lm=lm(GIscale~ Entry +Location + PM+PM:replication, data=TP4WDH)
+wdhgi4.lm=lm(GIscale~ Entry +replication, data=TP4WDH)
+#should consider not using PM as fixed effect due to highly unbalanced set
 anova(wdhgi4.lm) #all signif
 
-wdhge4_5D.lm=lm(GE_5D~ Entry +Location+ PM+PM:replication, data=TP4WDH)
+wdhge4_5D.lm=lm(GE_5D~ Entry +Location+ replication, data=TP4WDH)
 anova(wdhge4_5D.lm) # only Entry is significant
-wdhgi4_5D.lm=lm(GIscale_5D~ Entry +Location + PM +PM:replication, data=TP4WDH)
+wdhgi4_5D.lm=lm(GIscale_5D~ Entry+ replication, data=TP4WDH)
 anova(wdhgi4_5D.lm) #all signif
 
 
 #Field Phenotypes
 WDH20_phenoF$Scald<-as.numeric(WDH20_phenoF$Scald)
 WDH20_phenoF$wh_percent
-wdhscald.lmer=lmer(Scald~Location+(1|Entry),data=WDH20_phenoF)
+wdhscald.lmer=lmer(Scald~1+(1|Entry),data=WDH20_phenoF)
 summary(wdhscald.lmer)
-wdh_wh.lmer=lmer(wh_percent~location+(1|Entry),data=WDH20_phenoF)
+wdh_wh.lmer=lmer(wh_percent~Location+(1|Entry),data=WDH20_phenoF)
 summary(wdh_wh.lmer)
 ##BLUPS
 #base mixed model for each trait for genotypic BLUPs
-wdhphs.lmer=lmer(phs~ PM+ (1|Entry), data=WDH20_pheno)
+wdhphs.lmer=lmer(phs~1+(1|Entry)+(1|PM), data=WDH20_pheno)
 summary(wdhphs.lmer)
 
-wdhGE_TP1.lmer=lmer(GE~ Location + PM + (1|Entry), data=TP1WDH)
-wdhGI_TP1.lmer=lmer(GIscale~ Location + PM + (1|Entry), data=TP1WDH)
-wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location + PM + (1|Entry), data=TP1WDH)
-wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + PM + (1|Entry), data=TP1WDH)
+wdhGE_TP1.lmer=lmer(GE~ Location + (1|Entry), data=TP1WDH)
+AIC(wdhGE_TP1.lmer)
+wdhGI_TP1.lmer=lmer(GIscale~ Location +(1|PM)+ (1|Entry), data=TP1WDH)
+AIC(wdhGI_TP1.lmer)
+wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location +(1|PM)+ (1|Entry), data=TP1WDH)
+AIC(wdhGE_TP1_5D.lmer)
+wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + (1|PM )+ (1|Entry), data=TP1WDH)
+AIC(wdhGI_TP1_5D.lmer)
+
+
+
+
+
 
 
 wdhGE_TP2.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=TP2WDH)
-wdhGI_TP2.lmer=lmer(GIscale~  Location +PM + (1|Entry), data=TP2WDH)
+AIC(wdhGE_TP2.lmer)
+wdhGI_TP2.lmer=lmer(GIscale~Location +(1|PM)+ (1|Entry), data=TP2WDH)
+AIC(wdhGI_TP2.lmer)
 wdhGE_TP2_5D.lmer=lmer(GE_5D~  Location + PM+ (1|Entry) , data=TP2WDH)
+AIC(wdhGE_TP2_5D.lmer)
 wdhGI_TP2_5D.lmer=lmer(GIscale_5D~  Location +PM + (1|Entry), data=TP2WDH)
-
+AIC(wdhGI_TP2_5D.lmer)
 wdhGE_TP3.lmer=lmer(GE~  Location + PM+PM:replication +(1|Entry) , data=TP3WDH)
+AIC(wdhGE_TP3.lmer)
 wdhGI_TP3.lmer=lmer(GIscale~  Location +PM+PM:replication + (1|Entry), data=TP3WDH)
+AIC(wdhGI_TP3.lmer)
 
 
-wdhGE_TP3_5D.lmer=lmer(GE_5D~  Location + PM+PM:replication + (1|Entry) , data=TP3WDH)
-wdhGI_TP3_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP3WDH)
+wdhGE_TP3_5D.lmer=lmer(GE_5D~  Location +(1|PM)+replication + (1|Entry) , data=TP3WDH)
+AIC(wdhGE_TP3_5D.lmer)
+wdhGI_TP3_5D.lmer=lmer(GIscale_5D~  Location+ (1|PM)+ (1|Entry), data=TP3WDH)
+AIC(wdhGI_TP3_5D.lmer)
+wdhGE_TP4.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP4WDH)
+AIC(wdhGE_TP4.lmer)
 
-wdhGE_TP4.lmer=lmer(GE~  Location + PM+PM:replication +(1|Entry) , data=TP4WDH)
-wdhGI_TP4.lmer=lmer(GIscale~  Location +PM+PM:replication + (1|Entry), data=TP4WDH)
-wdhGE_TP4_5D.lmer=lmer(GE_5D~  Location + PM+PM:replication + (1|Entry) , data=TP4WDH)
+wdhGI_TP4.lmer=lmer(GIscale~  Location +replication + (1|Entry), data=TP4WDH)
+AIC(wdhGI_TP4.lmer)
+wdhGE_TP4_5D.lmer=lmer(GE_5D~  Location + replication+ (1|PM) + (1|Entry) , data=TP4WDH)
+AIC(wdhGE_TP4_5D.lmer)
+
 wdhGI_TP4_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP4WDH)
-
+AIC(wdhGI_TP4_5D.lmer)
 
 
 ```
@@ -172,10 +194,7 @@ Cullis_H2=function(model){
   H2
 }
 
-wdhGE_TP1.lmer=lmer(GE~ Location + PM + (1|Entry), data=TP1WDH)
-wdhGI_TP1.lmer=lmer(GIscale~ Location + PM + (1|Entry), data=TP1WDH)
-wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location + PM + (1|Entry), data=TP1WDH)
-wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + PM + (1|Entry), data=TP1WDH)
+
 
 Cullis_H2(wdhphs.lmer)#0.999
 Cullis_H2(wdhscald.lmer)#0.728
@@ -343,20 +362,28 @@ wh_percent.blups<-gapit_blup(wdh_wh.lmer, "wh_percent")
 ```{r}
 # GETP1
 getwd()
-local<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT"
-setwd(local)
+local1<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT_results/TP1"
+#when setting these directories, using MLMM
+setwd(local1)
+getwd()
+#setwd(dir)<-default working directory
+GWAS.GETP1.blues.mlmm  =GAPIT(Y= GETP1.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP1.blues.mlmm  =GAPIT(Y= GITP1.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+####TP2###
+getwd()
+local2<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT_results/TP2"
+#when setting these directories, using MLMM
+setwd(local2)
 getwd()
 
+GWAS.GITP2.blues.mlmm  =GAPIT(Y= GITP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
+GWAS.GETP2.blues.mlmm  =GAPIT(Y= GETP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP4.blues.mlm  =GAPIT(Y= GITP4.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+#GWAS.GITP2.blues_5D.mlmm =GAPIT(Y= GITP2_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP2.blues_5D.mlmm  =GAPIT(Y= GETP2_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-
-GWAS.GITP4.blues.mlm  =GAPIT(Y= GITP4.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
-
-GWAS.GITP4.blues.mlmm =GAPIT(Y= GITP4.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
-
-GWAS.GITP4.blues_5D.mlm  =GAPIT(Y= GITP4_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.GITP2.blues_5D.mlmm  =GAPIT(Y= GIT2_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
 GWAS.GITP4.blues_5D.mlmm =GAPIT(Y= GITP4_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
@@ -367,11 +394,11 @@ PHS.blups.mlm  =GAPIT(Y= PHS.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.outpu
 PHS.blups.mlmm  =GAPIT(Y= PHS.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
-GWAS.GITP3.blups.mlm  =GAPIT(Y= GITP3.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
-GWAS.GITP3.blups.mlmm =GAPIT(Y= GITP3.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP2.blups.mlm  =GAPIT(Y= GITP2.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP3.blups.mlmm =GAPIT(Y= GETP3.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 
 GWAS.GITP3_5D.blups.mlm  =GAPIT(Y= GITP3_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
-GWAS.GITP3_5D.blups.mlmm =GAPIT(Y= GITP3_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP3_5D.blups.farmcpu=GAPIT(Y= GITP3_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
 #Field Phenotypes
 GWAS.Scald.blups.farmcpu =GAPIT(Y= wdhscald.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
 wh_percent.blups
