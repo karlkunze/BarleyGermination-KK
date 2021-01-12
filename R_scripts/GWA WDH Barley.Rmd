@@ -367,8 +367,13 @@ local1<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/G
 setwd(local1)
 getwd()
 #setwd(dir)<-default working directory
-GWAS.GETP1.blues.mlmm  =GAPIT(Y= GETP1.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP1.blues.mlmm  =GAPIT(Y= GETP1.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 GWAS.GITP1.blues.mlmm  =GAPIT(Y= GITP1.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.GETP1.blups.mlmm  =GAPIT(Y= GETP1.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.GETP1.blups.mlmm  =GAPIT(Y= GETP1.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
 ####TP2###
 getwd()
 local2<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT_results/TP2"
@@ -425,7 +430,7 @@ PHS.blups.mlm  =GAPIT(Y= PHS.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.outpu
 PHS.blups.mlmm  =GAPIT(Y= PHS.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
-GWAS.GITP2.blups.mlm  =GAPIT(Y= GITP2.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
 GWAS.GETP3.blups.mlmm =GAPIT(Y= GETP3.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 
 GWAS.GITP3_5D.blups.mlm  =GAPIT(Y= GITP3_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
