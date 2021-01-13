@@ -19,8 +19,19 @@ load(here("WMB DH 2020 all data for analysis.RData"))
 
 load(here("myGD20.Rdata"))
 load(here("myGM20.Rdata"))
+load(here("AlaT_markers.Rdata"))
+colnames(AlaT_markers)[4]<-"Entry"
+table(All_pheno_TPall$Entry)
+AlaT_markers[AlaT_markers$Entry=="Flavia",]$Entry<-"Check 1-Flavia"
+AlaT_markers[AlaT_markers$Entry=="Scala",]$Entry<-"Check 2-Scala"
+AlaT_markers[AlaT_markers$Entry=="DH130910",]$Entry<-"Check 3-DH130910"
+AlaT_markers[AlaT_markers$Entry=="Tepee",]$Entry<-"Check 4-SY Tepee"
+AlaT_markers[AlaT_markers$Entry=="Wintmalt",]$Entry<-"Check 5-Wintmalt"
 
-WDH20_pheno<-All_pheno_TPall
+
+WDH20_pheno<-merge(All_pheno_TPall,AlaT_markers[,c(4,12)],by="Entry",all = T)
+
+
 
 str(WDH20_pheno)
 #make separate data object for field phenotypes
