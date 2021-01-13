@@ -70,7 +70,7 @@ library(here)
 load(here("WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
 
-WDH20_pheno$Entry
+
 wdh<-read.table("data/Genotype_data/Cornell2020Sorrells-50k Project_Standard1Filte-numeric.hmp.txt",skip=1, header=T,sep ='\t')
 #need to skip because there is an extra header, first being numeric 'skip=1' skips the <numeric> 
 ```
@@ -101,6 +101,16 @@ wdh<-wdh[,-1]
 #Entry names appear unchanged in genotype file from phenotype entry list(maybe
 #every line we use should have a non name entry)
 
+```
+Add AlAat marker data
+```{r}
+
+AlaT_markers<-read_excel("data/Marker_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results')
+AlaT_markers
+AlaT_markers<-AlaT_markers[,c(1:12)]
+colnames(AlaT_markers)[12]<-"AlaT_Allele"
+AlaT_markers$AlaT_Allele<-as.factor(AlaT_markers$AlaT_Allele)
+#in 0 and 2 coding
 ```
 Change coding
 This step should be modified if using GAPIT or rrBLUP
@@ -149,6 +159,7 @@ myGM20=data.frame(SNP=colnames(wdh))
 
 myGM20$Chromosome = v2$Chromo[match(myGM20$SNP, v2$SNP)]; myGM20$Chromosome = substr(myGM20$Chromosome ,1,1)
 myGM20$Chromosome
+
 myGM20$Chromosome[which(myGM20$Chromosome=="U")]="8"
 
 myGM20$Position = as.character(v2$pos[match(myGM20$SNP, v2$SNP)])
@@ -157,6 +168,7 @@ myGD20=as.data.frame(cbind(rownames(wdh), wdh)); colnames(myGD20)[1]="taxa"
 str(myGD20)
 str(myGM20)
 
+myGM20<-myGM20[with(myGM20, order(Chromosome,Position)),]
 
 ```
 
@@ -199,6 +211,10 @@ ggplot(test, aes(x=X1, y=X2, color=pedigree))+
   xlab("PC1: 17.26%") +
   ylab("PC2: 5.08%")
 
+getwd()
+save(myGD20, file="myGD20.Rdata")
+save(myGM20, file="myGM20.Rdata")
+save(AlaT_markers, file="AlaT_markers.Rdata")
 snpgdsClose(gdsfile)
 
 
