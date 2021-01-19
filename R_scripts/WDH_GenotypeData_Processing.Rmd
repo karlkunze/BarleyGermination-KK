@@ -40,7 +40,7 @@ table(Barley50_9K$Chr)
 Barley50_9K<-Barley50_9K[with(Barley50_9K, order(Chr, bp)),]
 
 
-Paired_samples$Position
+hist(Paired_samples$Position)
 str(Paired_samples)
 hist(Paired_samples$Position)
 table(Paired_samples$Chr)
@@ -90,18 +90,6 @@ ncol(wdh)
 allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
 
 ```
-Check Entry Names
-```{r}
-wdh[1:8,1:8]
-colnames(wdh)[1]<-"Entry"
-colnames(wdh)[1]
-wdh[,1]
-rownames(wdh)<-wdh[,1]
-wdh<-wdh[,-1]
-#Entry names appear unchanged in genotype file from phenotype entry list(maybe
-#every line we use should have a non name entry)
-
-```
 Add AlAat marker data
 ```{r}
 
@@ -110,8 +98,28 @@ AlaT_markers
 AlaT_markers<-AlaT_markers[,c(1:12)]
 colnames(AlaT_markers)[12]<-"AlaT_Allele"
 AlaT_markers$AlaT_Allele<-as.factor(AlaT_markers$AlaT_Allele)
+AlaT_markers[,c(4,12)]
+
+colnames(AlaT_markers)[4]<-"Entry"
 #in 0 and 2 coding
 ```
+
+Check Entry Names
+
+```{r}
+wdh[1:8,1:8]
+colnames(wdh)[1]<-"Entry"
+colnames(wdh)[1]
+wdh<-merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE)
+#added ALaT marker to genotype matrix
+colnames(wdh1)[ncol(wdh1)]
+rownames(wdh)<-wdh[,1]
+wdh<-wdh[,-1]
+#Entry names appear unchanged in genotype file from phenotype entry list(maybe
+#every line we use should have a non name entry)
+
+```
+
 Change coding
 This step should be modified if using GAPIT or rrBLUP
 ```{r}
@@ -133,6 +141,8 @@ wdh=as.data.frame(apply(wdh,1, function(x) {
 #this aparently inverted the matrix, which you want
 
 #check for entries as rows, markers as columns
+
+merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE)
 
 wdh=as.data.frame(t(wdh))
 wdh[c(1:5),c(1:5)]
