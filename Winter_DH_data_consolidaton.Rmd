@@ -271,4 +271,18 @@ All_pheno_TPall$GIscale
 save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
 
 ```
+#data analysis of phenotypes
+```{r}
+library(lme4)
+#this will overwrite original TP files, with ones that have GE, GI and GIscale calculated
+TP1<-TPall[TPall$Timepoint=="1",]
+TP2<-TPall[TPall$Timepoint=="2",]
+TP3<-TPall[TPall$Timepoint=="3",]
+TP4<-TPall[TPall$Timepoint=="4",]
+modelKK<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="2",])
+modelTR<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="1",])
+
+
+
+```
 
