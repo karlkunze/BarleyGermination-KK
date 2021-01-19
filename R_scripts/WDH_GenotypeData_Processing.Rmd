@@ -114,10 +114,11 @@ Check Entry Names
 wdh[1:8,1:8]
 colnames(wdh)[1]<-"Entry"
 colnames(wdh)[1]
-wdh<-merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE)
+wdh<-as.data.frame(merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE))
 #added ALaT marker to genotype matrix
-colnames(wdh1)[ncol(wdh1)]
+colnames(wdh)[ncol(wdh)-1]
 rownames(wdh)<-wdh[,1]
+
 wdh<-wdh[,-1]
 wdh[1:4,c(13121:ncol(wdh))]
 
@@ -131,29 +132,30 @@ This step should be modified if using GAPIT or rrBLUP
 ```{r}
 #convert to 0/1/2 coding
 nrow(wdh)
-colnames(wdh)
-wdh[c(1:8),c(1:8)]
-wdh[c(1:8),c(1:8)]
 
 
+str(wdh$BK_01)
 wdh=as.data.frame(apply(wdh,1, function(x) { 
-  
+  x[which(x == 2)] = 2
+  x[which(x == 0)] = 0
   x[which(x == 1)] = 2
   x[which(x == 0.5)] <- NA
-  x[which(x == 0)] = 0
+  
+  
   x
   }))
 #be careful not to run this recursively(i e more than once)
 #this aparently inverted the matrix, which you want
 
 #check for entries as rows, markers as columns
-str(wdh$)
-merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE)
+colnames(wdh)
+rownames(wdh)
 
 wdh=as.data.frame(t(wdh))
 wdh[c(1:5),c(1:5)]
+
 ```
-add marker data if available
+
 ```{r}
 library(rrBLUP)
 wdh=as.data.frame(A.mat(wdh-1, return.imputed = T)$imputed+1)
