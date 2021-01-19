@@ -26,7 +26,20 @@ TP4<-as.data.frame(read.csv("data/Winter_DH/TP4/DHtp4_all_combined_F.csv",string
 
 colnames(TP1_half)
 colnames(TP1_half)[19]<-"UserDay3"
-table(TP2$Entry)
+table(TP1_half$Entry)
+
+##
+
+
+
+which(TP4$Entry=="Check 3-SY Tepee")
+
+#if this is present correct it
+TP4[c(1717,1718),]$Entry<-"Check 4-SY Tepee"
+
+
+
+##
 str(TP1_half)
 
 str(TP2)
@@ -67,7 +80,7 @@ cor(TP4TR$Day5Germ,TP4KK$Day5Germ,use = "complete.obs")
 
 corday3<-merge(TP3[TP3$UserDay5=="KK",][,c(2,8:13)],TP3[TP3$UserDay5=="TR",][,c(2,8:13)],by="Entry")
 
-cor(TP1[TP1$UserDay5=="KK",]$Day1Germ,TP2[TP1$UserDay5=="TR",]$Day1Germ,na.rm=TRUE)
+
 
 TPall<-rbind(TP1_half,TP2,TP3,TP4)
 
@@ -75,23 +88,47 @@ colnames(TP1_half)
 colnames(TP2)
 colnames(TP3)
 colnames(TP4)
-table(TP_all$Entry)
+table(TPall$Entry)
+#need to remove a1023 a1024,etc... PLOTS at Snyder location
+table(TPall$PLOT)
+
+TPall$PLOT<-gsub("a","",(TPall$PLOT))
+TPall[TPall$Entry=="BBBdormSNLine",]$PLOT<-13001
+TPall[TPall$Entry=="BBBdormSRLine",]$PLOT<-13002
+#table(TPall$PLOT)
+TPall$PLOT<-as.numeric(TPall$PLOT)
+#I'm giving SN and SR lines arbitrary plot numbers to remove characters in the plot column. Plot numbers should sort them to end of the dataframe
+TPall<-TPall[with(TPall, order(PLOT, replication)),]
+
+table(TPall$Entry)
+
+```
+
+```{r}
+
+
 ```
 add field phenotype data
 ```{r}
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
 DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
-table(DH_2020_PHS$Entry)
+which(DH_2020_PHS$Entry=="Check 3-DH130911")
+#change
+DH_2020_PHS[36,]$Entry<-"Check 3-DH130910"
+which(DH_2020_Snyder$Entry=="Check 4-Sy Tepee")
+#4 103 203 303 403 503
+DH_2020_Snyder[c(4,103,203,303,403,503),]$Entry<-"Check 4-SY Tepee"
+table(DH_2020_Ketola$Entry)
 DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)
 ##issue with Ketola and Snyder of DH130910 naming
 DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all = TRUE)
-
+DH
 ```
 converting PHS scores
 ```{r}
 str(DH_2020_field)
-str(TP_all)
+str(TPall)
 colnames(DH_2020_field)
 #reduce 
 # Phs conversion
@@ -182,7 +219,7 @@ table(TPall$Entry)
 TPall=Germ_traits(TPall)
 colnames(TPall)
 
-TPall$GIscale
+hist(TPall$GIscale)
 TPall$GIscale_5D
 table(TPall$Entry)
 colnames(DH_2020_field)
@@ -191,15 +228,7 @@ All_pheno_TPall<-merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all =
 str(All_pheno_TPall)
 All_pheno_TPall$GIscale_5D
 All_pheno_TPall$GIscale
-table(All_pheno_TPall$Entry)
-which(All_pheno_TPall$Entry=="Check 3-DH130911")
-which(All_pheno_TPall$Entry=="Check 3-SY Tepee")
-which(All_pheno_TPall$Entry=="Check 4-Sy Tepee")
-#if this is present correct it
-All_pheno_TPall[c(6353,6354),]$Entry<-"Check 4-SY Tepee"
-All_pheno_TPall[c(11,571,1060,1596,2210,2805),]$Entry<-"Check 4-SY Tepee"
-All_pheno_TPall[3752,]$Entry<-"Check 3-DH130910"
-table(All_pheno_TPall$Entry)
+
 #View(All_pheno_TPall)
 save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
 
