@@ -113,23 +113,39 @@ add field phenotype data
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
 DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
+DH_2020_PHS<-DH_2020_PHS[!is.na(DH_2020_PHS$Sprout.Score),]
+
+DH_2020_PHS$Sprout.Score<-as.character(DH_2020_PHS$Sprout.Score)
+DH_2020_PHS[DH_2020_PHS$Sprout.Score=="0",]$Sprout.Score<-"00000"
+
+table(DH_2020_PHS$Sprout.Score)
+str(DH_2020_PHS$Sprout.Score)
+
 which(DH_2020_PHS$Entry=="Check 3-DH130911")
 #change
-DH_2020_PHS[36,]$Entry<-"Check 3-DH130910"
-which(DH_2020_Snyder$Entry=="Check 4-Sy Tepee")
+DH_2020_PHS[12,]$Entry<-"Check 3-DH130910"
+which(DH_2020_Snyder$Entry=="Check 4-SY Tepee")
 #4 103 203 303 403 503
-DH_2020_Snyder[c(4,103,203,303,403,503),]$Entry<-"Check 4-SY Tepee"
+#DH_2020_Snyder[c(4,103,203,303,403,503),]$Entry<-"Check 4-SY Tepee"
 table(DH_2020_Ketola$Entry)
 DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)
 ##issue with Ketola and Snyder of DH130910 naming
 DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all = TRUE)
-DH
+
 ```
-converting PHS scores
+
 ```{r}
 str(DH_2020_field)
 str(TPall)
 colnames(DH_2020_field)
+table(DH_2020_field$Pedigree)
+#change naming of DH130910/Wintmalt to Wintmalt/DH130910, makes for easier plotting
+DH_2020_field[DH_2020_field$Pedigree=="DH130910/Wintmalt",]$Pedigree<-"Wintmalt/DH130910"
+str(DH_2020_field)
+```
+converting PHS scores
+```{r}
+
 #reduce 
 # Phs conversion
 five_avg=function(df,pheno,new_pheno,missing_phenos=F){
@@ -148,9 +164,9 @@ five_avg=function(df,pheno,new_pheno,missing_phenos=F){
 
 
 
-DH_2020_field$Sprout.Score
 DH_2020_field$phs=five_avg(df=DH_2020_field,pheno='Sprout.Score',new_pheno='phs')
-DH_2020_field$phs
+table(DH_2020_PHS$Sprout.Score)
+hist(DH_2020_field$phs)
   
 
 ```
@@ -220,7 +236,29 @@ TPall=Germ_traits(TPall)
 colnames(TPall)
 
 hist(TPall$GIscale)
-TPall$GIscale_5D
+hist(TPall[TPall$Timepoint=="1",]$GIscale)
+hist(TPall[TPall$Timepoint=="2",]$GIscale)
+hist(TPall[TPall$Timepoint=="3",]$GIscale)
+hist(TPall[TPall$Timepoint=="4",]$GIscale)
+
+hist(TPall[TPall$Timepoint=="1",]$GIscale_5D)
+hist(TPall[TPall$Timepoint=="2",]$GIscale_5D)
+hist(TPall[TPall$Timepoint=="3",]$GIscale_5D)
+hist(TPall[TPall$Timepoint=="4",]$GIscale_5D)
+
+
+hist(TPall[TPall$Timepoint=="1",]$GE)
+hist(TPall[TPall$Timepoint=="2",]$GE)
+hist(TPall[TPall$Timepoint=="3",]$GE)
+hist(TPall[TPall$Timepoint=="4",]$GE)
+
+hist(TPall[TPall$Timepoint=="1",]$GE_5D)
+hist(TPall[TPall$Timepoint=="2",]$GE_5D)
+hist(TPall[TPall$Timepoint=="3",]$GE_5D)
+hist(TPall[TPall$Timepoint=="4",]$GE_5D)
+
+
+
 table(TPall$Entry)
 colnames(DH_2020_field)
 table(DH_2020_field$Entry)
