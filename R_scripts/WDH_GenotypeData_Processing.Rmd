@@ -97,6 +97,9 @@ AlaT_markers<-read_excel("data/Marker_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet
 AlaT_markers
 AlaT_markers<-AlaT_markers[,c(1:12)]
 colnames(AlaT_markers)[12]<-"AlaT_Allele"
+hist(AlaT_markers$AlaT_Allele)
+AlaT_markers<-AlaT_markers[!AlaT_markers$AlaT_Allele==1,]
+#remove het called markers, most likely a mistake
 AlaT_markers$AlaT_Allele<-as.factor(AlaT_markers$AlaT_Allele)
 AlaT_markers[,c(4,12)]
 
@@ -115,6 +118,8 @@ wdh<-merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE)
 colnames(wdh1)[ncol(wdh1)]
 rownames(wdh)<-wdh[,1]
 wdh<-wdh[,-1]
+wdh[1:4,c(13121:ncol(wdh))]
+
 #Entry names appear unchanged in genotype file from phenotype entry list(maybe
 #every line we use should have a non name entry)
 
@@ -141,7 +146,7 @@ wdh=as.data.frame(apply(wdh,1, function(x) {
 #this aparently inverted the matrix, which you want
 
 #check for entries as rows, markers as columns
-
+str(wdh$)
 merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE)
 
 wdh=as.data.frame(t(wdh))
