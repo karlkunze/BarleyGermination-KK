@@ -308,7 +308,7 @@ snpgdsCreateGeno("test2.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.i
 
 set.seed(1000)
 
-snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 25000)
+snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 10000)
 
 snpset_names=unlist(snpset)
 myGD20_prune=myGD20[,c(1,which(colnames(myGD20) %in% snpset_names))]
