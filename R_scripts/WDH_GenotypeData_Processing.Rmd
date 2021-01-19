@@ -114,6 +114,8 @@ Check Entry Names
 wdh[1:8,1:8]
 colnames(wdh)[1]<-"Entry"
 colnames(wdh)[1]
+
+ggs=add_column(ggs, Qsd1_19$HvQsd1[match( rownames(ggs), Qsd1_19$Entry )], .after = "JHI-Hv50k-2016-308584"); colnames(ggs)[19453]='Qsd1'
 wdh<-as.data.frame(merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE))
 #added ALaT marker to genotype matrix
 colnames(wdh)[ncol(wdh)-1]
@@ -159,7 +161,7 @@ wdh[c(1:5),c(1:5)]
 ```{r}
 library(rrBLUP)
 wdh=as.data.frame(A.mat(wdh-1, return.imputed = T)$imputed+1)
-
+str(wdh)
 v2<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",header = F,skip = 1)
 
 
@@ -170,8 +172,32 @@ v2$Chromo<-sapply(strsplit(v2$Chromo,"r"), "[", 2)
 
 
 v2$SNP<-sapply(strsplit(v2$SNP,"D="), "[", 2)
+v2$pos
+v2<-as.data.frame(v2[with(v2, order(Chromo,pos)),])
+v2$Order<-1:nrow(v2)
+#need to find closest segregating marker to Qsd1(alat) in winter DH population
+rownames(v2)[26096]#find the position for the springs
+#Qsd1 5H position "4421600" JHI-Hv50k-2016-367342
 
 
+v2$SNP
+v2[v2$SNP=="JHI-Hv50k-2016-367342",] #18541, #31140
+
+hist(v2_5H$pos)
+v2[v2$Order>18538 & v2$Order <18544,]
+v2$SNP
+v2[1:3,1:3]
+v2[c(26096),c(9)]
+v2[c(26097),c(4,9)]
+
+
+which(v2[c(26096:c(26096+16)),9] %in% colnames(wdh))#17 above
+
+v2[c(26096,26096+133),c(9)]
+
+
+
+#need 
 myGM20=data.frame(SNP=colnames(wdh))
 
 
