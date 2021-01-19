@@ -90,7 +90,7 @@ ncol(wdh)
 allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
 
 ```
-Add AlAat marker data
+Add AlAT marker data
 ```{r}
 
 AlaT_markers<-read_excel("data/Marker_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results')
@@ -100,7 +100,8 @@ colnames(AlaT_markers)[12]<-"AlaT_Allele"
 hist(AlaT_markers$AlaT_Allele)
 AlaT_markers<-AlaT_markers[!AlaT_markers$AlaT_Allele==1,]
 #remove het called markers, most likely a mistake
-AlaT_markers$AlaT_Allele<-as.factor(AlaT_markers$AlaT_Allele)
+#AlaT_markers$AlaT_Allele<-as.factor(AlaT_markers$AlaT_Allele)
+#cant be a factor once its in the genotype table
 AlaT_markers[,c(4,12)]
 
 colnames(AlaT_markers)[4]<-"Entry"
