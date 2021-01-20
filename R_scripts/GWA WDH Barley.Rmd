@@ -34,7 +34,7 @@ WDH20_pheno<-All_pheno_TPall
 str(WDH20_pheno)
 #make separate data object for field phenotypes
 colnames(WDH20_pheno)
-WDH20_phenoF<-WDH20_pheno[,c(1:27)]
+WDH20_phenoF<-WDH20_pheno[,c(1:27,30)]
 WDH20_phenoF<-WDH20_phenoF[!duplicated(WDH20_phenoF$PLOT), ]#remove duplication
 str(WDH20_phenoF)
 table(WDH20_phenoF$Scald)
@@ -137,15 +137,17 @@ anova(wdhge4_5D.lm) # only Entry is significant
 wdhgi4_5D.lm=lm(GIscale_5D~ Entry+ replication, data=TP4WDH)
 anova(wdhgi4_5D.lm) #all signif
 
-
-#Field Phenotypes
+```
+```{r}
+#Field Phenotypes fe
 str(WDH20_phenoF)
-WDH20_phenoF$Scald<-as.numeric(WDH20_phenoF$Scald)
-WDH20_phenoF$wh_percent
-wdhscald.lmer=lmer(Scald~1+(1|Entry),data=WDH20_phenoF)
-summary(wdhscald.lmer)
-wdh_wh.lmer=lmer(wh_percent~Location+(1|Entry),data=WDH20_phenoF)
-summary(wdh_wh.lmer)
+colnames(WDH20_phenoF)
+
+wdhscald.lm=lm(Scald~Entry+Location,data=WDH20_phenoF)
+anova(wdhscald.lm)
+WDH20_pheno$Check
+wdh_wh.lm=lm(wh_percent~Entry+Location+Check+HD+Ht,data=WDH20_phenoF)
+anova(wdh_wh.lm)
 
 ##BLUPS
 #base mixed model for each trait for genotypic BLUPs
