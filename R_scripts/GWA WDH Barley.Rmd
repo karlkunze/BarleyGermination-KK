@@ -522,7 +522,9 @@ GWAS.HD.blues.mlm  =GAPIT(Y=wdh_HD.blues, GD=myGD20, GM=myGM20, PCA.total=2,file
 GWAS.HD.blues.mlmm  =GAPIT(Y=wdh_HD.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 GWAS.HD.blups.mlm =GAPIT(Y=HD.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
-GWAS.HD.blups.mlmm  =GAPIT(Y= HD.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.HD.blups.mlmm  =GAPIT(Y= HD.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
+
+GWAS.HD.blups.farmcpu =GAPIT(Y= HD.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
 
 ##height
 GWAS.Ht.blues.mlm  =GAPIT(Y=wdh_Ht.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
