@@ -147,7 +147,7 @@ colnames(WDH20_phenoF)
 wdh_scald.lm=lm(Scald~Entry,data=WDH20_phenoF)
 anova(wdh_scald.lm)
 
-wdh_wh.lm=lm(wh_percent~Entry+Location+HD,data=WDH20_phenoF)
+wdh_wh.lm=lm(wh_percent~Entry+Location+PM,data=WDH20_phenoF)
 anova(wdh_wh.lm)
 #cant include check because there isn't balance
 wdh_HD.lm=lm(HD~Entry+Location,data=WDH20_phenoF)
@@ -523,6 +523,20 @@ GWAS.HD.blues.mlmm  =GAPIT(Y=wdh_HD.blues, GD=myGD20, GM=myGM20, PCA.total=2,fil
 
 GWAS.HD.blups.mlm =GAPIT(Y=HD.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 GWAS.HD.blups.mlmm  =GAPIT(Y= HD.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+##height
+GWAS.Ht.blues.mlm  =GAPIT(Y=wdh_Ht.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.Ht.blues.mlmm  =GAPIT(Y=wdh_Ht.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.Ht.blups.mlm =GAPIT(Y=Ht.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.Ht.blups.mlmm  =GAPIT(Y= Ht.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+#Physiological Maturity
+
+GWAS.PM.blues.mlm  =GAPIT(Y=wdh_PM.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.PM.blues.mlmm  =GAPIT(Y=wdh_PM.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.PM.blups.mlm =GAPIT(Y=PM.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.PM.blups.mlmm  =GAPIT(Y= PM.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
 
