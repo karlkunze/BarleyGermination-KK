@@ -19,7 +19,6 @@ load(here("WMB DH 2020 all data for analysis.RData"))
 #load(here("myGM20_LDprune.Rdata"))
 #load(here("myGD20_LDprune.Rdata"))
 
-
 load(here("myGD20.Rdata"))
 load(here("myGM20.Rdata"))
 load(here("AlaT_markers.Rdata"))
@@ -30,7 +29,7 @@ str(myGM20$SNP)
 
 
 
-
+WDH20_pheno<-All_pheno_TPall
 
 str(WDH20_pheno)
 #make separate data object for field phenotypes
@@ -201,7 +200,9 @@ AIC(wdhGI_TP4_5D.lmer)
 ```
 Field Phenotypes
 ```{r}
-
+#heading data
+WDH20_phenoF$HD
+WDH20_phenoF_HD.lmer=lmer(HD~Location+(1|Entry),data=WDH20_phenoF)
 
 ```
 Cullis Heritability for unbalanced designs
