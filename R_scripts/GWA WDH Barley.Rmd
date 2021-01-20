@@ -138,16 +138,26 @@ wdhgi4_5D.lm=lm(GIscale_5D~ Entry+ replication, data=TP4WDH)
 anova(wdhgi4_5D.lm) #all signif
 
 ```
+
 ```{r}
-#Field Phenotypes fe
+#Field Phenotypes fixed effects
 str(WDH20_phenoF)
 colnames(WDH20_phenoF)
 
-wdhscald.lm=lm(Scald~Entry+Location,data=WDH20_phenoF)
-anova(wdhscald.lm)
-WDH20_pheno$Check
-wdh_wh.lm=lm(wh_percent~Entry+Location+Check+HD+Ht,data=WDH20_phenoF)
+wdh_scald.lm=lm(Scald~Entry,data=WDH20_phenoF)
+anova(wdh_scald.lm)
+
+wdh_wh.lm=lm(wh_percent~Entry+Location+HD,data=WDH20_phenoF)
 anova(wdh_wh.lm)
+#cant include check because there isn't balance
+wdh_HD.lm=lm(HD~Entry+Location,data=WDH20_phenoF)
+anova(wdh_HD.lm)
+wdh_Ht.lm=lm(Ht~Entry+Location+wh_percent,data=WDH20_phenoF)
+anova(wdh_Ht.lm)
+wdh_PM.lm=lm(PM~Entry+Location+wh_percent,data=WDH20_phenoF)
+anova(wdh_PM.lm)
+
+
 
 ##BLUPS
 #base mixed model for each trait for genotypic BLUPs
@@ -200,11 +210,33 @@ AIC(wdhGI_TP4_5D.lmer)
 
 
 ```
-Field Phenotypes
+Field Phenotypes BLUPS
 ```{r}
+#scald
+wdh_scald.lmer=lmer(Scald~(1|Entry)+Location+Check,data=WDH20_phenoF)
+summary(wdh_scald.lmer)
+AIC(wdh_scald.lmer)
+anova(wdh_scald.lmer)
+#winter hardiness percentage
+wdh_wh.lmer=lmer(wh_percent~(1|Entry)+Location+Check,data=WDH20_phenoF)
+summary(wdh_wh.lmer)
+AIC(wdh_wh.lmer)
+anova(wdh_wh.lmer)
 #heading data
-WDH20_phenoF$HD
-WDH20_phenoF_HD.lmer=lmer(HD~Location+(1|Entry),data=WDH20_phenoF)
+wdh_HD.lmer=lmer(HD~(1|Entry)+Location+Check,data=WDH20_phenoF)
+summary(wdh_HD.lmer)
+AIC(wdh_HD.lmer)
+anova(wdh_HD.lmer)
+#height
+wdh_Ht.lmer=lmer(Ht~(1|Entry)+Location+wh_percent,data=WDH20_phenoF)
+summary(wdh_Ht.lmer)
+AIC(wdh_Ht.lmer)
+anova(wdh_Ht.lmer)
+#Physiological maturity
+wdh_PM.lmer=lmer(PM~(1|Entry)+Location+Check,data=WDH20_phenoF)
+summary(wdh_PM.lmer)
+AIC(wdh_PM.lmer)
+anova(wdh_PM.lmer)
 
 ```
 Cullis Heritability for unbalanced designs
@@ -224,6 +256,9 @@ Cullis_H2=function(model){
 Cullis_H2(wdhphs.lmer)#0.999
 Cullis_H2(wdhscald.lmer)#0.728
 Cullis_H2(wdh_wh.lmer)#0.706
+Cullis_H2(wdh_HD.lmer)#0.915
+Cullis_H2(wdh_Ht.lmer)#0.695 <-there's a data issue here
+Cullis_H2(wdh_PM.lmer)#0.777
 #TP1
 Cullis_H2(wdhGE_TP1.lmer)#0.982
 Cullis_H2(wdhGI_TP1.lmer)#0.973
@@ -297,6 +332,12 @@ GITP4.blues = get_entry_fixed_Effects(wdhgi4.lm, 'GI_TP4')
 GETP4_5D.blues = get_entry_fixed_Effects(wdhge4_5D.lm, 'GE_5D_TP4')
 GITP4_5D.blues = get_entry_fixed_Effects(wdhgi4_5D.lm, 'GI_5D_TP4')
 
+wdh_wh.blues = get_entry_fixed_Effects(wdh_wh.lm, 'wh')
+wdh_HD.blues = get_entry_fixed_Effects(wdh_HD.lm, 'HD')
+wdh_scald.blues = get_entry_fixed_Effects(wdh_scald.lm, 'Scald')
+wdh_Ht.blues = get_entry_fixed_Effects(wdh_Ht.lm, 'Ht')
+wdh_PM.blues = get_entry_fixed_Effects(wdh_PM.lm, 'PM')
+
 ###
 library(lsmeans)
 library(emmeans)
@@ -326,15 +367,19 @@ GITP2_5D = data.frame(lsmeans(wdhgi2_5D.lm, 'Entry'))
 GITP3_5D = data.frame(lsmeans(wdhgi3_5D.lm, 'Entry'))
 GITP4_5D = data.frame(lsmeans(wdhgi4_5D.lm, 'Entry'))
 
-
 PHSlsmeans = data.frame(lsmeans(WDH20phs.lm, 'Entry'))
+scaldmeans = data.frame(lsmeans(wdh_scald.lm, 'Entry'))
+wh_means = data.frame(lsmeans(wdh_wh.lm, 'Entry'))
+HD_means = data.frame(lsmeans(wdh_HD.lm, 'Entry'))
+PM_means = data.frame(lsmeans(wdh_PM.lm, 'Entry'))
+Ht_means = data.frame(lsmeans(wdh_Ht.lm, 'Entry'))
+
 
 WDH_BLUEs_2020 = Reduce(function(x, y) merge(x, y, all = TRUE,by = 'Entry'), 
-                        list(PHSlsmeans[,1:2], GETP1[,1:2], GETP2[,1:2], GETP3[,1:2],GETP4[,1:2], GITP1[,1:2], GITP2[,1:2], GITP3[,1:2],GITP4[,1:2],GETP1_5D[,1:2],GETP2_5D[,1:2],GETP3_5D[,1:2],GETP4_5D[,1:2],GITP1_5D[,1:2],GITP2_5D[,1:2],GITP3_5D[,1:2],GITP4_5D[,1:2]))
+                        list(PHSlsmeans[,1:2], GETP1[,1:2], GETP2[,1:2], GETP3[,1:2],GETP4[,1:2], GITP1[,1:2], GITP2[,1:2], GITP3[,1:2],GITP4[,1:2],GETP1_5D[,1:2],GETP2_5D[,1:2],GETP3_5D[,1:2],GETP4_5D[,1:2],GITP1_5D[,1:2],GITP2_5D[,1:2],GITP3_5D[,1:2],GITP4_5D[,1:2],scaldmeans[,1:2],wh_means[,1:2],HD_means[,1:2],PM_means[,1:2],Ht_means[,1:2]))
                              
 colnames(WDH_BLUEs_2020) = c('Entry','PHS','GETP1','GETP2','GETP3','GETP4',
-                             'GITP1','GITP2','GITP3','GITP4','GETP1_5D','GETP2_5D','GETP4_5D','GETP4_5D','GITP1_5D','GITP2_5D','GITP3_5D','GITP4_5D'
-                             )
+                             'GITP1','GITP2','GITP3','GITP4','GETP1_5D','GETP2_5D','GETP4_5D','GETP4_5D','GITP1_5D','GITP2_5D','GITP3_5D','GITP4_5D','scaldmeans','wh_means','HD_means','PM_means','Ht_means')
 save(WDH_BLUEs_2020,file ="data/Winter_DH/WDH_BLUEs_2020.RData")
 
 
