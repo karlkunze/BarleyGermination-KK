@@ -188,19 +188,28 @@ julian_days=function(df, cutoff){
   df$HD
   
 }
-
 DH_2020_field$HD<-julian_days(DH_2020_field, 25 )
 
 
 
 
-
-#####
+####
 #OSU18_OSU19_1$HD_c
 #OSU18_OSU19_1$HD_c <- as.Date(OSU18_OSU19_1$HD_c, format = "%y-%b-%d")
 #Converted all to Julian Date
 #OSU18_OSU19_1$HD_c <- as.numeric(format(OSU18_OSU19_1$HD_c, "%j"))
 ##### 
+
+#other phenotypes
+
+str(DH_2020_field)
+DH_2020_field$mass<-as.numeric(DH_2020_field$mass)
+DH_2020_field$`CU Plant ID`<-as.numeric(DH_2020_field$`CU Plant ID`)
+DH_2020_field$Scald<-as.numeric(DH_2020_field$Scald)
+DH_2020_field$Ht<-as.numeric(DH_2020_field$Ht)
+DH_2020_field$PM<-as.numeric(DH_2020_field$PM)
+#phs dates
+str(DH_2020_field)
 
 ```
 
@@ -315,6 +324,11 @@ TP4<-TPall[TPall$Timepoint=="4",]
 modelKK<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="2",])
 modelTR<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="1",])
 
+
+
+```
+
+```{r}
 
 
 ```
