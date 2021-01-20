@@ -124,7 +124,7 @@ wdh<-wdh[,-1]
 wdh[1:4,c(13121:ncol(wdh))]
 
 
-
+library(tidyverse)
 #wdh<-as.data.frame(merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE))
 which( colnames(wdh)=="JHI-Hv50k-2016-308659")#8890
 #determined that this is closet marker upstream of QsD1 position
@@ -313,7 +313,10 @@ snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.b
 snpset_names=unlist(snpset)
 myGD20_prune=myGD20[,c(1,which(colnames(myGD20) %in% snpset_names))]
 myGM20_prune=myGM20[which(myGM20$SNP %in% colnames(myGD20_prune)),]
+str(myGM20_prune)
 
+myGM20_prune<-myGM20_prune[with(myGM20_prune, order(Chromosome, Position)),]
+str(myGM20_prune)
 save(myGD20_prune, file="myGD20_LDprune.Rdata")
 save(myGM20_prune, file="myGM20_LDprune.Rdata")
 
