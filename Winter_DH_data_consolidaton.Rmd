@@ -93,6 +93,7 @@ table(TPall$Entry)
 table(TPall$PLOT)
 
 TPall$PLOT<-gsub("a","",(TPall$PLOT))
+table(TPall$PLOT)
 TPall[TPall$Entry=="BBBdormSNLine",]$PLOT<-13001
 TPall[TPall$Entry=="BBBdormSRLine",]$PLOT<-13002
 #table(TPall$PLOT)
@@ -172,7 +173,7 @@ DH_2020_field$phs=five_avg(df=DH_2020_field,pheno='Sprout.Score',new_pheno='phs'
 table(DH_2020_PHS$Sprout.Score)
 hist(DH_2020_field$phs)
 
-table(DH_2020_field$HD)
+typeof(DH_2020_field$HD)
 #####
 ##################
 DH_2020_field$HD<-as.numeric(DH_2020_field$HD)
@@ -192,7 +193,6 @@ DH_2020_field$HD<-julian_days(DH_2020_field, 25 )
 
 
 
-
 ####
 #OSU18_OSU19_1$HD_c
 #OSU18_OSU19_1$HD_c <- as.Date(OSU18_OSU19_1$HD_c, format = "%y-%b-%d")
@@ -204,7 +204,23 @@ DH_2020_field$HD<-julian_days(DH_2020_field, 25 )
 
 str(DH_2020_field)
 DH_2020_field$mass<-as.numeric(DH_2020_field$mass)
+DH_2020_field<-DH_2020_field[!is.na(DH_2020_field$PLOT),]
+DH_2020_field[is.na(DH_2020_field$HD),]
 DH_2020_field$`CU Plant ID`<-as.numeric(DH_2020_field$`CU Plant ID`)
+table(DH_2020_field$Scald)
+DH_2020_field[DH_2020_field$Scald=="x",]<-NA
+hist(as.numeric(DH_2020_field[DH_2020_field$Pedigree=="Wintmalt",]$Scald))
+table(DH_2020_Ketola$Pedigree)
+hist(as.numeric(DH_2020_Snyder$Scald))
+#we don't have enough differentiation of scald between the two locations,
+#one possiblity is to either only use one location or separate by family
+#checks have high scald but it may be more of poor seed quality
+DH_2020_field[is.na(DH_2020_field$HD),]$Ht<-NA
+DH_2020_field[is.na(DH_2020_field$PM),]$PM<-NA
+
+
+hist(DH_2020_field$Scald)
+table(DH_2020_field$Scald)
 DH_2020_field$Scald<-as.numeric(DH_2020_field$Scald)
 DH_2020_field$Ht<-as.numeric(DH_2020_field$Ht)
 DH_2020_field$PM<-as.numeric(DH_2020_field$PM)
@@ -310,6 +326,7 @@ All_pheno_TPall$GIscale_5D
 All_pheno_TPall$GIscale
 
 #View(All_pheno_TPall)
+getwd()
 save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
 
 ```
