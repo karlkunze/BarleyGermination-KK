@@ -138,21 +138,27 @@ wdhgi4_5D.lm=lm(GIscale_5D~ Entry+ replication, data=TP4WDH)
 anova(wdhgi4_5D.lm) #all signif
 
 ```
+Analysis of phenotypes
+```{r}
+hist(WDH20_phenoF$Ht)
+
+```
 
 ```{r}
 #Field Phenotypes fixed effects
 str(WDH20_phenoF)
 colnames(WDH20_phenoF)
 
-wdh_scald.lm=lm(Scald~Entry,data=WDH20_phenoF)
+wdh_scald.lm=lm(Scald~Entry+Pedigree,data=WDH20_phenoF)
+
 anova(wdh_scald.lm)
 
-wdh_wh.lm=lm(wh_percent~Entry+Location+PM,data=WDH20_phenoF)
+wdh_wh.lm=lm(wh_percent~Entry+Location,data=WDH20_phenoF)
 anova(wdh_wh.lm)
 #cant include check because there isn't balance
 wdh_HD.lm=lm(HD~Entry+Location,data=WDH20_phenoF)
 anova(wdh_HD.lm)
-wdh_Ht.lm=lm(Ht~Entry+Location+wh_percent,data=WDH20_phenoF)
+wdh_Ht.lm=lm(Ht~Entry+Location,data=WDH20_phenoF)
 anova(wdh_Ht.lm)
 wdh_PM.lm=lm(PM~Entry+Location+wh_percent,data=WDH20_phenoF)
 anova(wdh_PM.lm)
@@ -161,7 +167,7 @@ anova(wdh_PM.lm)
 
 ##BLUPS
 #base mixed model for each trait for genotypic BLUPs
-wdhphs.lmer=lmer(phs~1+(1|Entry)+(1|PM), data=WDH20_pheno)
+wdhphs.lmer=lmer(phs~1+(1|Entry), data=WDH20_pheno)
 summary(wdhphs.lmer)
 
 wdhGE_TP1.lmer=lmer(GE~ Location + (1|Entry), data=TP1WDH)
@@ -213,7 +219,7 @@ AIC(wdhGI_TP4_5D.lmer)
 Field Phenotypes BLUPS
 ```{r}
 #scald
-wdh_scald.lmer=lmer(Scald~(1|Entry)+Location+Check,data=WDH20_phenoF)
+wdh_scald.lmer=lmer(Scald~1+(1|Pedigree:Entry),data=WDH20_phenoF)
 summary(wdh_scald.lmer)
 AIC(wdh_scald.lmer)
 anova(wdh_scald.lmer)
@@ -223,7 +229,7 @@ summary(wdh_wh.lmer)
 AIC(wdh_wh.lmer)
 anova(wdh_wh.lmer)
 #heading data
-wdh_HD.lmer=lmer(HD~(1|Entry)+Location+Check,data=WDH20_phenoF)
+wdh_HD.lmer=lmer(HD~(1|Entry)+Location,data=WDH20_phenoF)
 summary(wdh_HD.lmer)
 AIC(wdh_HD.lmer)
 anova(wdh_HD.lmer)
@@ -250,11 +256,19 @@ Cullis_H2=function(model){
   H2<- round(mean(Reliability),3) #This is equivalent to broad-sense heritability on the line-mean (or family-mean, if your individuals are non-inbred families) basis
   H2
 }
-
+Cullis_H2_scald=function(model){
+  library(arm)
+  ses<- se.ranef(model)$`Pedigree:Entry` #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
+  v_BLUP<- ses^2
+  sigma2_g=VarCorr(model, comp="Variance")$`Pedigree:Entry`[1]
+  Reliability<- 1- v_BLUP/ (2*sigma2_g)  #where sigma2_g is the genetic variance estimated with the model saved in 'm'
+  H2<- round(mean(Reliability),3) #This is equivalent to broad-sense heritability on the line-mean (or family-mean, if your individuals are non-inbred families) basis
+  H2
+}
 
 
 Cullis_H2(wdhphs.lmer)#0.999
-Cullis_H2(wdhscald.lmer)#0.728
+Cullis_H2_scald(wdh_scald.lmer)#0.728
 Cullis_H2(wdh_wh.lmer)#0.706
 Cullis_H2(wdh_HD.lmer)#0.915
 Cullis_H2(wdh_Ht.lmer)#0.695 <-there's a data issue here
@@ -298,6 +312,9 @@ get_entry_fixed_Effects = function(model, trait){
   colnames(x)[2] = trait
   return(x)
 }
+
+
+
 wdhge1.lm
 wdhgi1.lm
 wdhge1_5D.lm
@@ -335,6 +352,8 @@ GITP4_5D.blues = get_entry_fixed_Effects(wdhgi4_5D.lm, 'GI_5D_TP4')
 wdh_wh.blues = get_entry_fixed_Effects(wdh_wh.lm, 'wh')
 wdh_HD.blues = get_entry_fixed_Effects(wdh_HD.lm, 'HD')
 wdh_scald.blues = get_entry_fixed_Effects(wdh_scald.lm, 'Scald')
+
+
 wdh_Ht.blues = get_entry_fixed_Effects(wdh_Ht.lm, 'Ht')
 wdh_PM.blues = get_entry_fixed_Effects(wdh_PM.lm, 'PM')
 
@@ -395,6 +414,13 @@ gapit_blup=function(mod,trait){
   df[,1]=as.character(df[,1])
   df
 }
+gapit_blup_scald=function(mod,trait){
+  df=ranef(mod)$'Entry:Pedigree'+fixef(mod)[[1]]; 
+  df=cbind(rownames(df), df); 
+  colnames(df)=c("taxa", trait); 
+  df[,1]=as.character(df[,1])
+  df
+}
 
 wdhGE_TP1.lmer
 wdhGI_TP1.lmer
@@ -425,7 +451,7 @@ GETP4_5D.blups=gapit_blup(wdhGE_TP4_5D.lmer, "GE_TP4")
 GITP4_5D.blups=gapit_blup(wdhGI_TP4_5D.lmer, "GI_TP4")
 
 
-wdhscald.blups=gapit_blup(wdhscald.lmer, "Scald")
+wdh_scald.blups=gapit_blup_scald(wdh_scald.lmer, "Scald")
 wh_percent.blups<-gapit_blup(wdh_wh.lmer, "wh_percent")
 HD.blups<-gapit_blup(wdh_HD.lmer, "HD")
 Ht.blups<-gapit_blup(wdh_Ht.lmer, "Ht")
@@ -440,12 +466,13 @@ local1<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/G
 setwd(local1)
 getwd()
 #setwd(dir)<-default working directory
-GWAS.GETP1.blues.mlmm  =GAPIT(Y= GETP1.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+#GWAS.GETP1.blues.mlmm  =GAPIT(Y= GETP1.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+
 GWAS.GITP1.blues.mlmm  =GAPIT(Y= GITP1.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GETP1.blups.mlmm  =GAPIT(Y= GETP1.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+#GWAS.GETP1.blups.mlm  =GAPIT(Y= GETP1.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 
-GWAS.GETP1.blups.mlmm  =GAPIT(Y= GETP1.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP1.blups.mlmm  =GAPIT(Y= GETP1.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 
 ####TP2###
 getwd()
@@ -454,7 +481,7 @@ local2<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/G
 setwd(local2)
 getwd()
 
-GWAS.GITP2.blues.mlmm  =GAPIT(Y= GITP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP2.blues.mlmm  =GAPIT(Y= GITP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 
 GWAS.GETP2.blues.mlmm  =GAPIT(Y= GETP2.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
@@ -507,7 +534,7 @@ getwd()
 GWAS.scald.blues.mlm  =GAPIT(Y=wdh_scald.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 GWAS.scald.blues.mlmm  =GAPIT(Y=wdh_scald.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.scald.blups.mlm =GAPIT(Y= , GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
+GWAS.scald.blups.mlm =GAPIT(Y=wdhscald.blups, GD=myGD20, GM=myGM20, PCA.total=0,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 GWAS.scald.blups.mlmm  =GAPIT(Y= wdhscald.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 #winter hardiness
 
