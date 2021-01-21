@@ -219,7 +219,6 @@ DH_2020_field[is.na(DH_2020_field$HD),]$Ht<-NA
 DH_2020_field[is.na(DH_2020_field$PM),]$PM<-NA
 
 
-hist(DH_2020_field$Scald)
 table(DH_2020_field$Scald)
 DH_2020_field$Scald<-as.numeric(DH_2020_field$Scald)
 DH_2020_field$Ht<-as.numeric(DH_2020_field$Ht)
