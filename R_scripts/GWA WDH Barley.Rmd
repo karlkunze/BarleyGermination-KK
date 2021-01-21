@@ -219,7 +219,7 @@ AIC(wdhGI_TP4_5D.lmer)
 Field Phenotypes BLUPS
 ```{r}
 #scald
-wdh_scald.lmer=lmer(Scald~1+(1|Pedigree:Entry),data=WDH20_phenoF)
+wdh_scald.lmer=lmer(Scald~1+(1|Entry),data=WDH20_phenoF)
 summary(wdh_scald.lmer)
 AIC(wdh_scald.lmer)
 anova(wdh_scald.lmer)
@@ -234,7 +234,7 @@ summary(wdh_HD.lmer)
 AIC(wdh_HD.lmer)
 anova(wdh_HD.lmer)
 #height
-wdh_Ht.lmer=lmer(Ht~(1|Entry)+Location+wh_percent,data=WDH20_phenoF)
+wdh_Ht.lmer=lmer(Ht~(1|Entry)+Location+HD,data=WDH20_phenoF)
 summary(wdh_Ht.lmer)
 AIC(wdh_Ht.lmer)
 anova(wdh_Ht.lmer)
@@ -256,19 +256,11 @@ Cullis_H2=function(model){
   H2<- round(mean(Reliability),3) #This is equivalent to broad-sense heritability on the line-mean (or family-mean, if your individuals are non-inbred families) basis
   H2
 }
-Cullis_H2_scald=function(model){
-  library(arm)
-  ses<- se.ranef(model)$`Pedigree:Entry` #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
-  v_BLUP<- ses^2
-  sigma2_g=VarCorr(model, comp="Variance")$`Pedigree:Entry`[1]
-  Reliability<- 1- v_BLUP/ (2*sigma2_g)  #where sigma2_g is the genetic variance estimated with the model saved in 'm'
-  H2<- round(mean(Reliability),3) #This is equivalent to broad-sense heritability on the line-mean (or family-mean, if your individuals are non-inbred families) basis
-  H2
-}
+
 
 
 Cullis_H2(wdhphs.lmer)#0.999
-Cullis_H2_scald(wdh_scald.lmer)#0.728
+Cullis_H2(wdh_scald.lmer)#0.728
 Cullis_H2(wdh_wh.lmer)#0.706
 Cullis_H2(wdh_HD.lmer)#0.915
 Cullis_H2(wdh_Ht.lmer)#0.695 <-there's a data issue here
@@ -414,13 +406,7 @@ gapit_blup=function(mod,trait){
   df[,1]=as.character(df[,1])
   df
 }
-gapit_blup_scald=function(mod,trait){
-  df=ranef(mod)$'Entry:Pedigree'+fixef(mod)[[1]]; 
-  df=cbind(rownames(df), df); 
-  colnames(df)=c("taxa", trait); 
-  df[,1]=as.character(df[,1])
-  df
-}
+
 
 wdhGE_TP1.lmer
 wdhGI_TP1.lmer
@@ -451,7 +437,7 @@ GETP4_5D.blups=gapit_blup(wdhGE_TP4_5D.lmer, "GE_TP4")
 GITP4_5D.blups=gapit_blup(wdhGI_TP4_5D.lmer, "GI_TP4")
 
 
-wdh_scald.blups=gapit_blup_scald(wdh_scald.lmer, "Scald")
+wdh_scald.blups=gapit_blup(wdh_scald.lmer, "Scald")
 wh_percent.blups<-gapit_blup(wdh_wh.lmer, "wh_percent")
 HD.blups<-gapit_blup(wdh_HD.lmer, "HD")
 Ht.blups<-gapit_blup(wdh_Ht.lmer, "Ht")
