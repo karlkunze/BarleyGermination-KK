@@ -1,10 +1,89 @@
 ---
 title: "Interpreting WDH GWA results"
 output: html_notebook
+editor_options: 
+  chunk_output_type: console
 ---
+
+Workflow:
+Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd->GWA WDH Barley.Rmd->GWA_results_interpretation.Rmd
+
 read in GWA results data
 ```{r}
+dir1<-"C:/Users/Karl/git/BarleyGermination-KK"
+setwd(dir1)
+#the set wd is only for this chunk which should be fine once data is read in
+library(here)
 
-
+load(here("WMB DH 2020 all data for analysis.RData"))
+load(here("data/GWA_results/GWA_WDH_field_phenotypes.Rdata"))
+load(here("data/GWA_results/WDH_TP1.RData"))
+load(here("data/GWA_results/WDH_TP2.RData"))
+load(here("data/GWA_results/WDH_TP3.RData"))
+load(here("data/GWA_results/WDH_TP4.RData"))
+#please see GWA WDH Barley for model names
+library(ggplot2)
 ```
 
+```{r}
+df<-df$GWAS[with(df$GWAS, order(Chromosome, Position)),]
+df<-GWAS.GETP1.blues.mlmm
+
+mahatoutput<-function(df){
+
+
+df[,c(1,3,4)]
+colnames(df)
+
+
+plot(x=df[,3], y=-log10(df[,4]), main = "Manhattan Plot",xlab="Genotype")
+
+abline( h= -log10(0.05/nrow(df)) , col = "red")
+nrow(df)
+
+
+library(tidyverse)
+nCHR <- length(unique(df$Chromosome))
+#df[is.na(df$Chromosome),]$Chromosome<-8
+df$BPcum <- NA
+s <- 0
+nbp <- c()
+for (i in unique(df$Chromosome)){
+  nbp[i] <- max(df[df$Chromosome == i,]$Position)
+  df[df$Chromosome == i,"BPcum"] <- df[df$Chromosome == i,"Position"] + s
+  s <- s + nbp[i]
+}
+
+
+
+
+axis.set <- df%>% 
+  group_by(Chromosome) %>% 
+  summarize(center = (max(BPcum) + min(BPcum)) / 2)
+ylim <- abs(floor(log10(min(df$P.value)))) + 2 
+str(axis.set)
+sig <- 5e-8/13143
+
+manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value), 
+                                 color = as.factor(Chromosome), size = -log10(0.05))) +
+  geom_point(alpha = 0.75) +
+  geom_hline(yintercept = -log10(0.05/nrow(df)), color = "red", linetype = "solid") + 
+  scale_x_continuous(label = axis.set$Chromosome, breaks = axis.set$center) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, ylim)) +
+  scale_color_manual(values = rep(c("#276FBF", "#183059"),4)) +
+  scale_size_continuous(range = c(0,2)) +
+  labs(x = NULL, 
+       y = "-log10(p)") + 
+  theme_minimal() +
+  theme( 
+    legend.position = "none",
+    panel.border = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)
+  )
+manoutput
+
+}
+mahatoutput(GWAS.GETP1.blues.mlmm)
+```
