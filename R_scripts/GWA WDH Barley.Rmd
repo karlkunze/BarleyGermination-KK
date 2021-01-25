@@ -650,7 +650,7 @@ setwd("C:/Users/Karl/git/BarleyGermination-KK/data/GWA_results")
 getwd()
 
 save()
-
+save(PHS.blues.mlmm,PHS.blups.mlmm,file="GWA_WDH_phs.Rdata")
 #TP1
 save(GWAS.GETP1.blues.mlmm,GWAS.GETP1_5D.blues.mlmm,GWAS.GITP1.blues.mlmm,GWAS.GITP1_5D.blues.mlmm,GWAS.GETP1.blups.mlmm,GWAS.GETP1_5D.blups.mlmm,GWAS.GITP1.blups.mlmm,GWAS.GITP1_5D.blups.mlmm, file = "GWA_WDH_TP1.RData")
 #TP2
