@@ -21,6 +21,7 @@ load(here("data/GWA_results/WDH_TP1.RData"))
 load(here("data/GWA_results/WDH_TP2.RData"))
 load(here("data/GWA_results/WDH_TP3.RData"))
 load(here("data/GWA_results/WDH_TP4.RData"))
+load(here("data/GWA_results/GWA_WDH_phs.Rdata"))
 #please see GWA WDH Barley for model names
 library(ggplot2)
 ```
@@ -120,14 +121,28 @@ manoutput
 }
 
 
-
+pval<-function(df,sig,name){
+  cutoff<-sig
+pval_list<-df$GWAS[df$GWAS[,4]<cutoff,]
+pval_list$Population<-NA
+pval_list$Population<-as.character(name)
+pval_list
+}
 GETP1.fe<-mahatoutput(GWAS.GETP1.blues.mlmm)
 GETP1.re<-mahatoutput(GWAS.GETP1.blups.mlmm)
 GITP1.fe<-mahatoutput(GWAS.GITP1.blues.mlmm)
 GITP1.re<-mahatoutput(GWAS.GITP1.blups.mlmm)
 
+GETP1.fe.p<-pval(GWAS.GETP1.blues.mlmm,sig,"GETP1 Fixed")
+GETP1.re.p<-pval(GWAS.GETP1.blups.mlmm,sig,"GETP1 Random")
+GITP1.fe.p<-pval(GWAS.GITP1.blues.mlmm,sig,"GITP1 Fixed")
+GITP1.re.p<-pval(GWAS.GITP1.blups.mlmm,sig,"GITP1 Random")
+
+TP1.p<-rbind(GETP1.fe.p,GETP1.re.p,GITP1.fe.p,GITP1.re.p)
+TP1.p
+
 ggarrange(GETP1.fe, GETP1.re, GITP1.fe, GITP1.re, 
-          labels = c("GE 1 Fx", "GE Rd", "GI Fx","GI Rd"),
+          labels = c("GE 1 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 ####
 GETP1_5D.fe<-mahatoutput(GWAS.GETP1_5D.blues.mlmm)
@@ -136,8 +151,19 @@ GITP1_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm)
 GITP1_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm)
 
 ggarrange(GETP1_5D.fe, GETP1_5D.re, GITP1_5D.fe, GITP1_5D.re, 
-          labels = c("GE 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),
+          labels = c("GE 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
+
+
+GETP1_5D.fe.p<-pval(GWAS.GETP1_5D.blues.mlmm,sig,"GETP1 5 Day Fixed")
+GETP1_5D.re.p<-pval(GWAS.GETP1_5D.blups.mlmm,sig,"GETP1 5 Day Random")
+GITP1_5D.fe.p<-pval(GWAS.GITP1_5D.blues.mlmm,sig,"GITP1 5 Day Fixed")
+GITP1_5D.re.p<-pval(GWAS.GITP1_5D.blups.mlmm,sig,"GITP1 5 Day Random")
+
+TP1_5D.p<-rbind(GETP1_5D.fe.p,GETP1_5D.re.p,GITP1_5D.fe.p,GITP1_5D.re.p)
+TP1_5D.p
+
+
 ## Timepoint 2 ###
 GETP2.fe<-mahatoutput(GWAS.GETP2.blues.mlmm)
 GETP2.re<-mahatoutput(GWAS.GETP2.blups.mlmm)
@@ -145,7 +171,7 @@ GITP2.fe<-mahatoutput_all(GWAS.GITP2.blues.mlmm) #something is wrong with this o
 GITP2.re<-mahatoutput(GWAS.GITP2.blups.mlmm)
 #GITP2.fe had to remove it
 ggarrange(GETP2.fe, GETP2.re, GITP2.re, 
-          labels = c("GE 2 Fx", "GE Rd", "GI Fx","GI Rd"),
+          labels = c("GE 2 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 
 
@@ -155,8 +181,31 @@ GITP2_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm)
 GITP2_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm)
 
 ggarrange(GETP2_5D.fe, GETP2_5D.re, GITP2_5D.fe, GITP2_5D.re, 
-          labels = c("GE 2 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),
+          labels = c("GE 2 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
+
+GETP2.fe.p<-pval(GWAS.GETP2.blues.mlmm,sig,"GETP2 Fixed")
+GETP2.re.p<-pval(GWAS.GETP2.blups.mlmm,sig,"GETP2 Random")
+GITP2.fe.p<-pval(GWAS.GITP2.blues.mlmm,sig,"GITP2 Fixed")
+GITP2.fe.p<-GITP2.fe.p[GITP2.fe.p$P.value<0.05/13143,]
+GITP2.fe.p<-GITP2.fe.p[,c(1:6)]
+GITP2.fe.p$effect<-NA
+GITP2.fe.p$Population<-NA
+GITP2.fe.p$Population<-"GITP2 Fixed"
+GITP2.re.p<-pval(GWAS.GITP2.blups.mlmm,sig,"GITP2 Random")
+
+colnames(GITP2.fe.p)[3]<-"Position"
+colnames(GITP2.re.p)
+TP2.p<-rbind(GETP2.fe.p,GETP2.re.p,GITP2.fe.p,GITP2.re.p)
+TP2.p
+
+GETP2_5D.fe.p<-pval(GWAS.GETP2_5D.blues.mlmm,sig,"GETP2 5 Day Fixed")
+GETP2_5D.re.p<-pval(GWAS.GETP2_5D.blups.mlmm,sig,"GETP2 5 Day Random")
+GITP2_5D.fe.p<-pval(GWAS.GITP2_5D.blues.mlmm,sig,"GITP2 5 Day Fixed")
+GITP2_5D.re.p<-pval(GWAS.GITP2_5D.blups.mlmm,sig,"GITP2 5 Day Random")
+
+TP2_5D.p<-rbind(GETP2_5D.fe.p,GETP2_5D.re.p,GITP2_5D.fe.p,GITP2_5D.re.p)
+TP2_5D.p
 ##
 ## Timepoint 3 ###
 GETP3.fe<-mahatoutput(GWAS.GETP3.blues.mlmm)
@@ -175,10 +224,26 @@ GITP3_5D.fe<-mahatoutput(GWAS.GITP3_5D.blues.mlmm)
 GITP3_5D.re<-mahatoutput(GWAS.GITP3_5D.blups.mlmm)
 
 ggarrange(GETP3_5D.fe, GETP3_5D.re, GITP3_5D.fe, GITP3_5D.re, 
-          labels = c("GE 3 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),
+          labels = c("GE 3 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 
 ###
+GETP3.fe.p<-pval(GWAS.GETP3.blues.mlmm,sig,"GETP3 Fixed")
+GETP3.re.p<-pval(GWAS.GETP3.blups.mlmm,sig,"GETP3 Random")
+GITP3.fe.p<-pval(GWAS.GITP3.blues.mlmm,sig,"GITP3 Fixed")
+GITP3.re.p<-pval(GWAS.GITP3.blups.mlmm,sig,"GITP3 Random")
+
+TP3.p<-rbind(GETP3.fe.p,GETP3.re.p,GITP3.fe.p,GITP3.re.p)
+TP3.p
+
+GETP3_5D.fe.p<-pval(GWAS.GETP3.blues_5D.mlmm,sig,"GETP3 5 Day Fixed")
+GETP3_5D.re.p<-pval(GWAS.GETP3_5D.blups.mlmm,sig,"GETP3 5 Day Random")
+GITP3_5D.fe.p<-pval(GWAS.GITP3_5D.blues.mlmm,sig,"GITP3 5 Day Fixed")
+GITP3_5D.re.p<-pval(GWAS.GITP3_5D.blups.mlmm,sig,"GITP3 5 Day Random")
+
+TP3_5D.p<-rbind(GETP3_5D.fe.p,GETP3_5D.re.p,GITP3_5D.fe.p,GITP3_5D.re.p)
+TP3_5D.p
+
 ## Timepoint 4 ###
 GETP4.fe<-mahatoutput(GWAS.GETP4.blues.mlmm)
 GETP4.re<-mahatoutput(GWAS.GETP4.blups.mlmm)
@@ -187,7 +252,7 @@ GITP4.re<-mahatoutput(GWAS.GITP4.blups.mlmm)
 GETP4.fe
 #GITP3.fe had to remove it
 ggarrange(GETP4.fe, GETP4.re,GITP4.fe, GITP4.re, 
-          labels = c("GE 4 Fx", "GE Rd", "GI Fx","GI Rd"),
+          labels = c("GE 4 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 
 str(GWAS.GETP3.blues_5D.mlmm)
@@ -198,19 +263,73 @@ GITP4_5D.fe<-mahatoutput(GWAS.GITP3_5D.blues.mlmm)
 GITP4_5D.re<-mahatoutput(GWAS.GITP3_5D.blups.mlmm)
 
 ggarrange(GETP4_5D.fe, GETP4_5D.re, GITP4_5D.fe, GITP4_5D.re, 
-          labels = c("GE 4 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),
+          labels = c("GE 4 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
+
+GETP4.fe.p<-pval(GWAS.GETP4.blues.mlmm,sig,"GETP4 Fixed")
+GETP4.re.p<-pval(GWAS.GETP4.blups.mlmm,sig,"GETP4 Random")
+GITP4.fe.p<-pval(GWAS.GITP4.blues.mlmm,sig,"GITP4 Fixed")
+GITP4.re.p<-pval(GWAS.GITP4.blups.mlmm,sig,"GITP4 Random")
+
+TP4.p<-rbind(GETP4.fe.p,GETP4.re.p,GITP4.fe.p,GITP4.re.p)
+TP4.p
+GWAS.GETP4.blups_5D.mlmm
+GETP4_5D.fe.p<-pval(GWAS.GETP4.blues_5D.mlmm,sig,"GETP4 5 Day Fixed")
+GETP4_5D.re.p<-pval(GWAS.GETP4.blups_5D.mlmm,sig,"GETP4 5 Day Random")
+#none 
+GITP4_5D.fe.p<-pval(GWAS.GITP4_5D.blues.mlmm,sig,"GITP4 5 Day Fixed")
+GITP4_5D.re.p<-pval(GWAS.GITP4_5D.blups.mlmm,sig,"GITP4 5 Day Random")
+
+TP4_5D.p<-rbind(GETP4_5D.fe.p,GITP4_5D.fe.p,GITP4_5D.re.p)
+TP4_5D.p
+
 
 #Field
-GETP4_5D.fe<-mahatoutput(GWAS.GETP4.blues_5D.mlmm)
-GETP4_5D.re<-mahatoutput(GWAS.GETP4.blups_5D.mlmm)
+HD.fe<-mahatoutput(GWAS.HD.blues.mlmm)
+HD.re<-mahatoutput(GWAS.HD.blues.mlmm)
+wh.fe<-mahatoutput(GWAS.wh.blues.mlmm)
+wh.re<-mahatoutput(GWAS.wh.blups.mlmm)
 
-GITP4_5D.fe<-mahatoutput(GWAS.GITP3_5D.blues.mlmm)
-GITP4_5D.re<-mahatoutput(GWAS.GITP3_5D.blups.mlmm)
-
-ggarrange(GETP4_5D.fe, GETP4_5D.re, GITP4_5D.fe, GITP4_5D.re, 
-          labels = c("GE 4 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),
+ggarrange(HD.fe, HD.re, wh.fe, wh.re, 
+          labels = c("HD FE", "HD RE", "WH FE","WH RE"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 
+Ht.fe<-mahatoutput(GWAS.Ht.blues.mlmm)
+Ht.re<-mahatoutput(GWAS.Ht.blups.mlmm)
+PM.fe<-mahatoutput(GWAS.PM.blues.mlmm)
+PM.re<-mahatoutput(GWAS.PM.blues.mlmm)
 
+ggarrange(HD.fe, HD.re, wh.fe, wh.re, 
+          labels = c("Ht FE", "Ht RE", "PhysM FE","PhysM RE"),hjust = -1.2,vjust = 1,
+          ncol = 2, nrow = 2)
+
+Scald.fe<-mahatoutput(GWAS.scald.blues.mlmm)
+Scald.re<-mahatoutput(GWAS.scald.blups.mlmm)
+PHS.fe<-mahatoutput(PHS.blues.mlmm)
+PHS.re<-mahatoutput(PHS.blups.mlmm)
+
+ggarrange(Scald.fe, Scald.re, PHS.fe, PHS.re, 
+          labels = c("Scald FE", "Scald RE", "PHS FE","PHS RE"),hjust = -1.2,vjust = 1,
+          ncol = 2, nrow = 2)
+
+WH.fe.p<-pval(GWAS.wh.blues.mlmm,sig,"Field WinterH Fixed")
+#none
+WH.re.p<-pval(GWAS.wh.blups.mlmm,sig,"Field WinterH Random")
+HD.fe.p<-pval(GWAS.HD.blues.mlmm,sig,"Field Heading date Fixed")
+HD.re.p<-pval(GWAS.HD.blups.mlmm,sig,"Field Heading date Random")
+
+Ht.fe.p<-pval(GWAS.Ht.blues.mlmm,sig,"Field Height Fixed")
+#none
+Ht.re.p<-pval(GWAS.Ht.blups.mlmm,sig,"Field Height Random")
+PM.fe.p<-pval(GWAS.PM.blues.mlmm,sig,"Field PhysM Fixed")
+PM.re.p<-pval(GWAS.PM.blups.mlmm,sig,"Field PhysM Random")
+PHS.fe.p<-pval(PHS.blues.mlmm,sig,"Field PHS Fixed")
+#none
+PHS.re.p<-pval(PHS.blups.mlmm,sig,"Field PHS Random")
+#none
+Field.p<-rbind(WH.re.p,HD.fe.p,HD.re.p,Ht.re.p,PM.fe.p,PM.re.p)
+
+Total_markers<-rbind(TP1.p,TP2.p,TP3.p,TP4.p,Field.p)
+write.csv(Total_markers,"data/GWA_results/Significant_markers.csv")
+View(Total_markers)
 ```
