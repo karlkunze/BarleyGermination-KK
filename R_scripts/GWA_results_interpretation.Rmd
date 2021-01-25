@@ -167,11 +167,60 @@ TP1_5D.p
 ## Timepoint 2 ###
 GETP2.fe<-mahatoutput(GWAS.GETP2.blues.mlmm)
 GETP2.re<-mahatoutput(GWAS.GETP2.blups.mlmm)
-GITP2.fe<-mahatoutput_all(GWAS.GITP2.blues.mlmm) #something is wrong with this one
+GITP2.fe<-mahatoutput(GWAS.GITP2.blues.mlmm)
+
+
+
+df<-GWAS.GITP2.blues.mlmm
+
+df<-df$GWAS[with(df$GWAS, order("Chromosome","Position ")),]
+colnames(df)[3]<-"Position"
+#plot(x=df[,3], y=-log10(df[,4]), main = "Manhattan Plot",xlab="Genotype")
+#abline( h= -log10(0.05/nrow(df)) , col = "red")
+nCHR <- length(unique(df$Chromosome))
+#df[is.na(df$Chromosome),]$Chromosome<-8
+df$BPcum <- NA
+s <- 0
+nbp <- c()
+
+for (i in unique(df$Chromosome)){
+  nbp[i] <- max(df[df$Chromosome == i,]$Position)
+  df[df$Chromosome == i,"BPcum"] <- df[df$Chromosome == i,"Position"] + s
+  s <- s + nbp[i]
+}
+axis.set <- df%>% 
+  group_by(Chromosome) %>% 
+  summarize(center = (max(BPcum) + min(BPcum)) / 2)
+ylim <- abs(floor(log10(min(df$P.value)))) + 2 
+#str(axis.set)
+sig <- 5e-8/13143
+manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value), 
+                                 color = as.factor(Chromosome), size = -log10(0.05))) +
+  geom_point(alpha = 0.75) +
+  geom_hline(yintercept = -log10(0.05/nrow(df)), color = "red", linetype = "solid") + 
+  scale_x_continuous(label = axis.set$Chromosome, breaks = axis.set$center) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, ylim)) +
+  scale_color_manual(values = rep(c("#276FBF", "#183059"),4)) +
+  scale_size_continuous(range = c(0,2)) +
+  labs(x = NULL, 
+       y = NULL) + 
+  theme_minimal() +
+  theme( 
+    legend.position = "none",
+    panel.border = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)
+  )
+manoutput
+
+
+
+#something is wrong with this one
 GITP2.re<-mahatoutput(GWAS.GITP2.blups.mlmm)
 #GITP2.fe had to remove it
 ggarrange(GETP2.fe, GETP2.re, GITP2.re, 
-          labels = c("GE 2 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
+          labels = c("GE 2 Fx", "GE Rd","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 
 
@@ -181,7 +230,7 @@ GITP2_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm)
 GITP2_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm)
 
 ggarrange(GETP2_5D.fe, GETP2_5D.re, GITP2_5D.fe, GITP2_5D.re, 
-          labels = c("GE 2 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
+          labels = c("GE 1 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 
 GETP2.fe.p<-pval(GWAS.GETP2.blues.mlmm,sig,"GETP2 Fixed")
@@ -214,7 +263,7 @@ GITP3.fe<-mahatoutput(GWAS.GITP3.blues.mlmm)
 GITP3.re<-mahatoutput(GWAS.GITP3.blups.mlmm)
 #GITP3.fe had to remove it
 ggarrange(GETP3.fe, GETP3.re,GITP3.fe, GITP3.re, 
-          labels = c("GE 3 Fx", "GE Rd", "GI Fx","GI Rd"),
+          labels = c("GE 3 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 
 str(GWAS.GETP3.blues_5D.mlmm)
