@@ -29,16 +29,13 @@ library(ggplot2)
 #need to have
 
 
-df1[,c(1,3,4)]
+
 
 library(ggpubr)
 library(tidyverse)
 mahatoutput<-function(df1){
-
 df<-df1$GWAS[with(df1$GWAS, order(Chromosome, Position)),]
-
 #plot(x=df[,3], y=-log10(df[,4]), main = "Manhattan Plot",xlab="Genotype")
-
 #abline( h= -log10(0.05/nrow(df)) , col = "red")
 nCHR <- length(unique(df$Chromosome))
 df[is.na(df$Chromosome),]$Chromosome<-8
@@ -50,13 +47,11 @@ for (i in unique(df$Chromosome)){
   df[df$Chromosome == i,"BPcum"] <- df[df$Chromosome == i,"Position"] + s
   s <- s + nbp[i]
 }
-
-
 axis.set <- df%>% 
   group_by(Chromosome) %>% 
   summarize(center = (max(BPcum) + min(BPcum)) / 2)
 ylim <- abs(floor(log10(min(df$P.value)))) + 2 
-str(axis.set)
+#str(axis.set)
 sig <- 5e-8/13143
 manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value), 
                                  color = as.factor(Chromosome), size = -log10(0.05))) +
@@ -77,28 +72,46 @@ manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value),
     axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)
   )
 manoutput
-
 }
+
+
+
+
 GETP1.fe<-mahatoutput(GWAS.GETP1.blues.mlmm)
 GETP1.re<-mahatoutput(GWAS.GETP1.blups.mlmm)
-
 GITP1.fe<-mahatoutput(GWAS.GITP1.blues.mlmm)
 GITP1.re<-mahatoutput(GWAS.GITP1.blups.mlmm)
 
-mahatoutput(GWAS.GETP1.blups.mlmm)
 ggarrange(GETP1.fe, GETP1.re, GITP1.fe, GITP1.re, 
-          labels = c("GE 1 Fx", "GE Rd", "GI Fx","GI Rd"),label.y = "Time point 1",
+          labels = c("GE 1 Fx", "GE Rd", "GI Fx","GI Rd"),
           ncol = 2, nrow = 2)
 ####
 GETP1_5D.fe<-mahatoutput(GWAS.GETP1_5D.blues.mlmm)
 GETP1_5D.re<-mahatoutput(GWAS.GETP1_5D.blups.mlmm)
-
 GITP1_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm)
 GITP1_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm)
-GITP1_5D.re
 
 ggarrange(GETP1_5D.fe, GETP1_5D.re, GITP1_5D.fe, GITP1_5D.re, 
-          labels = c("GE  Fx", "GE Rd", "GI Fx","GI Rd"),label.y = "Time point 1 5 day",
+          labels = c("GE 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),
+          ncol = 2, nrow = 2)
+## Timepoint 2 ###
+GETP2.fe<-mahatoutput(GWAS.GETP2.blues.mlmm)
+GETP2.re<-mahatoutput(GWAS.GETP2.blups.mlmm)
+GITP2.fe<-mahatoutput(GWAS.GITP2.blues.mlmm)
+GITP2.re<-mahatoutput(GWAS.GITP2.blups.mlmm)
+
+ggarrange(GETP2.fe, GETP2.re, GITP2.fe, GITP2.re, 
+          labels = c("GE 2 Fx", "GE Rd", "GI Fx","GI Rd"),
+          ncol = 2, nrow = 2)
+
+
+GETP2_5D.fe<-mahatoutput(GWAS.GETP1_5D.blues.mlmm)
+GETP2_5D.re<-mahatoutput(GWAS.GETP1_5D.blups.mlmm)
+GITP2_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm)
+GITP2_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm)
+
+ggarrange(GETP2_5D.fe, GETP2_5D.re, GITP2_5D.fe, GITP2_5D.re, 
+          labels = c("GE 2 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),
           ncol = 2, nrow = 2)
 
 
