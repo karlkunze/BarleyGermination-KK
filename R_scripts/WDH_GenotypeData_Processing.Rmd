@@ -72,6 +72,10 @@ WDH20_pheno<-All_pheno_TPall
 
 
 wdh<-read.table("data/Genotype_data/Cornell2020Sorrells-50k Project_Standard1Filte-numeric.hmp.txt",skip=1, header=T,sep ='\t')
+list.files("data/Genotype_data")
+wdh_parents<-read.table("data/Genotype_data/WMB_WMB_50K_misc.txt",skip=1,header = T,sep = '\t')
+str(wdh_parents)
+wdh_parents[1:10,1:10]
 #need to skip because there is an extra header, first being numeric 'skip=1' skips the <numeric> 
 ```
 Check Marker names
@@ -79,6 +83,7 @@ Check Marker names
 #Check marker names
 #txt tab delimited files replace "-" character with ".", need to replace "." with "-"
 colnames(wdh)=gsub("\\.","-",colnames(wdh))
+
 which(colnames(wdh)%in%allsnps$Name)
 ncol(wdh)
 
@@ -88,6 +93,17 @@ ncol(wdh)
 #remove markers in allsnps(paired sample file) not in the genotype file
 
 allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
+
+#parent genotype names
+colnames(wdh_parents)=gsub("\\.","-",colnames(wdh_parents))
+
+
+
+```
+retain relevant wdh_parents for analysis
+```{r}
+#we want to keep DH1301910, SY Tepee, KWS Scala, Flavia, Wintmalt, Charles, and Endeavor(will be for 20-21)
+
 
 ```
 Add AlAT marker data
