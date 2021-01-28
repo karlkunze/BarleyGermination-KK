@@ -90,10 +90,32 @@ wdh_raw$panel<-as.character(wdh_raw$panel)
 
 
 typeof(Tutorial$pos)
-write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",sep = "\t")
+wdh_raw<-as.data.frame(wdh_raw)
+rownames(Tutorial)
+rownames(wdh_raw)[1:10]
+wdh_raw["3138",]
+wdh_raw[12,]
+Tutorial[12,]
+rownames(wdh_raw)<-NULL
+wdh_raw$`rs#`<-gsub("-","\\.",wdh_raw$`rs#`)
+colnames(wdh_raw)[12:ncol(wdh_raw)]<-paste("X",colnames(wdh_raw)[12:ncol(wdh_raw)],sep = "")
+colnames(wdh_raw)
+
+
+write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",sep = "\t",quote=FALSE)
 
 checkFrame<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",header=T,sep = "\t")
 Tutorial<-read.delim("C:/Users/Karl/50k_data/TASSELTutorialData5/TASSELTutorialData5/mdp_genotype.hmp.txt",header = T,sep = "\t")
+getwd()
+Misc<-read.delim("data/Genotype_data/CU_WMB_SMB_50k.hmp.txt",sep ="\t")
+str(Misc)
+checkFrame[1:2,1:15]
+Tutorial[1:2,1:15]
+Misc[1:2,1:15]
+length(checkFrame[1,])
+length(Tutorial[1,])
+str(checkFrame)
+str(Tutorial)
 diffdf(checkFrame,Tutorial)
 diffdf(wdh_raw,Tutorial)
 
