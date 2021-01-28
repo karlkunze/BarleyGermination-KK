@@ -1,16 +1,20 @@
 #aligning genome
-wdh_raw<-read.delim2("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw.hmp.txt",header = T,sep = "\t")
-str(wdh_raw)
+wdh_raw<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw.hmp.txt",header = T,sep = "\t")
+original_config<-as.data.frame(str(wdh_raw))
+wdh_raw0<-wdh_raw
+original_config
 colnames(wdh_raw)=gsub("\\.","-",colnames(wdh_raw))
 str(wdh_raw)
 orginal_colnames<-colnames(wdh_raw)[1:11]
 #read.delim
 #write as txt file
 wdh_raw[1:5,1:5]
+
 ######
-)
+colnames(wdh_raw)[ncol(wdh_raw)]
 Barley50K<-read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = 'EXCAP markers')
 #there is also a 9K sheet if needed, although not all positions from the 9K are validated
+
 Barley50K=Barley50K[,c(1:3)]
 str(Barley50K)
 library(stringr)
@@ -64,4 +68,37 @@ colnames(wdh_raw)[1:11]<-orginal_colnames
 colnames(wdh_raw)[1:11]
 table(wdh_raw$chrom)
 wdh_raw[1:10,1:12]
-write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt")
+str(wdh_raw)
+str(wdh_raw0)
+wdh_raw0[1:5,1:5]
+wdh_raw0
+colnames(wdh_raw)=gsub("-","\\.",colnames(wdh_raw))
+
+table(wdh_raw$alleles)
+colnames(wdh_raw)[c(1,6,10)]<-c("rs#","assembly#","panel")
+wdh_raw$chrom<-gsub("H","",wdh_raw$chrom)
+wdh_raw$chrom
+colnames(wdh_raw)[1:14]
+library(janitor)
+library(diffdf)
+wdh_raw$chrom<-as.numeric(wdh_raw$chrom)
+wdh_raw$chrom<-as.integer(wdh_raw$chrom)
+wdh_raw$pos<-as.integer(wdh_raw$pos)
+wdh_raw$`assembly#`<-as.character(wdh_raw$`assembly#`)
+wdh_raw$center<-as.character(wdh_raw$center)
+wdh_raw$panel<-as.character(wdh_raw$panel)
+
+
+typeof(Tutorial$pos)
+write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",sep = "\t")
+
+checkFrame<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",header=T,sep = "\t")
+Tutorial<-read.delim("C:/Users/Karl/50k_data/TASSELTutorialData5/TASSELTutorialData5/mdp_genotype.hmp.txt",header = T,sep = "\t")
+diffdf(checkFrame,Tutorial)
+diffdf(wdh_raw,Tutorial)
+
+
+str(Tutorial)
+str(wdh_raw)
+#wdh_raw0[1:5,1:5]
+#checkFrame[1:5,1:5]
