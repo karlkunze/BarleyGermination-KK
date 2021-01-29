@@ -1,16 +1,19 @@
 #aligning genome
-wdh_raw<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw.hmp.txt",header = T,sep = "\t")
+wdh_raw<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw.hmp.txt",header = T,sep = "\t",fill = TRUE)
 original_config<-as.data.frame(str(wdh_raw))
 wdh_raw0<-wdh_raw
 original_config
 colnames(wdh_raw)=gsub("\\.","-",colnames(wdh_raw))
 str(wdh_raw)
 orginal_colnames<-colnames(wdh_raw)[1:11]
+orginal_colnames
 #read.delim
 #write as txt file
 wdh_raw[1:5,1:5]
 
 ######
+library(readxl)
+library(openxlsx)
 colnames(wdh_raw)[ncol(wdh_raw)]
 Barley50K<-read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = 'EXCAP markers')
 #there is also a 9K sheet if needed, although not all positions from the 9K are validated
@@ -75,40 +78,55 @@ wdh_raw0
 colnames(wdh_raw)=gsub("-","\\.",colnames(wdh_raw))
 
 table(wdh_raw$alleles)
-colnames(wdh_raw)[c(1,6,10)]<-c("rs#","assembly#","panel")
-wdh_raw$chrom<-gsub("H","",wdh_raw$chrom)
-wdh_raw$chrom
+colnames(wdh_raw)[c(1,6,10)]
+colnames(wdh_raw)[1:12]
+colnames(wdh_raw0)[1:12]
+colnames(Tutorial)[1:12]
+colnames(Misc)[1:12]
+#colnames(wdh_raw)[c(1,6,10)]<-c("rs#","assembly#","panel")
+wdh_raw$chrom<-as.integer(gsub("H","",wdh_raw$chrom))
+wdh_raw[1:5,12:14]
 colnames(wdh_raw)[1:14]
 library(janitor)
 library(diffdf)
 wdh_raw$chrom<-as.numeric(wdh_raw$chrom)
 wdh_raw$chrom<-as.integer(wdh_raw$chrom)
 wdh_raw$pos<-as.integer(wdh_raw$pos)
-wdh_raw$`assembly#`<-as.character(wdh_raw$`assembly#`)
+#wdh_raw$`assembly-`<-as.character(wdh_raw$`assembly-`)
 wdh_raw$center<-as.character(wdh_raw$center)
-wdh_raw$panel<-as.character(wdh_raw$panel)
+#wdh_raw$panel<-as.character(wdh_raw$panel)
 
 
-typeof(Tutorial$pos)
-wdh_raw<-as.data.frame(wdh_raw)
-rownames(Tutorial)
+
+#wdh_raw<-as.data.frame(wdh_raw)
+str(wdh_raw)
+rownames(Tutorial)[1:10]
 rownames(wdh_raw)[1:10]
 wdh_raw["3138",]
 wdh_raw[12,]
 Tutorial[12,]
-rownames(wdh_raw)<-NULL
-wdh_raw$`rs#`<-gsub("-","\\.",wdh_raw$`rs#`)
-colnames(wdh_raw)[12:ncol(wdh_raw)]<-paste("X",colnames(wdh_raw)[12:ncol(wdh_raw)],sep = "")
+rownames(wdh_raw)<-1:nrow(wdh_raw)
+wdh_raw$`rs-`<-gsub("-","\\.",wdh_raw$`rs-`)
+#colnames(wdh_raw)[12:ncol(wdh_raw)]<-paste("X",colnames(wdh_raw)[12:ncol(wdh_raw)],sep = "")
 colnames(wdh_raw)
+wdh_raw[-1,]
+wdh_raw[2,]
+table(Tutorial[2,])
+colnames(wdh_raw)[ncol(wdh_raw)-3]
+wdh_raw<-wdh_raw[with(wdh_raw, order("chrom", "pos")),]
+wdh_raw[is.na(c(12:ncol(wdh_raw)))]
+
 
 
 write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",sep = "\t",quote=FALSE)
-
+checkFrame[1,1:14]
+wdh_raw0[1,1:14]
 checkFrame<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",header=T,sep = "\t")
 Tutorial<-read.delim("C:/Users/Karl/50k_data/TASSELTutorialData5/TASSELTutorialData5/mdp_genotype.hmp.txt",header = T,sep = "\t")
-getwd()
-Misc<-read.delim("data/Genotype_data/CU_WMB_SMB_50k.hmp.txt",sep ="\t")
+
+Misc<-read.delim("data/Genotype_data/CU_WMB_SMB_50k.hmp.txt",header = T,sep ="\t")
 str(Misc)
+write.table(Misc,"data/Genotype_data/CU_WMB_SMB_50k_test.hmp.txt",sep ="\t")
 checkFrame[1:2,1:15]
 Tutorial[1:2,1:15]
 Misc[1:2,1:15]
@@ -117,7 +135,7 @@ length(Tutorial[1,])
 str(checkFrame)
 str(Tutorial)
 diffdf(checkFrame,Tutorial)
-diffdf(wdh_raw,Tutorial)
+diffdf(wdh_raw,wdh_raw0)
 
 
 str(Tutorial)
