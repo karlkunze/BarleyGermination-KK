@@ -1,6 +1,22 @@
 #aligning genome
-wdh_raw<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw.hmp.txt",header = T,sep = "\t",fill = TRUE)
-original_config<-as.data.frame(str(wdh_raw))
+wdh_raw<-as.data.frame(read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw.hmp.txt",header = T,sep = "\t"))
+#WDH_50K_raw.hmp <- read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw.hmp.txt", header=FALSE, row.names=NULL, quote="")
+library(janitor)
+
+
+
+#wdh_raw[wdh_raw$rs.=="JHI-Hv50K-2016-111251",]
+#Tutorial<-read.delim("C:/Users/Karl/50k_data/TASSELTutorialData5/TASSELTutorialData5/mdp_genotype.hmp.txt",header = T,sep = "\t")
+#View(wdh_raw)
+#write.table(cu_geno, file="GGS_all_50k_nuc.hmp.txt", sep="\t",row.names=F, quote=F)
+#write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw4.hmp.txt",sep = "\t",quote =F,row.names = F)
+#Tutorial_check<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_raw4.hmp.txt",sep = "\t",header = TRUE)
+#library(diffdf)
+#diffdf(Tutorial,Tutorial_check)
+#ncol(wdh_raw[1,])
+
+#nrow(wdh_raw)
+#original_config<-as.data.frame(str(wdh_raw))
 wdh_raw0<-wdh_raw
 original_config
 colnames(wdh_raw)=gsub("\\.","-",colnames(wdh_raw))
@@ -106,7 +122,8 @@ wdh_raw["3138",]
 wdh_raw[12,]
 Tutorial[12,]
 rownames(wdh_raw)<-1:nrow(wdh_raw)
-wdh_raw$`rs-`<-gsub("-","\\.",wdh_raw$`rs-`)
+wdh_raw$
+wdh_raw$`rs.`<-gsub("-","\\.",wdh_raw$`rs.`)
 #colnames(wdh_raw)[12:ncol(wdh_raw)]<-paste("X",colnames(wdh_raw)[12:ncol(wdh_raw)],sep = "")
 colnames(wdh_raw)
 wdh_raw[-1,]
