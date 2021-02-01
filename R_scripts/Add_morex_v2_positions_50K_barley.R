@@ -33,35 +33,39 @@ wdh_raw[1:5,1:5]
 library(readxl)
 library(openxlsx)
 colnames(wdh_raw)[ncol(wdh_raw)]
-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",skip=1)
-Barley50K<-read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = 'EXCAP markers')
+Morex2019<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",skip=1,header = FALSE)
+head(Morex2019)
 #there is also a 9K sheet if needed, although not all positions from the 9K are validated
+Morex2019=Morex2019[,c(1,2,4,7,9)]
+head(Morex2019)
 
-Barley50K=Barley50K[,c(1:3)]
-str(Barley50K)
+
 library(stringr)
-Barley50K$`EXCAP marker name`<-str_split_fixed(Barley50K$`EXCAP marker name`,"-0_" , 2)[,1]
-colnames(Barley50K)<-c("Name","Chr","bp")
-Barley50K$Type<-"50K"
+Morex2019$V1<-str_split_fixed(Morex2019$V1,"r" , 2)[,2]
+Morex2019$V9<-str_split_fixed(Morex2019$V9,"=" , 2)[,2]
+head(Morex2019)
+colnames(Morex2019)
+colnames(Morex2019)<-c("Chrom","Type","pos","strand","Marker")
+
 
 #9K
-Barley9K<-as.data.frame(read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = '9k markers'))
-str(Barley9K)
-Barley9K<-Barley9K[,c(1,2)]
-str(Barley9K)
-Barley9K$chr<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 1)
-Barley9K$chr<-sapply(strsplit(Barley9K$chr,"r"), "[", 2)
-Barley9K$bp<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 2)
-Barley9K$bp<-sapply(strsplit(Barley9K$bp,"\\("), "[", 1)
-Barley9K<-Barley9K[,-2]
-str(Barley9K)
-colnames(Barley9K)<-c("Name","Chr","bp")
-Barley9K$Type<-"9K"
-Barley50_9K<-rbind(Barley50K,Barley9K)
-str(Barley50_9K)
+#Barley9K<-as.data.frame(read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = '9k markers'))
+#str(Barley9K)
+#Barley9K<-Barley9K[,c(1,2)]
+#str(Barley9K)
+#Barley9K$chr<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 1)
+#Barley9K$chr<-sapply(strsplit(Barley9K$chr,"r"), "[", 2)
+#Barley9K$bp<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 2)
+#Barley9K$bp<-sapply(strsplit(Barley9K$bp,"\\("), "[", 1)
+#Barley9K<-Barley9K[,-2]
+#str(Barley9K)
+#colnames(Barley9K)<-c("Name","Chr","bp")
+#Barley9K$Type<-"9K"
+#Barley50_9K<-rbind(Barley50K,Barley9K)
+str(Morex2019)
 Barley50_9K[1:10,]
 
-table(Barley50_9K$Chr,useNA = "ifany")
+table(Morex2019$Chrom,useNA = "ifany")
 Barley50_9K<-Barley50_9K[with(Barley50_9K, order(Chr, bp)),]
 Barley50_9K$Name
 ##
