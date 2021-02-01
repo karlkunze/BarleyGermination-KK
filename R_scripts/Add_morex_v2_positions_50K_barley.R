@@ -18,7 +18,7 @@ library(janitor)
 #nrow(wdh_raw)
 #original_config<-as.data.frame(str(wdh_raw))
 wdh_raw0<-wdh_raw
-original_config
+#original_config
 colnames(wdh_raw)=gsub("\\.","-",colnames(wdh_raw))
 str(wdh_raw)
 orginal_colnames<-colnames(wdh_raw)[1:11]
@@ -68,9 +68,11 @@ Alignment_list<-Barley50_9K[Barley50_9K$Name%in%wdh_raw$`rs-`,]
 colnames(Alignment_list)[1]<-"Marker"
 colnames(wdh_raw)[1]<-"Marker"
 str(wdh_raw)
-colnames(wdh_raw)
+colnames(Alignment_list)
+colnames(wdh_raw)[1:15]
 wdh_raw<-merge(wdh_raw,Alignment_list,by="Marker",all.x = TRUE)
 wdh_raw$chrom
+hist(wdh_raw$pos)
 #need bp to be numeric for correct ordering
 wdh_raw$bp<-as.numeric(wdh_raw$bp)
 #order based on Chr and base pair position
@@ -84,9 +86,9 @@ wdh_raw<-wdh_raw[,-c(ncol(wdh_raw)-2,ncol(wdh_raw)-1,ncol(wdh_raw))]
 #rename
 orginal_colnames
 colnames(wdh_raw)[1:11]<-orginal_colnames
-colnames(wdh_raw)[1:11]
+colnames(wdh_raw)[1:12]
 table(wdh_raw$chrom)
-wdh_raw[1:10,1:12]
+wdh_raw[1:10,1:13]
 str(wdh_raw)
 str(wdh_raw0)
 wdh_raw0[1:5,1:5]
@@ -120,22 +122,27 @@ rownames(Tutorial)[1:10]
 rownames(wdh_raw)[1:10]
 wdh_raw["3138",]
 wdh_raw[12,]
-Tutorial[12,]
+#Tutorial[12,]
+
 rownames(wdh_raw)<-1:nrow(wdh_raw)
-wdh_raw$
-wdh_raw$`rs.`<-gsub("-","\\.",wdh_raw$`rs.`)
+wdh_raw
+wdh_raw$rs.<-gsub("-","\\.",wdh_raw$rs.)
+wdh_raw[1:5,12:15]
 #colnames(wdh_raw)[12:ncol(wdh_raw)]<-paste("X",colnames(wdh_raw)[12:ncol(wdh_raw)],sep = "")
 colnames(wdh_raw)
-wdh_raw[-1,]
-wdh_raw[2,]
-table(Tutorial[2,])
-colnames(wdh_raw)[ncol(wdh_raw)-3]
-wdh_raw<-wdh_raw[with(wdh_raw, order("chrom", "pos")),]
-wdh_raw[is.na(c(12:ncol(wdh_raw)))]
+typeof(wdh_raw$chrom)
+
+#PROBLEM HEREE
+wdh_raw<-wdh_raw[with(wdh_raw, order(chrom,pos)),]
+wdh_raw[is.na(wdh_raw$alleles),]
+wdh_raw<-wdh_raw[!is.na(wdh_raw$alleles), ]
+str(wdh_raw)
+#wdh_raw[is.na(wdh_raw[,4])]
+wdh_raw[1:4,1:14]
+wdh_raw[1:10,1:10]
 
 
-
-write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",sep = "\t",quote=FALSE)
+write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_v2_aligned_positions.hmp.txt",sep = "\t",quote=F,row.names = F)
 checkFrame[1,1:14]
 wdh_raw0[1,1:14]
 checkFrame<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",header=T,sep = "\t")
