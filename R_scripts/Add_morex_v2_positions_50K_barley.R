@@ -94,7 +94,7 @@ colnames(wdh_raw)[c(3,4,ncol(wdh_raw)-2,ncol(wdh_raw)-1)]
 wdh_raw[,c(3,4)]<-wdh_raw[,c(ncol(wdh_raw)-2,ncol(wdh_raw)-1)]
 str(wdh_raw)
 
-table(wdh_raw$chrom,useNA = "ifany")
+length(table(wdh_raw$pos,useNA = "ifany"))-length(table(wdh_raw$pos))
 #remove attached 50K/9K data at end of dataframe
 ncol(wdh_raw)
 colnames(wdh_raw[,-c(ncol(wdh_raw)-2,ncol(wdh_raw)-1,ncol(wdh_raw))])
@@ -153,23 +153,20 @@ typeof(wdh_raw$chrom)
 str(wdh_raw)
 wdh_raw[with(wdh_raw, order(chrom,pos)),]
 
-wdh_raw1<-as.data.frame(wdh_raw[with(wdh_raw, order(chrom,pos)),])
-wdh_raw1[is.na(wdh_raw1$chrom),]$chrom<-8
+wdh_raw<-as.data.frame(wdh_raw[with(wdh_raw, order(chrom,pos)),])
+wdh_raw[is.na(wdh_raw$chrom),]
+wdh_raw[is.na(wdh_raw$alleles),]
+wdh_raw<-as.data.frame(wdh_raw[!is.na(wdh_raw$alleles),])
+wdh_raw<-as.data.frame(wdh_raw[!is.na(wdh_raw$pos),])
 
-str(wdh_raw1$pos)
-dim(wdh_raw1)
-wdh_raw1[is.na(wdh_raw1$alleles),]
-wdh_raw1<-as.data.frame(wdh_raw1[!is.na(wdh_raw1$alleles),])
-wdh_raw1<-as.data.frame(wdh_raw1[!is.na(wdh_raw1$pos),])
-wdh_raw<-wdh_raw[!is.na(wdh_raw$alleles),]
 #wdh_raw worked, I removed NA pos and Chr positions and allele
-str(wdh_raw)
+dim(wdh_raw)
 #wdh_raw[is.na(wdh_raw[,4])]
 wdh_raw[1:4,1:14]
 wdh_raw[1:10,1:10]
 table(wdh_raw$chrom,useNA = "ifany")
-w
-write.table(wdh_raw1,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_v2_aligned_positions_test.hmp.txt",sep = "\t",quote=F,row.names = F)
+
+write.table(wdh_raw,"C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_v2_aligned_positions_test.hmp.txt",sep = "\t",quote=F,row.names = F)
 checkFrame[1,1:14]
 wdh_raw0[1,1:14]
 checkFrame<-read.delim("C:/Users/Karl/50k_data/Winter DH population/Raw_tassel/WDH_50K_rwas_positions.hmp.txt",header=T,sep = "\t")
