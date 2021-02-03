@@ -77,18 +77,23 @@ library(here)
 load(here("WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
 
+#changed to read new table
+wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines_numeric.hmp.txt",skip = 1, header=T,sep ='\t')
+wdh[1:15,1:12]
+wdh[15:20,15:20]
 
-wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines.hmp.txt",skip=1, header=T,sep ='\t')
+wdh0<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines.hmp.txt",skip = 1, header=T,sep ='\t')
+
 list.files("data/Genotype_data")
 
-#need to skip because there is an extra header, first being numeric 'skip=1' skips the <numeric> 
 ```
-Check Marker names
+Check Entry names
 ```{r}
 #Check marker names
 #txt tab delimited files replace "-" character with ".", need to replace "." with "-"
+colnames(wdh)
 colnames(wdh)=gsub("\\.","-",colnames(wdh))
-
+colnames(wdh)
 which(colnames(wdh)%in%allsnps$Name)
 ncol(wdh)
 
@@ -97,8 +102,8 @@ ncol(wdh)
 
 #remove markers in allsnps(paired sample file) not in the genotype file
 
-allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
-
+#allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
+#this paired sample dataframe is redundant, I initally used allsnps from a paired sample frame, the purpose was to have a SNP from the orignal all 50K marker positions to only include markers that are part of the genotype file
 #parent genotype names
 
 
@@ -106,10 +111,14 @@ allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
 retain relevant wdh_parents for analysis
 ```{r}
 #we want to keep DH1301910, SY Tepee, KWS Scala, Flavia, Wintmalt, Charles, and Endeavor(will be for 20-21)
-
+colnames(wdh)[c(14,500,501)]<-c("Flavia","Scala","SY Tepee")
+colnames(wdh)[c(12,13,495,498,499,502)]
+#removing these acessions for this dataset
+wdh<-wdh[,-c(12,13,495,498,499,502)]
+#remame 
 
 ```
-Add AlAT marker data
+Add AlAT marker dat
 ```{r}
 
 AlaT_markers<-read_excel("data/Marker_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results')
@@ -131,7 +140,8 @@ Check Entry Names
 
 ```{r}
 wdh[1:8,1:8]
-colnames(wdh)[1]<-"Entry"
+as.data.frame(t(wdh))[1:10,1:10]
+colnames(wdh)[1]<-"Marker"
 colnames(wdh)[1]
 
 
