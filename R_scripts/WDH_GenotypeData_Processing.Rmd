@@ -82,8 +82,8 @@ wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines_numeri
 wdh[1:15,1:12]
 wdh[15:20,15:20]
 
-wdh0<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines.hmp.txt",skip = 1, header=T,sep ='\t')
-
+#wdh0<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines.hmp.txt",skip = 1, header=T,sep ='\t')
+rm(wdh0)
 list.files("data/Genotype_data")
 
 ```
@@ -149,6 +149,8 @@ Check Entry Names
 wdh[1:8,1:8]
 
 rownames(wdh)<-wdh[,1]
+rownames(wdh)
+wdh[,1]
 wdh<-wdh[,-1]
 #added ALaT marker to genotype matrix
 colnames(wdh)[ncol(wdh)-1]
@@ -319,7 +321,7 @@ head(round(pc.percent, 2))
 plot(1:10,pc.percent[1:10])
 DH_Entry<-DH_Entry[!is.na(DH_Entry$Pedigree),]
 DH_Entry<-droplevels(DH_Entry)
-View(DH_Entry)
+
 DH_Entry[DH_Entry$Entry=="Check 1-Flavia",]$Entry<-"Flavia"
 
 DH_Entry[DH_Entry$Entry=="Check 2-Scala",]$Entry<-"Scala"
@@ -365,8 +367,13 @@ LD heatmap
 library(LDcorSV)
 library(ggplot2)
 library(reshape2)
-ld_heatmap=function(df){
+str(ld)
+#ld_heatmap=function(df){GD
+df<-as.data.frame(myGD20[,-1])
+
   ld <- as.matrix(round(df,0))
+  str(ld)
+  ld[1:5,1:5]
   if(c(-1,3,4) %in% ld){
     ld[which(ld==3)]=2
     ld[which(ld==4)]=2
@@ -388,8 +395,8 @@ ld_heatmap=function(df){
                        midpoint = 0.5, limit = c(0,1), space = "Lab", name="r2") +
     theme_classic() #+    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
   return(graphic)
-}
-c<-ld_heatmap(myGD20[,-1])
+#}
+ld_heatmap(myGD20[,-1])
 
 ```
 
