@@ -147,6 +147,12 @@ table(DH_2020_field$Pedigree)
 #change naming of DH130910/Wintmalt to Wintmalt/DH130910, makes for easier plotting
 DH_2020_field[DH_2020_field$Pedigree=="DH130910/Wintmalt",]$Pedigree<-"Wintmalt/DH130910"
 str(DH_2020_field)
+
+```
+Use names below
+```{r}
+table(DH_2020_field$Entry)
+
 ```
 converting PHS scores and heading date
 ```{r}

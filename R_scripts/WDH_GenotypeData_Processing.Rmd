@@ -157,8 +157,8 @@ colnames(wdh)[ncol(wdh)-1]
 
 rownames(wdh)=gsub("\\.","-",rownames(wdh))
 
-
-wdh[1:4,c(13121:ncol(wdh))]
+ncol(wdh)
+wdh[1:4,c(15464:ncol(wdh))]
 
 
 library(tidyverse)
