@@ -355,6 +355,7 @@ ggplot(test, aes(x=X1, y=X2, color=pedigree))+
 ```{r}
 
 getwd()
+
 save(myGD20, file="myGD20.Rdata")
 save(myGM20, file="myGM20.Rdata")
 save(AlaT_markers, file="AlaT_markers.Rdata")
