@@ -132,7 +132,7 @@ GETP1.fe<-mahatoutput(GWAS.GETP1.blues.mlmm)
 GETP1.re<-mahatoutput(GWAS.GETP1.blups.mlmm)
 GITP1.fe<-mahatoutput(GWAS.GITP1.blues.mlmm)
 GITP1.re<-mahatoutput(GWAS.GITP1.blups.mlmm)
-
+sig<-0.05/13000
 GETP1.fe.p<-pval(GWAS.GETP1.blues.mlmm,sig,"GETP1 Fixed")
 GETP1.re.p<-pval(GWAS.GETP1.blups.mlmm,sig,"GETP1 Random")
 GITP1.fe.p<-pval(GWAS.GITP1.blues.mlmm,sig,"GITP1 Fixed")
@@ -145,6 +145,7 @@ ggarrange(GETP1.fe, GETP1.re, GITP1.fe, GITP1.re,
           labels = c("GE 1 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 ####
+
 GETP1_5D.fe<-mahatoutput(GWAS.GETP1_5D.blues.mlmm)
 GETP1_5D.re<-mahatoutput(GWAS.GETP1_5D.blups.mlmm)
 GITP1_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm)
