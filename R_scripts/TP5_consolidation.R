@@ -22,7 +22,7 @@ TP5_all<-TP5_all[!is.na(TP5_all$PLOT),]
 
 TP5_all
 TP5_all$PLOT<-gsub("a","",(TP5_all$PLOT))
-
+TP5_all[is.na(TP5_all$Entry),]
 
 TP5_all$Check<-NA;TP5_all$Check<-"B"
 TP5_all$Mold_kern<-NA
@@ -41,8 +41,8 @@ TP5_all[TP5_all$Entry=="Check 3-DH130910",]$Check<-"C"
 TP5_all[TP5_all$Entry=="Check 4-SY Tepee",]$Check<-"C"
 TP5_all[TP5_all$Entry=="Check 5-Wintmalt",]$Check<-"C"
 TP5_all[TP5_all$Entry=="Check 6-Charles",]$Check<-"C"
-
-View(TP5_all)
+TP5_all[TP5_all$Entry=="SNBBBdormSNLine",]$Check<-"S"
+TP5_all[TP5_all$Entry=="SRBBBdormSNLine",]$Check<-"S"
 
 TP5_all[TP5_all$Entry=="Check 1-Flavia",]$Entry<-"Flavia"
 TP5_all[TP5_all$Entry=="Check 2-Scala",]$Entry<-"Scala"
@@ -52,12 +52,12 @@ TP5_all[TP5_all$Entry=="Check 5-Wintmalt",]$Entry<-"Wintmalt"
 TP5_all[TP5_all$Entry=="Check 6-Charles",]$Entry<-"Charles"
 
 
-"
+table(TP5_all$Entry)
 
 
 
 table(TP5_all$Entry)
-table(Morex2019$Chrom,useNA = "ifany")
+#table(Morex2019$Chrom,useNA = "ifany")
 TP5_all$Day1Germ<-as.numeric(TP5_all$Day1Germ)
 TP5_all$Day2Germ<-as.numeric(TP5_all$Day2Germ)
 TP5_all$Day3Germ<-as.numeric(TP5_all$Day3Germ)

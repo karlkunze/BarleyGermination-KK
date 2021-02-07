@@ -24,9 +24,14 @@ TP2<-as.data.frame(read.csv("data/Winter_DH/TP2/DHtp2_all_F.csv",stringsAsFactor
 TP3<-as.data.frame(read.csv("data/Winter_DH/TP3/DHtp3_all_F.csv",stringsAsFactors = FALSE))
 TP4<-as.data.frame(read.csv("data/Winter_DH/TP4/DHtp4_all_combined_F.csv",stringsAsFactors = FALSE))
 
-colnames(TP1_half)
+TP5<-as.data.frame(read.csv("data/Winter_DH/TP5/TP5_all.csv",stringsAsFactors = FALSE))
+
+TP5<-TP5[,-c(2,15)]
+colnames(TP5)
+colnames(TP4)
 colnames(TP1_half)[19]<-"UserDay3"
 table(TP1_half$Entry)
+View(TP4)
 
 ##
 
