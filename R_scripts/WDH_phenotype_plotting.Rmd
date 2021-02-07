@@ -64,7 +64,40 @@ ggplot(data=wdh1melt5, aes(x=Timepoint, y=value, fill=dataset)) +
   xlab("Time point") + ylab("") 
 
 
+
 ```
+
+```{r}
+Cwdh
+WDHmelt_scale=melt(Cwdh, id.vars =c("Entry","Pedigree","Timepoint", "Location"), measure.vars = c("GIscale"))
+
+
+wdh2=aggregate(value~ Pedigree+Timepoint, data=WDHmelt_scale, mean)
+ggplot(data=wdh2, aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
+  geom_point()+
+  geom_line(size=1) +
+  theme_bw() + 
+  geom_hline(yintercept =5.5, color="red", linetype=3, size=1)+
+  #scale_color_manual(values=c("#b2182b","#fddbc7","#d1e5f0", "#67a9cf", "#2166ac"), labels=c("DNN", "DDD","DDN","NDD", "NDN"), name="Haplotype") + 
+  ylab("CU2 germination index") + xlab("Time point")
+
+WDHmelt_GE=melt(Cwdh, id.vars =c("Entry","Pedigree","Timepoint", "Location"), measure.vars = c("GE"))
+
+
+wdh2=aggregate(value~ Pedigree+Timepoint, data=WDHmelt_GE, mean)
+ggplot(data=wdh2, aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
+  geom_point()+
+  geom_line(size=1) +
+  theme_bw() + 
+  
+  #geom_hline(yintercept =5.5, color="red", linetype=3, size=1)+
+  #scale_color_manual(values=c("#b2182b","#fddbc7","#d1e5f0", "#67a9cf", "#2166ac"), labels=c("DNN", "DDD","DDN","NDD", "NDN"), name="Haplotype") + 
+  ylab("CU2 germination Energy") + xlab("Time point")
+
+
+```
+
+
 
 ```{r}
 library(melt)
