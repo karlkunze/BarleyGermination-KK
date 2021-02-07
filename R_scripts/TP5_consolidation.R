@@ -47,12 +47,8 @@ TP5_all[TP5_all$Entry=="Check 6-Charles",]$Check<-"C"
 TP5_all[TP5_all$Entry=="SNBBBdormSNLine",]$Check<-"S"
 TP5_all[TP5_all$Entry=="SRBBBdormSNLine",]$Check<-"S"
 
-TP5_all[TP5_all$Entry=="Check 1-Flavia",]$Entry<-"Flavia"
-TP5_all[TP5_all$Entry=="Check 2-Scala",]$Entry<-"Scala"
-TP5_all[TP5_all$Entry=="Check 3-DH130910",]$Entry<-"DH130910"
-TP5_all[TP5_all$Entry=="Check 4-SY Tepee",]$Entry<-"SY Tepee"
-TP5_all[TP5_all$Entry=="Check 5-Wintmalt",]$Entry<-"Wintmalt"
-TP5_all[TP5_all$Entry=="Check 6-Charles",]$Entry<-"Charles"
+TP5_all[TP5_all$Entry=="SNBBBdormSNLine",]$Entry<-"BBBdormSNLine"
+TP5_all[TP5_all$Entry=="SRBBBdormSNLine",]$Entry<-"BBBdormSRLine"
 
 
 table(TP5_all$Entry)

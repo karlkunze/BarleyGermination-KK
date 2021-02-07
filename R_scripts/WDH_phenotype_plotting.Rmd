@@ -1,0 +1,89 @@
+---
+title: "Phenotype Plotting"
+author: "Karl Kunze"
+date: "2/7/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r}
+library(readr); library(readxl)
+library(ggplot2); library(ggpubr)
+library(gridExtra); library(here)
+library(reshape2)
+load(here("WMB DH 2020 all data for analysis.RData"))
+#All_pheno_TPall
+str(All_pheno_TPall$Timepoint)
+Cwdh<-All_pheno_TPall
+```
+box plots
+```{r}
+wdh2melt=melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GE", "GIscale"))
+wdh1melt=rbind(melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
+               melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GIscale")))
+wdh1melt=wdh1melt[-c(which(is.na(wdh1melt$TP))),]
+
+wdh2melt$dataset="wdh2"; wdh1melt$dataset="wdh1"; 
+wdhmelt=rbind(wdh2melt, wdh1melt)
+ levels(wdhmelt$variable)= c("Germination energy", "Germination index")
+
+ 
+ggplot(data=wdhmelt, aes(x=Timepoint, y=value, fill=dataset)) +
+  geom_boxplot()+
+  facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  #ggtitle("Raw GE distributions")+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+  theme(legend.position = "none")+
+  xlab("Time point") + ylab("") 
+
+# 5 Day
+Cwdh$GIscale_5D
+
+wdh2melt5=melt(Cwdh, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GE_5D", "GIscale_5D"))
+wdh1melt5=rbind(melt(Cwdh, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GE_5D")),
+               melt(Cwdh, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GIscale_5D")))
+wdh1melt5=wdh1melt5[-c(which(is.na(wdh1melt5$Timepoint))),]
+str(wdh1melt5)
+wdh2melt5$dataset="wdh2_5D"; wdh1melt5$dataset="wdh1_5D"; 
+wdhmelt5=rbind(wdh2melt5, wdh1melt5)
+
+ levels(wdhmelt5$variable)= c("Germination energy 5D", "Germination index 5D")
+
+str(wdh1melt5$Pedigree)
+ggplot(data=wdh1melt5, aes(x=Timepoint, y=value, fill=dataset)) +
+  geom_boxplot(aes(fill=Timepoint))+
+  facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+   facet_wrap( ~ Pedigree, scales="free") +
+  #ggtitle("Raw GE distributions")+
+  
+  theme(legend.position = "none")+
+  xlab("Time point") + ylab("") 
+
+
+```
+
+```{r}
+library(melt)
+
+
+
+
+wdhscale=melt(All_pheno_TPall, id.vars =c("Entry","Timepoint", "Location"), measure.vars = c("GI"))
+wdhGE=melt(All_pheno_TPall, id.vars =c("Entry","Timepoint", "Location"), measure.vars = c("GE"))
+
+str(All_pheno_TPallmelt)
+wdh2=aggregate(value~ Timepoint+Entry, data=All_pheno_TPallmelt, mean)
+str(wdh2)
+ggplot(data=wdh2, aes(x=Timepoint, y=value)) +
+  geom_point()+
+  geom_line(size=1.5) +
+  theme_bw() + 
+  geom_hline(yintercept =5.5, color="red", linetype=3, size=1)+
+  ylab("CU2 germination index") + xlab("Time point")
+
+
+```
