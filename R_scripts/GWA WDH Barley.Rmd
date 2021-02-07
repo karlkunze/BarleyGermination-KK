@@ -40,11 +40,10 @@ WDH20_pheno<-All_pheno_TPall
 
 str(WDH20_pheno)
 #make separate data object for field phenotypes
-colnames(WDH20_pheno)
+WDH20_pheno[,c(1:27,30)]
+
 WDH20_phenoF<-WDH20_pheno[,c(1:27,30)]
 WDH20_phenoF<-WDH20_phenoF[!duplicated(WDH20_phenoF$PLOT), ]#remove duplication
-str(WDH20_phenoF)
-table(WDH20_phenoF$Scald)
 ```
 Read in packages and functions
 ```{r}
@@ -70,25 +69,27 @@ Germination Time point models
 ```{r}
 #separate data based on timepoints
 str(WDH20_pheno)
+
 TP1WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="1",])
 TP2WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="2",])
 TP3WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="3",])
 TP4WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="4",])
-str(TP4WDH)
+TP5WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="5",])
 
 
+WDH20_pheno[WDH20_pheno$PLOT==11023,]
 
 TP1WDH<-TP1WDH[!is.na(TP1WDH$PLOT),]
 TP2WDH<-TP2WDH[!is.na(TP2WDH$PLOT),]
 TP3WDH<-TP3WDH[!is.na(TP3WDH$PLOT),]
 TP4WDH<-TP4WDH[!is.na(TP4WDH$PLOT),]
 TP4WDH[TP4WDH$PLOT==11023,]#checking to see if the a{1}1023 lines were retained
-
+TP5WDH<-TP5WDH[!is.na(TP5WDH$PLOT),]
 
 ```
 
 ```{r}
-WDH20phs.lm=lm(phs~Entry+PM, data=WDH20_pheno)
+WDH20phs.lm=lm(phs~Entry, data=WDH20_pheno)
 
 anova(WDH20phs.lm) #all factors signif
 #TP1
@@ -100,9 +101,9 @@ wdhgi1.lm=lm(GIscale~ Entry+Location, data=TP1WDH)
 
 anova(wdhgi1.lm) #location slightly s, PM
 
-wdhge1_5D.lm=lm(GE_5D~ Entry +Location:Scald, data=TP1WDH)
+wdhge1_5D.lm=lm(GE_5D~ Entry +Location, data=TP1WDH)
 anova(wdhge1_5D.lm) #location and PM sg
-wdhgi1_5D.lm=lm(GIscale_5D~ Entry+Scald, data=TP1WDH)
+wdhgi1_5D.lm=lm(GIscale_5D~ Entry, data=TP1WDH)
 anova(wdhgi1_5D.lm) #location slightly s, PM
 
 wdhge1.lm
@@ -143,6 +144,19 @@ wdhge4_5D.lm=lm(GE_5D~ Entry +Location+ replication, data=TP4WDH)
 anova(wdhge4_5D.lm) # only Entry is significant
 wdhgi4_5D.lm=lm(GIscale_5D~ Entry+ replication, data=TP4WDH)
 anova(wdhgi4_5D.lm) #all signif
+#TP5
+
+wdhge5.lm=lm(GE~ Entry +Location, data=TP5WDH)
+anova(wdhge5.lm) # rep slightly sign
+wdhgi5.lm=lm(GIscale~ Entry +Location+replication, data=TP5WDH)
+#should consider not using PM as fixed effect due to highly unbalanced set
+anova(wdhgi5.lm) #all signif
+
+wdhge5_5D.lm=lm(GE_5D~ Entry +Location+ replication, data=TP5WDH)
+anova(wdhge5_5D.lm) # only Entry is significant
+wdhgi5_5D.lm=lm(GIscale_5D~ Entry+Location+replication, data=TP5WDH)
+anova(wdhgi5_5D.lm) #all signif
+
 
 ```
 Analysis of phenotypes
@@ -211,6 +225,7 @@ AIC(wdhGE_TP3_5D.lmer)
 wdhGI_TP3_5D.lmer=lmer(GIscale_5D~  Location+ (1|PM)+ (1|Entry), data=TP3WDH)
 AIC(wdhGI_TP3_5D.lmer)
 
+
 wdhGE_TP4.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP4WDH)
 AIC(wdhGE_TP4.lmer)
 
@@ -221,7 +236,18 @@ AIC(wdhGE_TP4_5D.lmer)
 
 wdhGI_TP4_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP4WDH)
 AIC(wdhGI_TP4_5D.lmer)
+#TP5
 
+wdhGE_TP5.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP5WDH)
+AIC(wdhGE_TP5.lmer)
+
+wdhGI_TP5.lmer=lmer(GIscale~  Location +replication + (1|Entry), data=TP5WDH)
+AIC(wdhGI_TP5.lmer)
+wdhGE_TP5_5D.lmer=lmer(GE_5D~  Location + replication + (1|Entry) , data=TP5WDH)
+AIC(wdhGE_TP5_5D.lmer)
+
+wdhGI_TP5_5D.lmer=lmer(GIscale_5D~  Location +replication + (1|Entry), data=TP5WDH)
+AIC(wdhGI_TP5_5D.lmer)
 
 ```
 Field Phenotypes BLUPS
@@ -294,7 +320,11 @@ Cullis_H2(wdhGE_TP4.lmer)#0.855
 Cullis_H2(wdhGI_TP4.lmer)#0.939
 Cullis_H2(wdhGE_TP4_5D.lmer)#0.7
 Cullis_H2(wdhGI_TP4_5D.lmer)#0.934
-
+#TP5
+Cullis_H2(wdhGE_TP5.lmer)#0.921
+Cullis_H2(wdhGI_TP5.lmer)#0.915
+Cullis_H2(wdhGE_TP5_5D.lmer)#0.633
+Cullis_H2(wdhGI_TP5_5D.lmer)#0.913
 
 
 ```
@@ -349,6 +379,14 @@ GITP4.blues = get_entry_fixed_Effects(wdhgi4.lm, 'GI_TP4')
 
 GETP4_5D.blues = get_entry_fixed_Effects(wdhge4_5D.lm, 'GE_5D_TP4')
 GITP4_5D.blues = get_entry_fixed_Effects(wdhgi4_5D.lm, 'GI_5D_TP4')
+#TP5
+GETP5.blues = get_entry_fixed_Effects(wdhge5.lm, 'GE_TP5')
+GITP5.blues = get_entry_fixed_Effects(wdhgi5.lm, 'GI_TP5')
+
+GETP5_5D.blues = get_entry_fixed_Effects(wdhge5_5D.lm, 'GE_5D_TP5')
+GITP5_5D.blues = get_entry_fixed_Effects(wdhgi5_5D.lm, 'GI_5D_TP5')
+
+
 
 wdh_wh.blues = get_entry_fixed_Effects(wdh_wh.lm, 'wh')
 wdh_HD.blues = get_entry_fixed_Effects(wdh_HD.lm, 'HD')
@@ -371,21 +409,25 @@ GETP1 = data.frame(lsmeans(wdhge1.lm, 'Entry'))
 GETP2 = data.frame(lsmeans(wdhge2.lm, 'Entry'))
 GETP3 = data.frame(lsmeans(wdhge3.lm, 'Entry'))
 GETP4 = data.frame(lsmeans(wdhge4.lm, 'Entry'))
+GETP5 = data.frame(lsmeans(wdhge5.lm, 'Entry'))
 
 GITP1 = data.frame(lsmeans(wdhgi1.lm, 'Entry'))
 GITP2 = data.frame(lsmeans(wdhgi2.lm, 'Entry'))
 GITP3 = data.frame(lsmeans(wdhgi3.lm, 'Entry'))
 GITP4 = data.frame(lsmeans(wdhgi4.lm, 'Entry'))
+GITP5 = data.frame(lsmeans(wdhgi5.lm, 'Entry'))
 
 GETP1_5D = data.frame(lsmeans(wdhge1_5D.lm, 'Entry'))
 GETP2_5D = data.frame(lsmeans(wdhge2_5D.lm, 'Entry'))
 GETP3_5D = data.frame(lsmeans(wdhge3_5D.lm, 'Entry'))
 GETP4_5D = data.frame(lsmeans(wdhge4_5D.lm, 'Entry'))
+GETP5_5D = data.frame(lsmeans(wdhge5_5D.lm, 'Entry'))
 
 GITP1_5D = data.frame(lsmeans(wdhgi1_5D.lm, 'Entry'))
 GITP2_5D = data.frame(lsmeans(wdhgi2_5D.lm, 'Entry'))
 GITP3_5D = data.frame(lsmeans(wdhgi3_5D.lm, 'Entry'))
 GITP4_5D = data.frame(lsmeans(wdhgi4_5D.lm, 'Entry'))
+GITP5_5D = data.frame(lsmeans(wdhgi5_5D.lm, 'Entry'))
 
 PHSlsmeans = data.frame(lsmeans(WDH20phs.lm, 'Entry'))
 scaldmeans = data.frame(lsmeans(wdh_scald.lm, 'Entry'))
@@ -396,10 +438,10 @@ Ht_means = data.frame(lsmeans(wdh_Ht.lm, 'Entry'))
 
 
 WDH_BLUEs_2020 = Reduce(function(x, y) merge(x, y, all = TRUE,by = 'Entry'), 
-                        list(PHSlsmeans[,1:2], GETP1[,1:2], GETP2[,1:2], GETP3[,1:2],GETP4[,1:2], GITP1[,1:2], GITP2[,1:2], GITP3[,1:2],GITP4[,1:2],GETP1_5D[,1:2],GETP2_5D[,1:2],GETP3_5D[,1:2],GETP4_5D[,1:2],GITP1_5D[,1:2],GITP2_5D[,1:2],GITP3_5D[,1:2],GITP4_5D[,1:2],scaldmeans[,1:2],wh_means[,1:2],HD_means[,1:2],PM_means[,1:2],Ht_means[,1:2]))
+                        list(PHSlsmeans[,1:2], GETP1[,1:2], GETP2[,1:2], GETP3[,1:2],GETP4[,1:2], GETP5[,1:2],GITP1[,1:2], GITP2[,1:2], GITP3[,1:2],GITP4[,1:2],GITP5[,1:2],GETP1_5D[,1:2],GETP2_5D[,1:2],GETP3_5D[,1:2],GETP4_5D[,1:2],GETP5_5D[,1:2],GITP1_5D[,1:2],GITP2_5D[,1:2],GITP3_5D[,1:2],GITP4_5D[,1:2],GITP5_5D[,1:2],scaldmeans[,1:2],wh_means[,1:2],HD_means[,1:2],PM_means[,1:2],Ht_means[,1:2]))
                              
-colnames(WDH_BLUEs_2020) = c('Entry','PHS','GETP1','GETP2','GETP3','GETP4',
-                             'GITP1','GITP2','GITP3','GITP4','GETP1_5D','GETP2_5D','GETP3_5D','GETP4_5D','GITP1_5D','GITP2_5D','GITP3_5D','GITP4_5D','scaldmeans','wh_means','HD_means','PM_means','Ht_means')
+colnames(WDH_BLUEs_2020) = c('Entry','PHS','GETP1','GETP2','GETP3','GETP4','GETP5',
+                             'GITP1','GITP2','GITP3','GITP4','GITP5','GETP1_5D','GETP2_5D','GETP3_5D','GETP4_5D','GETP5_5D','GITP1_5D','GITP2_5D','GITP3_5D','GITP4_5D','GITP4_5D','scaldmeans','wh_means','HD_means','PM_means','Ht_means')
 save(WDH_BLUEs_2020,file ="data/Winter_DH/WDH_BLUEs_2020.RData")
 
 
