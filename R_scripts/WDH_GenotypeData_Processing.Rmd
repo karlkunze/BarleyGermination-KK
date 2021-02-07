@@ -6,50 +6,11 @@ editor_options:
 ---
 
 Workflow:
-Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
+Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd->GWA_results_interpretation.Rmd
 
 Filling in Missing Chr positions
 Update: This is for the wrong alignment, use the .gff file for correct alignment if needed, as the most recent file from tassel should be correct.
-```{r}
-library(readxl)
-#Paired_samples<- read.delim("data/Genotype_data/Paired Sample Table WDH 50K.txt",stringsAsFactors = FALSE)
 
-
-#Barley50K<-read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = 'EXCAP markers')
-#there is also a 9K sheet if needed, although not all positions from the 9K are validated
-#Barley50K=Barley50K[,c(1:3)]
-#library(stringr)
-#Barley50K$`EXCAP marker name`<-str_split_fixed(Barley50K$`EXCAP marker name`,"-0_" , 2)[,1]
-#colnames(Barley50K)<-c("Name","Chr","bp")
-#Barley50K$Type<-"50K"
-#9K
-#Barley9K<-as.data.frame(read_xlsx("data/Genotype_data/50K_Physical_positions.xlsx", sheet = '9k markers'))
-#str(Barley9K)
-#Barley9K<-Barley9K[,c(1,2)]
-
-#Barley9K$chr<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 1)
-#Barley9K$chr<-sapply(strsplit(Barley9K$chr,"r"), "[", 2)
-#Barley9K$bp<-sapply(strsplit(Barley9K$`final chromosome:position`,":"), "[", 2)
-#Barley9K$bp<-sapply(strsplit(Barley9K$bp,"\\("), "[", 1)
-#Barley9K<-Barley9K[,-2]
-
-#colnames(Barley9K)<-c("Name","Chr","bp")
-#Barley9K$Type<-"9K"
-#Barley50_9K<-rbind(Barley50K,Barley9K)
-
-#Barley50_9K<-Barley50_9K[with(Barley50_9K, order(Chr, bp)),]
-
-#allsnps<-merge(Barley50_9K,Paired_samples[,c(1,2,3,4)],all=T)
-#allsnps<-allsnps[with(allsnps,order(Chr, bp)),]
-#when merging, particularly with Chr, I'm not sure what is happening with Chr and Positions, but I would want to retain the positions from the downloaded 50k and 9k data
-
-#allsnps=allsnps[which(allsnps$Name %in% Paired_samples$Name),]
-
-#hist(as.numeric(allsnps$bp))
-
-#there are more callend positions at 4H for the pairwise than 50k +9k data
-
-```
 
 Correct Morex v2 2019 upload
 ```{r}
