@@ -25,13 +25,13 @@ TP3<-as.data.frame(read.csv("data/Winter_DH/TP3/DHtp3_all_F.csv",stringsAsFactor
 TP4<-as.data.frame(read.csv("data/Winter_DH/TP4/DHtp4_all_combined_F.csv",stringsAsFactors = FALSE))
 
 TP5<-as.data.frame(read.csv("data/Winter_DH/TP5/TP5_all.csv",stringsAsFactors = FALSE))
-
-TP5<-TP5[,-c(2,15)]
+colnames(TP5)
+TP5<-TP5[,-c(2,16)]
 colnames(TP5)
 colnames(TP4)
 colnames(TP1_half)[19]<-"UserDay3"
 table(TP1_half$Entry)
-View(TP4)
+
 
 ##
 
@@ -50,7 +50,7 @@ str(TP1_half)
 str(TP2)
 str(TP3)
 str(TP4)
-
+str(TP5)
 ###
 library(tibble)
 library(dplyr)
@@ -63,6 +63,10 @@ TP3KK<-TP3[TP3$replication=="2",][,c(2,8:13)]
 TP3TR<-TP3[TP3$replication=="1",][,c(2,8:13)]
 TP4KK<-TP4[TP4$replication=="2",][,c(2,8:13)]
 TP4TR<-TP4[TP4$replication=="1",][,c(2,8:13)]
+
+TP5KK<-TP5[TP5$replication=="2",][,c(2,8:13)]
+TP5TR<-TP5[TP5$replication=="1",][,c(2,8:13)]
+TP3[,c(2,8:13)]
 str(TP3KK)
 str(TP3TR)
 cor(TP3TR$Day1Germ,TP3KK$Day1Germ,use = "complete.obs")
@@ -70,6 +74,7 @@ cor(TP3TR$Day2Germ,TP3KK$Day2Germ,use = "complete.obs")
 cor(TP3TR$Day3Germ,TP3KK$Day3Germ,use = "complete.obs")
 cor(TP3TR$Day4Germ,TP3KK$Day4Germ,use = "complete.obs")
 cor(TP3TR$Day5Germ,TP3KK$Day5Germ,use = "complete.obs")
+cor(TP5TR$Day5Germ,TP5KK$Day3Germ,use = "complete.obs")
 
 TP3KKmean <- colMeans(TP3KK[,2:7], na.rm=TRUE)
 TP3TRmean <- colMeans(TP3TR[,2:7],na.rm=TRUE)
@@ -86,13 +91,14 @@ cor(TP4TR$Day5Germ,TP4KK$Day5Germ,use = "complete.obs")
 corday3<-merge(TP3[TP3$UserDay5=="KK",][,c(2,8:13)],TP3[TP3$UserDay5=="TR",][,c(2,8:13)],by="Entry")
 
 
-
-TPall<-rbind(TP1_half,TP2,TP3,TP4)
+colnames(TP5)[1]<-"ï.."
+TPall<-rbind(TP1_half,TP2,TP3,TP4,TP5)
 
 colnames(TP1_half)
 colnames(TP2)
 colnames(TP3)
 colnames(TP4)
+colnames(TP5)
 table(TPall$Entry)
 #need to remove a1023 a1024,etc... PLOTS at Snyder location
 table(TPall$PLOT)
@@ -308,23 +314,25 @@ hist(TPall[TPall$Timepoint=="1",]$GIscale)
 hist(TPall[TPall$Timepoint=="2",]$GIscale)
 hist(TPall[TPall$Timepoint=="3",]$GIscale)
 hist(TPall[TPall$Timepoint=="4",]$GIscale)
+hist(TPall[TPall$Timepoint=="5",]$GIscale)
 
 hist(TPall[TPall$Timepoint=="1",]$GIscale_5D)
 hist(TPall[TPall$Timepoint=="2",]$GIscale_5D)
 hist(TPall[TPall$Timepoint=="3",]$GIscale_5D)
 hist(TPall[TPall$Timepoint=="4",]$GIscale_5D)
-
+hist(TPall[TPall$Timepoint=="5",]$GIscale_5D)
 
 hist(TPall[TPall$Timepoint=="1",]$GE)
 hist(TPall[TPall$Timepoint=="2",]$GE)
 hist(TPall[TPall$Timepoint=="3",]$GE)
 hist(TPall[TPall$Timepoint=="4",]$GE)
-
+hist(TPall[TPall$Timepoint=="5",]$GE)
+     
 hist(TPall[TPall$Timepoint=="1",]$GE_5D)
 hist(TPall[TPall$Timepoint=="2",]$GE_5D)
 hist(TPall[TPall$Timepoint=="3",]$GE_5D)
 hist(TPall[TPall$Timepoint=="4",]$GE_5D)
-
+hist(TPall[TPall$Timepoint=="5",]$GE_5D)
 
 
 table(TPall$Entry)
