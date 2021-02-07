@@ -347,8 +347,9 @@ snpgdsClose(gdsfile)
 
 
 ```
-```{r}
 LD heatmap
+```{r}
+
 library(LDcorSV)
 library(ggplot2)
 library(reshape2)
@@ -377,14 +378,15 @@ ld_heatmap=function(df){
     geom_tile(color = "white")+
     scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
                        midpoint = 0.5, limit = c(0,1), space = "Lab", name="r2") +
-    theme_classic() #+    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
+    theme_void() #+    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
   return(graphic)
 }
+
 load(here("myGD20.Rdata"))
 load(here("myGM20.Rdata"))
 #to remove the marker labels on each axis, use theme_void() instead of theme_classic()
 #test of some random markers
-ld_heatmap(myGD20[,500:700])
+ld_heatmap(myGD20[,500:600])
 #SD1 and SD2
 ld_heatmap(myGD[,c(10780:10800, 13000:13075)])
 
