@@ -16,7 +16,7 @@ TP5_all[!is.na(TP5_all$notes),]
 #plot 12359 is indicated to be naked
 colnames(TP5_all)[18]<-"note"
 table(TP5_all$PLOT)
-View(TP5_all)
+#View(TP5_all)
 
 TP5_all<-TP5_all[!is.na(TP5_all$PLOT),]
 
@@ -32,8 +32,11 @@ TP5_all$Timepoint<-NA;TP5_all$Timepoint<-"5"
 TP5_all$PM_at_plating<-NA;TP5_all$PM_at_plating<-"152"
 TP5_all$Experiment<-NA;TP5_all$Experiment<-"Winter DH Germination"
 #from schedule
-colnames(TP5_all)[c(1:3,19,5:18,4,20:25)]
-TP5_all<-TP5_all[,c(1:3,19,5:18,4,20:25)]
+colnames(TP4)
+
+colnames(TP5_all)[c(1:3,19,5:12,20,19,21,13:18,4,22:25)]
+TP5_all<-TP5_all[c(1:3,19,5:12,20,19,21,13:18,4,22:25)]
+
 
 TP5_all[TP5_all$Entry=="Check 1-Flavia",]$Check<-"C"
 TP5_all[TP5_all$Entry=="Check 2-Scala",]$Check<-"C"
