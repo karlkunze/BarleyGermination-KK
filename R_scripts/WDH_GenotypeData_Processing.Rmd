@@ -42,7 +42,15 @@ WDH20_pheno<-All_pheno_TPall
 wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines_numeric.hmp.txt",skip = 1, header=T,sep ='\t')
 wdh[1:15,1:12]
 wdh[15:20,15:20]
+###
+# This is the area where we add the list of Entry names to remove
+# First is "BS911-50", coverage is too low, seen at PCA plot that it is an outlier, "BS911-67", we will do this when the parents are removed
+table(wdh[wdh['X.Marker.'] == "BS911.50"],useNA = "ifany")
 
+
+
+
+###
 #wdh0<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines.hmp.txt",skip = 1, header=T,sep ='\t')
 rm(wdh0)
 list.files("data/Genotype_data")
@@ -57,6 +65,8 @@ colnames(wdh)=gsub("\\.","-",colnames(wdh))
 colnames(wdh)
 #which(colnames(wdh)%in%allsnps$Name)
 ncol(wdh)
+colnames(wdh)[1]
+
 colnames(wdh)[1]<-"Entry"
 
 #13142 entries match
@@ -94,13 +104,16 @@ retain relevant wdh_parents for analysis
 ```{r}
 #we want to keep DH1301910, SY Tepee, KWS Scala, Flavia, Wintmalt, Charles, and Endeavor(will be for 20-21)
 
-
+#THIS IS Now 
 
 wdh[c(3,489,490),]$Entry
 wdh[c(3,489,490),]$Entry<-c("Flavia","Scala","SY Tepee")
 wdh[c(1:2,484,487,488,491),]$Entry
 #remove these rows
 wdh<-wdh[-c(1:2,484,487,488,491),]
+dim(wdh)
+#removing problem genotype lines
+wdh<-wdh[!(wdh$Entry=="BS911.50" | wdh$Entry=="BS911.67"),]
 #DONT RUN RECURSIVELY
 
 ```
@@ -171,9 +184,9 @@ wdh=as.data.frame(apply(wdh,1, function(x) {
 #this aparently inverted the matrix, which you want
 
 #check for entries as rows, markers as columns
-colnames(wdh)
-rownames(wdh)
-
+colnames(wdh)[1:10]
+rownames(wdh)[1:10]
+head(wdh)
 wdh=as.data.frame(t(wdh))
 wdh[c(1:5),c(1:5)]
 wdh$Qsd1
@@ -257,8 +270,9 @@ myGM20[myGM20$SNP=="Qsd1",]
 
 ```{r}
 library(tidyverse)
+WDH20_pheno[1:3,c(1,2,3,7,10)]
 
-DH_Entry<-WDH20_pheno[,c(1,2,3,7,10)]
+DH_Entry<-WDH20_pheno[,c(1,2,3,7,10,30)]
 DH_Entry<-DH_Entry[!duplicated(DH_Entry['PLOT']),]
 DH_Entry<-DH_Entry[!is.na(DH_Entry),]
 
@@ -268,8 +282,7 @@ library(SNPRelate)
 myGM20$Chromosome
 chr=as.integer(myGM20$Chromosome)
 getwd()
-row.names(wdh)
-str(wdh)
+
 
 snpgdsCreateGeno("test1.gds", genmat = as.matrix(round(wdh,0)), sample.id=row.names(wdh), snp.id = colnames(wdh), snp.chromosome = chr,
                  snp.position = as.integer(myGM20$Position), snpfirstdim = F)
@@ -290,31 +303,41 @@ DH_Entry[DH_Entry$Entry=="Check 3-DH130910",]$Entry<-"DH130910"
 DH_Entry[DH_Entry$Entry=="Check 4-SY Tepee",]$Entry<-"SY Tepee"
 DH_Entry[DH_Entry$Entry=="Check 5-Wintmalt",]$Entry<-"Wintmalt"
 DH_Entry[DH_Entry$Entry=="Check 6-Charles",]$Entry<-"Charles"
+
 library(ggplot2)
+pca$eigenvect
+pca
+
 test=data.frame(pca$eigenvect)
+
 DH_Entry$Pedigree
-DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
 pca$sample.id
+DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
+Check=DH_Entry$Check[match(pca$sample.id, DH_Entry$Entry)]
 
 test$pedigree=DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
+test$Check=Check=DH_Entry$Check[match(pca$sample.id, DH_Entry$Entry)]
 DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
 
-test$pedigree
 
-ggplot(test, aes(x=X1, y=X2, color=pedigree))+
+test<-test[!is.na(test$pedigree),]
+test[is.na(test$Check),]
+ggplot(test, aes(x=X1, y=X2, color=pedigree,shape=Check))+
   geom_point(size=2) +
   theme_bw() +
   ggtitle("PCA by Pedigree")+
-  xlab("PC1: 17.26%") +
-  ylab("PC2: 5.08%")
+  xlab("PC1: 16.30%") +
+  ylab("PC2: 4.80%")
+test.R<-as.data.frame(test)
+
+test.W<-test.R[test.R$pedigree=="Wintmalt/DH130910",]
+
+test.W<-test.W[with(test.W, order(X1)),]
+tail(test.W[,c(1:3)])
 ```
 
+
 ```{r}
-
-
-```
-```{r}
-
 getwd()
 
 save(myGD20, file="myGD20.Rdata")
@@ -324,23 +347,21 @@ snpgdsClose(gdsfile)
 
 
 ```
-LD heatmap
 ```{r}
+LD heatmap
 library(LDcorSV)
 library(ggplot2)
 library(reshape2)
-str(ld)
-#ld_heatmap=function(df){GD
-df<-as.data.frame(myGD20[,-1])
 
+ld_heatmap=function(df){
   ld <- as.matrix(round(df,0))
-  str(ld)
-  ld[1:5,1:5]
+  
   if(c(-1,3,4) %in% ld){
     ld[which(ld==3)]=2
     ld[which(ld==4)]=2
     ld[which(ld== -1)]=0
   }
+  
   LD <- LD.Measures(donnees=ld,  na.presence=F)
   #LD$loc1=as.character(LD$loc1); LD$loc2=as.character(LD$loc2)
   r2 <- matrix(0, nrow=ncol(df), ncol=ncol(df))
@@ -351,15 +372,33 @@ df<-as.data.frame(myGD20[,-1])
   r2[lower.tri(r2)] = NA
   rownames(r2)=colnames(df); colnames(r2)=rownames(r2)
   r_2=melt(as.matrix(r2), na.rm=T)
+  
   graphic = ggplot(r_2, aes(Var2, Var1, fill = value))+
     geom_tile(color = "white")+
     scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
                        midpoint = 0.5, limit = c(0,1), space = "Lab", name="r2") +
     theme_classic() #+    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
   return(graphic)
-#}
-ld_heatmap(myGD20[,-1])
+}
+load(here("myGD20.Rdata"))
+load(here("myGM20.Rdata"))
+#to remove the marker labels on each axis, use theme_void() instead of theme_classic()
+#test of some random markers
+ld_heatmap(myGD20[,500:700])
+#SD1 and SD2
+ld_heatmap(myGD[,c(10780:10800, 13000:13075)])
 
+ld_heatmap(myGD20[,c(12990:13010,13050:13075)]) + ggtitle('LD between GA20Ox and MKK3 markers') +
+  scale_x_discrete(label = c('GA20Ox','MKK3'), breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253'))+
+  scale_y_discrete(label = c('GA20Ox','MKK3'), breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253'))+ 
+  xlab(NULL)+ylab(NULL)
+
+ld_heatmap(myGD20[,c(10785:10795,13000:13010,13055:13070)]) + ggtitle('LD between AlaAt, GA20Ox, and MKK3 markers') +
+  scale_x_discrete(label = c('GA20Ox','MKK3','AlaAt'), 
+                   breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253','JHI-Hv50k-2016-308584'))+
+  scale_y_discrete(label = c('GA20Ox','MKK3','AlaAt'), 
+                   breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253','JHI-Hv50k-2016-308584'))+ 
+  xlab('470-670 Mb, selected markers')+ylab(NULL)
 ```
 
 LD Pruning
