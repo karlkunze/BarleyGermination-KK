@@ -105,6 +105,7 @@ table(TPall$PLOT)
 
 TPall$PLOT<-gsub("a","",(TPall$PLOT))
 table(TPall$PLOT)
+TPall[TPall$PLOT==11303,]
 TPall[TPall$Entry=="BBBdormSNLine",]$PLOT<-13001
 TPall[TPall$Entry=="BBBdormSRLine",]$PLOT<-13002
 #table(TPall$PLOT)
@@ -363,8 +364,5 @@ modelTR<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="1",])
 
 ```
 
-```{r}
 
-
-```
 
