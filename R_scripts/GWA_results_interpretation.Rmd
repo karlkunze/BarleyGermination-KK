@@ -81,16 +81,65 @@ manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value),
   )
 return(manoutput)
 }
+mahatoutput_na<-function(df,title){
+
+
+my_title <- paste(paste(title))
+df<-df$GWAS[with(df$GWAS, order(Chromosome, Position)),]
+
+nCHR <- length(unique(df$Chromosome))
+
+df[is.na(df$Chromosome),]$Chromosome<-"8"
+df<-df[!is.na(df$Position),]
+df<-df[with(df,order(Chromosome,Position)),]
+df$BPcum <- NA
+s <- 0
+nbp <- c()
+for (i in unique(df$Chromosome)){
+  nbp[i] <- max(df[df$Chromosome == i,]$Position)
+  df[df$Chromosome == i,"BPcum"] <- df[df$Chromosome == i,"Position"] + s
+  s <- s + nbp[i]
+}
+axis.set <- df%>% 
+  group_by(Chromosome) %>% 
+  summarize(center = (max(BPcum) + min(BPcum)) / 2)
+ylim <- abs(floor(log10(min(df$P.value)))) + 2 
+#str(axis.set)
+sig <- 5e-8/13143
+manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value), 
+                                 color = as.factor(Chromosome), size = -log10(0.05))) +
+  geom_point(alpha = 0.75) +
+  geom_hline(yintercept = -log10(0.05/nrow(df)), color = "red", linetype = "solid") + 
+  scale_x_continuous(label = axis.set$Chromosome, breaks = axis.set$center) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, ylim)) +
+  scale_color_manual(values = rep(c("#276FBF", "#183059"),4)) +
+  scale_size_continuous(range = c(0,2)) +
+  theme(plot.title = element_text(hjust=1)) +
+  
+  ggtitle(my_title)+
+  labs(x = NULL, 
+       y = NULL) + 
+  theme_minimal() +
+  theme( 
+    legend.position = "none",
+    panel.border = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)
+  )
+return(manoutput)
+}
+
 mahatoutput(GWAS.GETP1.blues.mlmm,"GE BLUES TP1")
+mahatoutput(GWAS.GETP1.blups.mlmm,"GE BLUPS TP1")
 mahatoutput(GWAS.GETP2.blups.mlmm,"GE BLUPS TP2")
 #ManGEP1.fe<-homeMadeManhattan30K(GWAS.GETP1.blues.mlmm$GWAS[c(2,3)],)
 
 
 
-mahatoutput(GWAS.GETP1.blues.mlmm)
-TP1GE.fe<-TP1GE.fe[with(TP1GE.fe,order(Chromosome, Position)),]
-table<-c()
-
+```
+Chromosome
+````{r}
 #code for max min of Chromosomes
 #####
 Chr_Max_min<-c()
@@ -111,8 +160,11 @@ Chr_Max_min$Total<-NA
 Chr_Max_min[1:8,4]<-table(TP1GE.fe$Chromosome)
 Chr_Max_min
 TP1GE.fe[['P.value']]
+```
 
 
+P-val TP1
+```{r}
 
 pval<-function(df,sig,name){
   cutoff<-sig
@@ -121,12 +173,6 @@ pval_list$Population<-NA
 pval_list$Population<-as.character(name)
 pval_list
 }
-GETP1.fe<-mahatoutput(GWAS.GETP1.blues.mlmm,"TP1 GE BLUES")
-GETP1.re<-mahatoutput(GWAS.GETP1.blups.mlmm,"TP1 GE BLUPs")
-GETP1.fe
-GITP1.fe<-mahatoutput(GWAS.GITP1.blues.mlmm,"GI TP1 BLUEs")
-GITP1.re<-mahatoutput(GWAS.GITP1.blups.mlmm,"GI TP1 BLUPS")
-
 GETP1.fe.p<-pval(GWAS.GETP1.blues.mlmm,sig,"GETP1 Fixed")
 GETP1.re.p<-pval(GWAS.GETP1.blups.mlmm,sig,"GETP1 Random")
 GITP1.fe.p<-pval(GWAS.GITP1.blues.mlmm,sig,"GITP1 Fixed")
@@ -134,21 +180,32 @@ GITP1.re.p<-pval(GWAS.GITP1.blups.mlmm,sig,"GITP1 Random")
 
 TP1.p<-rbind(GETP1.fe.p,GETP1.re.p,GITP1.fe.p,GITP1.re.p)
 TP1.p
+```
+```{r}
+
+
+GETP1.fe<-mahatoutput(GWAS.GETP1.blues.mlmm,"TP1 GE BLUES")
+GETP1.re<-mahatoutput(GWAS.GETP1.blups.mlmm,"TP1 GE BLUPs")
+GETP1.fe
+GITP1.fe<-mahatoutput(GWAS.GITP1.blues.mlmm,"GI TP1 BLUEs")
+GITP1.re<-mahatoutput(GWAS.GITP1.blups.mlmm,"GI TP1 BLUPS")
+getwd()
+
+png("plots/Update/GWAS TP1 3 Day.png",width = 447, height = 346)
 
 ggarrange(GETP1.fe, GETP1.re, GITP1.fe, GITP1.re, 
-          hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
+dev.off()
 ####
 
-GETP1_5D.fe<-mahatoutput(GWAS.GETP1_5D.blues.mlmm)
-GETP1_5D.re<-mahatoutput(GWAS.GETP1_5D.blups.mlmm)
-GITP1_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm)
-GITP1_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm)
+GETP1_5D.fe<-mahatoutput(GWAS.GETP1_5D.blues.mlmm,"TP1 5 Day GE BLUES")
+GETP1_5D.re<-mahatoutput(GWAS.GETP1_5D.blups.mlmm,"TP1 5 Day GE BLUPS")
+GITP1_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm,"TP1 5 Day GI BLUES")
+GITP1_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm,"TP1 5 Day GI BLUPS")
 
-ggarrange(GETP1_5D.fe, GETP1_5D.re, GITP1_5D.fe, GITP1_5D.re, 
-          labels = c("GE 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
-          ncol = 2, nrow = 2)
-
+png("plots/Update/GWAS TP1 5 Day.png",width = 447, height = 346)
+ggarrange(GETP1_5D.fe, GETP1_5D.re, GITP1_5D.fe, GITP1_5D.re, ncol = 2, nrow = 2)
+dev.off()
 
 GETP1_5D.fe.p<-pval(GWAS.GETP1_5D.blues.mlmm,sig,"GETP1 5 Day Fixed")
 GETP1_5D.re.p<-pval(GWAS.GETP1_5D.blups.mlmm,sig,"GETP1 5 Day Random")
@@ -160,73 +217,42 @@ TP1_5D.p
 
 
 ## Timepoint 2 ###
-GETP2.fe<-mahatoutput(GWAS.GETP2.blues.mlmm)
-GETP2.re<-mahatoutput(GWAS.GETP2.blups.mlmm)
-GITP2.fe<-mahatoutput(GWAS.GITP2.blues.mlmm)
+GETP2.fe<-mahatoutput(GWAS.GETP2.blues.mlmm,"GE TP2 BLUPS")
+GETP2.re<-mahatoutput(GWAS.GETP2.blups.mlmm,"GE TP2 BLUPS")
+GITP2.fe<-mahatoutput(GWAS.GITP2.blues.mlmm,"GI TP2 BLUES")
+GITP2.re<-mahatoutput(GWAS.GITP2.blups.mlmm,"GI TP2 BLUPS")
 
 
-
-df<-GWAS.GITP2.blues.mlmm
-
-df<-df$GWAS[with(df$GWAS, order("Chromosome","Position ")),]
-colnames(df)[3]<-"Position"
-#plot(x=df[,3], y=-log10(df[,4]), main = "Manhattan Plot",xlab="Genotype")
-#abline( h= -log10(0.05/nrow(df)) , col = "red")
-nCHR <- length(unique(df$Chromosome))
-#df[is.na(df$Chromosome),]$Chromosome<-8
-df$BPcum <- NA
-s <- 0
-nbp <- c()
-
-for (i in unique(df$Chromosome)){
-  nbp[i] <- max(df[df$Chromosome == i,]$Position)
-  df[df$Chromosome == i,"BPcum"] <- df[df$Chromosome == i,"Position"] + s
-  s <- s + nbp[i]
-}
-axis.set <- df%>% 
-  group_by(Chromosome) %>% 
-  summarize(center = (max(BPcum) + min(BPcum)) / 2)
-ylim <- abs(floor(log10(min(df$P.value)))) + 2 
-#str(axis.set)
-sig <- 5e-8/13143
-manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value), 
-                                 color = as.factor(Chromosome), size = -log10(0.05))) +
-  geom_point(alpha = 0.75) +
-  geom_hline(yintercept = -log10(0.05/nrow(df)), color = "red", linetype = "solid") + 
-  scale_x_continuous(label = axis.set$Chromosome, breaks = axis.set$center) +
-  scale_y_continuous(expand = c(0,0), limits = c(0, ylim)) +
-  scale_color_manual(values = rep(c("#276FBF", "#183059"),4)) +
-  scale_size_continuous(range = c(0,2)) +
-  labs(x = NULL, 
-       y = NULL) + 
-  theme_minimal() +
-  theme( 
-    legend.position = "none",
-    panel.border = element_blank(),
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)
-  )
-manoutput
 
 
 
 #something is wrong with this one
 GITP2.re<-mahatoutput(GWAS.GITP2.blups.mlmm)
 #GITP2.fe had to remove it
-ggarrange(GETP2.fe, GETP2.re, GITP2.re, 
-          labels = c("GE 2 Fx", "GE Rd","GI Rd"),hjust = -1.2,vjust = 1,
+GETP2.fe<-mahatoutput(GWAS.GETP2.blues.mlmm,"GE TP2 BLUPS")
+GETP2.re<-mahatoutput(GWAS.GETP2.blups.mlmm,"GE TP2 BLUPS")
+GITP2.fe<-mahatoutput(GWAS.GITP2.blues.mlmm,"GI TP2 BLUES")
+GITP2.re<-mahatoutput(GWAS.GITP2.blups.mlmm,"GI TP2 BLUPS")
+
+png("plots/Update/GWAS TP2 3 Day.png",width = 447, height = 346)
+ggarrange(GETP2.fe, GETP2.re,GITP2.fe, GITP2.re,
+          
           ncol = 2, nrow = 2)
+dev.off()
 
 
-GETP2_5D.fe<-mahatoutput(GWAS.GETP1_5D.blues.mlmm)
-GETP2_5D.re<-mahatoutput(GWAS.GETP1_5D.blups.mlmm)
-GITP2_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm)
-GITP2_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm)
 
+
+GETP2_5D.fe<-mahatoutput(GWAS.GETP2_5D.blues.mlmm,"TP2 5 Day GE BLUES")
+GETP2_5D.re<-mahatoutput(GWAS.GETP2_5D.blups.mlmm,"TP2 5 Day GE BLUPS")
+GITP2_5D.fe<-mahatoutput(GWAS.GITP2_5D.blues.mlmm,"TP2 5 Day GI BLUES")
+GITP2_5D.re<-mahatoutput(GWAS.GITP2_5D.blups.mlmm,"TP2 5 Day GI BLUPS")
+
+png("plots/Update/GWAS TP2 5 Day.png",width = 447, height = 346)
 ggarrange(GETP2_5D.fe, GETP2_5D.re, GITP2_5D.fe, GITP2_5D.re, 
-          labels = c("GE 1 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
+          
           ncol = 2, nrow = 2)
+dev.off()
 
 GETP2.fe.p<-pval(GWAS.GETP2.blues.mlmm,sig,"GETP2 Fixed")
 GETP2.re.p<-pval(GWAS.GETP2.blups.mlmm,sig,"GETP2 Random")
@@ -252,25 +278,30 @@ TP2_5D.p<-rbind(GETP2_5D.fe.p,GETP2_5D.re.p,GITP2_5D.fe.p,GITP2_5D.re.p)
 TP2_5D.p
 ##
 ## Timepoint 3 ###
-GETP3.fe<-mahatoutput(GWAS.GETP3.blues.mlmm)
-GETP3.re<-mahatoutput(GWAS.GETP3.blups.mlmm)
-GITP3.fe<-mahatoutput(GWAS.GITP3.blues.mlmm)
-GITP3.re<-mahatoutput(GWAS.GITP3.blups.mlmm)
-#GITP3.fe had to remove it
-ggarrange(GETP3.fe, GETP3.re,GITP3.fe, GITP3.re, 
-          labels = c("GE 3 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
-          ncol = 2, nrow = 2)
+GWAS.GITP3.blups.mlmm$GWAS[is.na(GWAS.GITP3.blups.mlmm$GWAS)]
+GWAS.GITP3.blups.mlmm$GWAS
 
-str(GWAS.GETP3.blues_5D.mlmm)
-GETP3_5D.fe<-mahatoutput(GWAS.GETP3.blues_5D.mlmm)
-GETP3_5D.re<-mahatoutput(GWAS.GETP3_5D.blups.mlmm)
-GITP3_5D.fe<-mahatoutput(GWAS.GITP3_5D.blues.mlmm)
-GITP3_5D.re<-mahatoutput(GWAS.GITP3_5D.blups.mlmm)
+GETP3.fe<-mahatoutput(GWAS.GETP3.blues.mlmm,"GE TP3 BLUES")
+GETP3.re<-mahatoutput(GWAS.GETP3.blups.mlmm,"GE TP3 BLUPS")
+GITP3.fe<-mahatoutput(GWAS.GITP3.blues.mlmm,"GI TP3 BLUES")
+GITP3.re<-mahatoutput_na(GWAS.GITP3.blups.mlmm,"GI TP3 BLUPS")
+
+
+GETP3_5D.fe<-mahatoutput(GWAS.GETP3.blues_5D.mlmm,"TP3 5 Day GE BLUES")
+GETP3_5D.re<-mahatoutput(GWAS.GETP3_5D.blups.mlmm,"TP3 5 Day GE BLUPS")
+GITP3_5D.fe<-mahatoutput(GWAS.GITP3_5D.blues.mlmm,"TP3 5 Day GI BLUES")
+GITP3_5D.re<-mahatoutput(GWAS.GITP3_5D.blups.mlmm,"TP3 5 Day GI BLUPS")
+
+png("plots/Update/GWAS TP3 3 Day.png",width = 447, height = 346)
+ggarrange(GETP3.fe, GETP3.re,GITP3.fe, GITP3.re, 
+                   ncol = 2, nrow = 2)
+
+dev.off()
+png("plots/Update/GWAS TP3 5 Day.png",width = 447, height = 346)
 
 ggarrange(GETP3_5D.fe, GETP3_5D.re, GITP3_5D.fe, GITP3_5D.re, 
-          labels = c("GE 3 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
-          ncol = 2, nrow = 2)
-
+                    ncol = 2, nrow = 2)
+dev.off()
 ###
 GETP3.fe.p<-pval(GWAS.GETP3.blues.mlmm,sig,"GETP3 Fixed")
 GETP3.re.p<-pval(GWAS.GETP3.blups.mlmm,sig,"GETP3 Random")
@@ -289,27 +320,29 @@ TP3_5D.p<-rbind(GETP3_5D.fe.p,GETP3_5D.re.p,GITP3_5D.fe.p,GITP3_5D.re.p)
 TP3_5D.p
 
 ## Timepoint 4 ###
-GETP4.fe<-mahatoutput(GWAS.GETP4.blues.mlmm)
-GETP4.re<-mahatoutput(GWAS.GETP4.blups.mlmm)
-GITP4.fe<-mahatoutput(GWAS.GITP4.blues.mlmm)
-GITP4.re<-mahatoutput(GWAS.GITP4.blups.mlmm)
-GETP4.fe
+GETP4.fe<-mahatoutput(GWAS.GETP4.blues.mlmm,"GE TP4 BLUES")
+GETP4.re<-mahatoutput(GWAS.GETP4.blups.mlmm,"GE TP4 BLUPS")
+GITP4.fe<-mahatoutput(GWAS.GITP4.blues.mlmm,"GI TP4 BLUES")
+GITP4.re<-mahatoutput(GWAS.GITP4.blups.mlmm,"GI TP4 BLUPS")
+
+GWAS.GETP4.blups_5D.mlmm
+GETP4_5D.fe<-mahatoutput(GWAS.GETP4.blues_5D.mlmm,"TP4 5 Day GE BLUES")
+GETP4_5D.re<-mahatoutput(GWAS.GETP4.blups_5D.mlmm,"TP4 5 Day GE BLUPS")
+GITP4_5D.fe<-mahatoutput(GWAS.GITP4_5D.blues.mlmm,"TP4 5 Day GI BLUES")
+GITP4_5D.re<-mahatoutput(GWAS.GITP4_5D.blups.mlmm,"TP4 5 Day GI BLUPS")
 #GITP3.fe had to remove it
+
+png("plots/Update/GWAS TP4 3 Day.png",width = 447, height = 346)
 ggarrange(GETP4.fe, GETP4.re,GITP4.fe, GITP4.re, 
-          labels = c("GE 4 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
+         
           ncol = 2, nrow = 2)
 
-str(GWAS.GETP3.blues_5D.mlmm)
-GETP4_5D.fe<-mahatoutput(GWAS.GETP4.blues_5D.mlmm)
-GETP4_5D.re<-mahatoutput(GWAS.GETP4.blups_5D.mlmm)
-
-GITP4_5D.fe<-mahatoutput(GWAS.GITP3_5D.blues.mlmm)
-GITP4_5D.re<-mahatoutput(GWAS.GITP3_5D.blups.mlmm)
-
+dev.off()
+png("plots/Update/GWAS TP4 5 Day.png",width = 447, height = 346)
 ggarrange(GETP4_5D.fe, GETP4_5D.re, GITP4_5D.fe, GITP4_5D.re, 
-          labels = c("GE 4 5 Day Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
+         
           ncol = 2, nrow = 2)
-
+dev.off()
 GETP4.fe.p<-pval(GWAS.GETP4.blues.mlmm,sig,"GETP4 Fixed")
 GETP4.re.p<-pval(GWAS.GETP4.blups.mlmm,sig,"GETP4 Random")
 GITP4.fe.p<-pval(GWAS.GITP4.blues.mlmm,sig,"GITP4 Fixed")
@@ -326,6 +359,35 @@ GITP4_5D.re.p<-pval(GWAS.GITP4_5D.blups.mlmm,sig,"GITP4 5 Day Random")
 
 TP4_5D.p<-rbind(GETP4_5D.fe.p,GITP4_5D.fe.p,GITP4_5D.re.p)
 TP4_5D.p
+#Timepoint 5
+
+GETP5.fe<-mahatoutput(GWAS.GETP5.blues.mlmm,"GE TP5 BLUES")
+GETP5.re<-mahatoutput(GWAS.GETP5.blups.mlmm,"GE TP5 BLUPS")
+GITP5.fe<-mahatoutput(GWAS.GITP5.blues.mlmm,"GI TP5 BLUES")
+GITP5.re<-mahatoutput(GWAS.GITP5.blups.mlmm,"GI TP5 BLUPS")
+
+GWAS.GETP5.blups_5D.mlmm
+GETP5_5D.fe<-mahatoutput(GWAS.GETP5.blues_5D.mlmm,"TP5 5 Day GE BLUES")
+GETP5_5D.re<-mahatoutput(GWAS.GETP5.blups_5D.mlmm,"TP5 5 Day GE BLUPS")
+GITP5_5D.fe<-mahatoutput(GWAS.GITP5_5D.blues.mlmm,"TP5 5 Day GI BLUES")
+GITP5_5D.re<-mahatoutput(GWAS.GITP5_5D.blups.mlmm,"TP5 5 Day GI BLUPS")
+#GITP3.fe had to remove it
+png("plots/Update/GWAS TP5 3 Day.png",width = 447, height = 346)
+ggarrange(GETP5.fe, GETP5.re,GITP5.fe, GITP5.re, 
+         
+          ncol = 2, nrow = 2)
+
+dev.off()
+
+png("plots/Update/GWAS TP5 5 Day.png",width = 447, height = 346)
+ggarrange(GETP5_5D.fe, GETP5_5D.re, GITP5_5D.fe, GITP5_5D.re, 
+         
+          ncol = 2, nrow = 2)
+
+
+dev.off()
+
+
 
 
 #Field
