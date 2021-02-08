@@ -13,33 +13,94 @@ library(readr); library(readxl)
 library(ggplot2); library(ggpubr)
 library(gridExtra); library(here)
 library(reshape2)
+#load(here("WMB DH 2020 all data for analysis.RData"))
+#load(here("data/Winter_DH/WDH_BLUEs_2020.RData"))
+load(here("data/Winter_DH/TP1_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP2_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP3_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
 load(here("WMB DH 2020 all data for analysis.RData"))
-#All_pheno_TPall
-str(All_pheno_TPall$Timepoint)
-Cwdh<-All_pheno_TPall
+All_pheno_TPall$Pedigree
+TP1_WDH20_BLUE_all$Pedigree
+All_pheno_TPall[All_pheno_TPall$Pedigree]
+
+
+
+TP1_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP1_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+TP2_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP2_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+
+TP3_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP3_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+TP4_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP4_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+
+TP5_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP5_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+
+TP_WDH20_BLUE_all<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
 ```
 box plots
 ```{r}
-wdh2melt=melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GE", "GIscale"))
-wdh1melt=rbind(melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
-               melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GIscale")))
-wdh1melt=wdh1melt[-c(which(is.na(wdh1melt$TP))),]
+TP_all_melt=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GE"))
 
-wdh2melt$dataset="wdh2"; wdh1melt$dataset="wdh1"; 
-wdhmelt=rbind(wdh2melt, wdh1melt)
- levels(wdhmelt$variable)= c("Germination energy", "Germination index")
+#wdh1melt=rbind(melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
+              # melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = #c("GIscale")))
+#wdh1melt=wdh1melt[-c(which(is.na(wdh1melt$TP))),]
+
+#wdh2melt$dataset="wdh2"; wdh1melt$dataset="wdh1"; 
+#wdhmelt=rbind(wdh2melt, wdh1melt)
+# levels(wdhmelt$variable)= c("Germination energy", "Germination index")
+TP_all_melt
 
  
-ggplot(data=wdhmelt, aes(x=Timepoint, y=value, fill=dataset)) +
+wdh2melt
+wdh2melt$
+TP_all_melt
+TP_WDH20_BLUE_all$PM_date
+TP_all_melt_GE=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GE"))
+ggplot(data=TP_all_melt_GE, aes(x=TP, y=value,color=Pedigree)) +
   geom_boxplot()+
-  facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
-  #ggtitle("Raw GE distributions")+
+  ggtitle("Fixed Effect GE distributions")+
   scale_fill_manual(values=c("#cccccc", "#636363")) +
   theme(legend.position = "none")+
-  xlab("Time point") + ylab("") 
+  xlab("Time point") + ylab("BLUE GE") 
+
+TP_all_melt_GI=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GIscale"))
+ggplot(data=TP_all_melt_GI, aes(x=TP, y=value,color=Pedigree)) +
+  geom_boxplot()+
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle("Fixed Effect GI Scale distributions")+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+  theme(legend.position = "none")+
+  xlab("Time point") + ylab("BLUE GI Scale") 
+#5 Day
+TP_all_melt_GE_5D=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GE_5D"))
+ggplot(data=TP_all_melt_GE_5D, aes(x=TP, y=value,color=Pedigree)) +
+  geom_boxplot()+
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle("Fixed Effect 5 Day GE distributions")+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+  theme(legend.position = "none")+
+  xlab("Time point") + ylab("BLUE GE") 
+
+TP_all_melt_GI_5D=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GIScale_5D"))
+ggplot(data=TP_all_melt_GI_5D, aes(x=TP, y=value,color=Pedigree)) +
+  geom_boxplot()+
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle("Fixed Effect 5 Day GI Scale distributions")+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+  #theme(legend.position = "none")+
+  xlab("Time point") + ylab("BLUE GI Scale") 
+
+
+
 
 # 5 Day
+```
+```{r}
 Cwdh$GIscale_5D
 
 wdh2melt5=melt(Cwdh, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GE_5D", "GIscale_5D"))
@@ -57,7 +118,7 @@ ggplot(data=wdh1melt5, aes(x=Timepoint, y=value, fill=dataset)) +
   geom_boxplot(aes(fill=Timepoint))+
   facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
-   facet_wrap( ~ Pedigree, scales="free") +
+  
   #ggtitle("Raw GE distributions")+
   
   theme(legend.position = "none")+
@@ -69,21 +130,25 @@ ggplot(data=wdh1melt5, aes(x=Timepoint, y=value, fill=dataset)) +
 
 ```{r}
 Cwdh
-WDHmelt_scale=melt(Cwdh, id.vars =c("Entry","Pedigree","Timepoint", "Location"), measure.vars = c("GIscale"))
+WDHmelt_scale_GE=melt(Cwdh, id.vars =c("Entry","Pedigree","Timepoint", "Location"), measure.vars = c("GE"))
 
 
-wdh2=aggregate(value~ Pedigree+Timepoint, data=WDHmelt_scale, mean)
-ggplot(data=wdh2, aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
+wdh2=aggregate(value~ Pedigree+Timepoint, data=WDHmelt_scale_GE, mean)
+wdh2[!wdh2$Timepoint==5,]
+ggplot(data=wdh2[!wdh2$Timepoint==5,], aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
+  
+  scale_fill_manual(labels = paste(levels(wdh2$Pedigree), table(Cwdh$Pedigree)))+
   geom_point()+
   geom_line(size=1) +
   theme_bw() + 
-  geom_hline(yintercept =5.5, color="red", linetype=3, size=1)+
+  geom_hline(yintercept =0.98, color="red", linetype=3, size=1)+
+  
   #scale_color_manual(values=c("#b2182b","#fddbc7","#d1e5f0", "#67a9cf", "#2166ac"), labels=c("DNN", "DDD","DDN","NDD", "NDN"), name="Haplotype") + 
-  ylab("CU2 germination index") + xlab("Time point")
+  ylab("WDH germination index") + xlab("Time point")+ggtitle("GE over Timepoints")
 
 WDHmelt_GE=melt(Cwdh, id.vars =c("Entry","Pedigree","Timepoint", "Location"), measure.vars = c("GE"))
 
-
+table(wdh2$Pedigree)
 wdh2=aggregate(value~ Pedigree+Timepoint, data=WDHmelt_GE, mean)
 ggplot(data=wdh2, aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
   geom_point()+
@@ -92,7 +157,17 @@ ggplot(data=wdh2, aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
   
   #geom_hline(yintercept =5.5, color="red", linetype=3, size=1)+
   #scale_color_manual(values=c("#b2182b","#fddbc7","#d1e5f0", "#67a9cf", "#2166ac"), labels=c("DNN", "DDD","DDN","NDD", "NDN"), name="Haplotype") + 
-  ylab("CU2 germination Energy") + xlab("Time point")
+  ylab("WDH germination Energy") + xlab("Time point")
+WDHmelt_GE
+ggplot(data=wdh2, aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
+  geom_point()+
+  geom_line(size=1) +
+  theme_bw() + 
+  
+  #geom_hline(yintercept =5.5, color="red", linetype=3, size=1)+
+  #scale_color_manual(values=c("#b2182b","#fddbc7","#d1e5f0", "#67a9cf", "#2166ac"), labels=c("DNN", "DDD","DDN","NDD", "NDN"), name="Haplotype") + 
+  ylab("WDH germination Energy") + xlab("Time point")
+
 
 
 ```
