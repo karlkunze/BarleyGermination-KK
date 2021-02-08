@@ -17,10 +17,11 @@ library(here)
 
 load(here("WMB DH 2020 all data for analysis.RData"))
 load(here("data/GWA_results/GWA_WDH_field_phenotypes.Rdata"))
-load(here("data/GWA_results/WDH_TP1.RData"))
-load(here("data/GWA_results/WDH_TP2.RData"))
-load(here("data/GWA_results/WDH_TP3.RData"))
-load(here("data/GWA_results/WDH_TP4.RData"))
+load(here("data/GWA_results/GWA_WDH_TP1.RData"))
+load(here("data/GWA_results/GWA_WDH_TP2.RData"))
+load(here("data/GWA_results/GWA_WDH_TP3.RData"))
+load(here("data/GWA_results/GWA_WDH_TP4.RData"))
+load(here("data/GWA_results/GWA_WDH_TP5.RData"))
 load(here("data/GWA_results/GWA_WDH_phs.Rdata"))
 #please see GWA WDH Barley for model names
 library(ggplot2)
@@ -34,15 +35,15 @@ library(ggplot2)
 
 library(ggpubr)
 library(tidyverse)
-GETP1.fe<-mahatoutput(GWAS.GETP1.blues.mlmm)
-mahatoutput<-function(df){
+colnames(GWAS.GETP1.blues.mlmm$GWAS)
 
 
+mahatoutput<-function(df,title){
+
+my_title <- paste(paste(title))
 df<-df$GWAS[with(df$GWAS, order(Chromosome, Position)),]
-#plot(x=df[,3], y=-log10(df[,4]), main = "Manhattan Plot",xlab="Genotype")
-#abline( h= -log10(0.05/nrow(df)) , col = "red")
 nCHR <- length(unique(df$Chromosome))
-df[is.na(df$Chromosome),]$Chromosome<-8
+#df[is.na(df$Chromosome),]$Chromosome
 df$BPcum <- NA
 s <- 0
 nbp <- c()
@@ -65,6 +66,9 @@ manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value),
   scale_y_continuous(expand = c(0,0), limits = c(0, ylim)) +
   scale_color_manual(values = rep(c("#276FBF", "#183059"),4)) +
   scale_size_continuous(range = c(0,2)) +
+  theme(plot.title = element_text(hjust=1)) +
+  
+  ggtitle(my_title)+
   labs(x = NULL, 
        y = NULL) + 
   theme_minimal() +
@@ -75,50 +79,39 @@ manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value),
     panel.grid.minor.x = element_blank(),
     axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)
   )
-manoutput
+return(manoutput)
 }
-mahatoutput_all<-function(df){
+mahatoutput(GWAS.GETP1.blues.mlmm,"GE BLUES TP1")
+mahatoutput(GWAS.GETP2.blups.mlmm,"GE BLUPS TP2")
+#ManGEP1.fe<-homeMadeManhattan30K(GWAS.GETP1.blues.mlmm$GWAS[c(2,3)],)
 
 
-df<-df$GWAS[with(df$GWAS, order(Chromosome, Position)),]
-#plot(x=df[,3], y=-log10(df[,4]), main = "Manhattan Plot",xlab="Genotype")
-#abline( h= -log10(0.05/nrow(df)) , col = "red")
-nCHR <- length(unique(df$Chromosome))
-#df[is.na(df$Chromosome),]$Chromosome<-8
-df$BPcum <- NA
-s <- 0
-nbp <- c()
-for (i in unique(df$Chromosome)){
-  nbp[i] <- max(df[df$Chromosome == i,]$Position)
-  df[df$Chromosome == i,"BPcum"] <- df[df$Chromosome == i,"Position"] + s
-  s <- s + nbp[i]
-}
-axis.set <- df%>% 
-  group_by(Chromosome) %>% 
-  summarize(center = (max(BPcum) + min(BPcum)) / 2)
-ylim <- abs(floor(log10(min(df$P.value)))) + 2 
-#str(axis.set)
-sig <- 5e-8/13143
-manoutput<-ggplot(df, aes(x =BPcum, y = -log10(P.value), 
-                                 color = as.factor(Chromosome), size = -log10(0.05))) +
-  geom_point(alpha = 0.75) +
-  geom_hline(yintercept = -log10(0.05/nrow(df)), color = "red", linetype = "solid") + 
-  scale_x_continuous(label = axis.set$Chromosome, breaks = axis.set$center) +
-  scale_y_continuous(expand = c(0,0), limits = c(0, ylim)) +
-  scale_color_manual(values = rep(c("#276FBF", "#183059"),4)) +
-  scale_size_continuous(range = c(0,2)) +
-  labs(x = NULL, 
-       y = NULL) + 
-  theme_minimal() +
-  theme( 
-    legend.position = "none",
-    panel.border = element_blank(),
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)
-  )
-manoutput
-}
+
+mahatoutput(GWAS.GETP1.blues.mlmm)
+TP1GE.fe<-TP1GE.fe[with(TP1GE.fe,order(Chromosome, Position)),]
+table<-c()
+
+#code for max min of Chromosomes
+#####
+Chr_Max_min<-c()
+Chr_Max_min$Chr<-NA
+Chr_Max_min$min<-NA
+Chr_Max_min$max<-NA
+Chr_Max_min<-as.data.frame(Chr_Max_min)
+Chr_Max_min[1,1:3]<-c("1H",min(TP1GE.fe[TP1GE.fe$Chromosome==1,]$Position),max(TP1GE.fe[TP1GE.fe$Chromosome==1,]$Position))
+Chr_Max_min[2,1:3]<-c("2H",min(TP1GE.fe[TP1GE.fe$Chromosome==2,]$Position),max(TP1GE.fe[TP1GE.fe$Chromosome==2,]$Position))
+Chr_Max_min[3,1:3]<-c("3H",min(TP1GE.fe[TP1GE.fe$Chromosome==3,]$Position),max(TP1GE.fe[TP1GE.fe$Chromosome==3,]$Position))
+Chr_Max_min[4,1:3]<-c("4H",min(TP1GE.fe[TP1GE.fe$Chromosome==4,]$Position),max(TP1GE.fe[TP1GE.fe$Chromosome==4,]$Position))
+Chr_Max_min[5,1:3]<-c("5H",min(TP1GE.fe[TP1GE.fe$Chromosome==5,]$Position),max(TP1GE.fe[TP1GE.fe$Chromosome==5,]$Position))
+Chr_Max_min[6,1:3]<-c("6H",min(TP1GE.fe[TP1GE.fe$Chromosome==6,]$Position),max(TP1GE.fe[TP1GE.fe$Chromosome==6,]$Position))
+Chr_Max_min[7,1:3]<-c("7H",min(TP1GE.fe[TP1GE.fe$Chromosome==7,]$Position),max(TP1GE.fe[TP1GE.fe$Chromosome==7,]$Position))
+Chr_Max_min[8,1:3]<-c("UN",min(TP1GE.fe[TP1GE.fe$Chromosome==8,]$Position),max(TP1GE.fe[TP1GE.fe$Chromosome==8,]$Position))
+#####                 
+Chr_Max_min$Total<-NA
+Chr_Max_min[1:8,4]<-table(TP1GE.fe$Chromosome)
+Chr_Max_min
+TP1GE.fe[['P.value']]
+
 
 
 pval<-function(df,sig,name){
@@ -128,11 +121,12 @@ pval_list$Population<-NA
 pval_list$Population<-as.character(name)
 pval_list
 }
-GETP1.fe<-mahatoutput(GWAS.GETP1.blues.mlmm)
-GETP1.re<-mahatoutput(GWAS.GETP1.blups.mlmm)
-GITP1.fe<-mahatoutput(GWAS.GITP1.blues.mlmm)
-GITP1.re<-mahatoutput(GWAS.GITP1.blups.mlmm)
-sig<-0.05/13000
+GETP1.fe<-mahatoutput(GWAS.GETP1.blues.mlmm,"TP1 GE BLUES")
+GETP1.re<-mahatoutput(GWAS.GETP1.blups.mlmm,"TP1 GE BLUPs")
+GETP1.fe
+GITP1.fe<-mahatoutput(GWAS.GITP1.blues.mlmm,"GI TP1 BLUEs")
+GITP1.re<-mahatoutput(GWAS.GITP1.blups.mlmm,"GI TP1 BLUPS")
+
 GETP1.fe.p<-pval(GWAS.GETP1.blues.mlmm,sig,"GETP1 Fixed")
 GETP1.re.p<-pval(GWAS.GETP1.blups.mlmm,sig,"GETP1 Random")
 GITP1.fe.p<-pval(GWAS.GITP1.blues.mlmm,sig,"GITP1 Fixed")
@@ -142,7 +136,7 @@ TP1.p<-rbind(GETP1.fe.p,GETP1.re.p,GITP1.fe.p,GITP1.re.p)
 TP1.p
 
 ggarrange(GETP1.fe, GETP1.re, GITP1.fe, GITP1.re, 
-          labels = c("GE 1 Fx", "GE Rd", "GI Fx","GI Rd"),hjust = -1.2,vjust = 1,
+          hjust = -1.2,vjust = 1,
           ncol = 2, nrow = 2)
 ####
 
