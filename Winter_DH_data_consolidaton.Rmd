@@ -343,7 +343,7 @@ All_pheno_TPall<-merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all =
 str(All_pheno_TPall)
 All_pheno_TPall$GIscale_5D
 All_pheno_TPall$GIscale
-
+TP
 #View(All_pheno_TPall)
 getwd()
 save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
