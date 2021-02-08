@@ -322,12 +322,16 @@ DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
 
 test<-test[!is.na(test$pedigree),]
 test[is.na(test$Check),]
-ggplot(test, aes(x=X1, y=X2, color=pedigree,shape=Check))+
-  geom_point(size=2) +
+ggplot(test, aes(x=X1, y=X2, color=pedigree))+
+  geom_point(size=1.5) +
   theme_bw() +
+ theme(plot.title = element_text(hjust=0.5))+
   ggtitle("PCA by Pedigree")+
+  labs(color="Pedigree")+
   xlab("PC1: 16.30%") +
-  ylab("PC2: 4.80%")
+  ylab("PC2: 4.80%") 
+  
+
 test.R<-as.data.frame(test)
 
 test.W<-test.R[test.R$pedigree=="Wintmalt/DH130910",]
@@ -353,7 +357,26 @@ LD heatmap
 library(LDcorSV)
 library(ggplot2)
 library(reshape2)
+grep("JHI-Hv50k-2016-312217", colnames(myGD20))
+grep("JHI-Hv50k-2016-312121", colnames(myGD20))
+marker<-as.data.frame(myGD20[,9052])
+marker$Entry<-NA
+marker$Entry<-rownames(myGD20)
+marker
+rownames(marker)<-rownames(myGD20)
 
+grep("JHI-Hv50k-2016-312094", colnames(myGD20))
+
+
+grep("JHI-Hv50k-2016-316817", colnames(myGD20))
+grep("JHI-Hv50k-2016-316934",colnames(myGD20))
+
+grep("Qsd1", colnames(myGD20))
+
+
+
+
+colnames(myGD20)
 ld_heatmap=function(df){
   ld <- as.matrix(round(df,0))
   
@@ -378,7 +401,7 @@ ld_heatmap=function(df){
     geom_tile(color = "white")+
     scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
                        midpoint = 0.5, limit = c(0,1), space = "Lab", name="r2") +
-    theme_void() #+    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
+    theme_classic() #+    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
   return(graphic)
 }
 
@@ -386,13 +409,14 @@ load(here("myGD20.Rdata"))
 load(here("myGM20.Rdata"))
 #to remove the marker labels on each axis, use theme_void() instead of theme_classic()
 #test of some random markers
-ld_heatmap(myGD20[,500:600])
+ld_heatmap(myGD20[,9043:9052])
+ld_heatmap(myGD20[,9292:9302])
 #SD1 and SD2
 ld_heatmap(myGD[,c(10780:10800, 13000:13075)])
 
-ld_heatmap(myGD20[,c(12990:13010,13050:13075)]) + ggtitle('LD between GA20Ox and MKK3 markers') +
-  scale_x_discrete(label = c('GA20Ox','MKK3'), breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253'))+
-  scale_y_discrete(label = c('GA20Ox','MKK3'), breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253'))+ 
+ld_heatmap(myGD20[,c(12990:13010,13050:13075)]) + ggtitle('LD between significant marker regions at 5H') +
+  scale_x_discrete(label = c('5H near AlaT','Other region'), breaks = c('JHI-Hv50k-2016-312121','JHI-Hv50k-2016-316934'))+
+  scale_y_discrete(label = c('AlaT','Unknown'), breaks = c('JHI-Hv50k-2016-312121','JHI-Hv50k-2016-316934'))+ 
   xlab(NULL)+ylab(NULL)
 
 ld_heatmap(myGD20[,c(10785:10795,13000:13010,13055:13070)]) + ggtitle('LD between AlaAt, GA20Ox, and MKK3 markers') +
