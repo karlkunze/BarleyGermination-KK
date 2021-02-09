@@ -17,7 +17,7 @@ dir1<-"C:/Users/Karl/git/BarleyGermination-KK"
 setwd(dir1)
 getwd()
 load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
-
+load(here("myGD20.Rdata"))
 #load(here("myGM20_LDprune.Rdata"))
 #load(here("myGD20_LDprune.Rdata"))
 
@@ -58,7 +58,7 @@ TP4WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="4",])
 TP5WDH<-droplevels(WDH20_pheno[WDH20_pheno$Timepoint=="5",])
 
 
-WDH20_pheno[WDH20_pheno$PLOT==11023,]
+WDH20_pheno[WDH20_pheno$PLOT==11023,]#checking to see if the a{1}1023 lines were retained
 
 TP1WDH<-TP1WDH[!is.na(TP1WDH$PLOT),]
 TP2WDH<-TP2WDH[!is.na(TP2WDH$PLOT),]
@@ -66,7 +66,6 @@ TP3WDH<-TP3WDH[!is.na(TP3WDH$PLOT),]
 TP4WDH<-TP4WDH[!is.na(TP4WDH$PLOT),]
 TP5WDH<-TP5WDH[!is.na(TP5WDH$PLOT),]
 
-TP4WDH[TP4WDH$PLOT==11023,]#checking to see if the a{1}1023 lines were retained
 ```
 
 ```{r}
@@ -179,7 +178,7 @@ get_entry_fixed_Effects = function(model,trait){
 }
 #Post Maturity days for Germination: 5,19,47,96,152
 #Dates plated for Timepoints: 9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
-BLUE_summary=function(mods,PM,TP,date){
+BLUE_summary=function(mods,model,PM,TP,date){
   #need get_entry_fixed_Effects function
   l=list(get_entry_fixed_Effects(mods[[1]], 'GE'),get_entry_fixed_Effects(mods[[2]], 'GE_5D'),
          get_entry_fixed_Effects(mods[[3]], 'GIscale'),get_entry_fixed_Effects(mods[[4]], 'GIScale_5D'))
@@ -189,20 +188,20 @@ BLUE_summary=function(mods,PM,TP,date){
     l
   )
   TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
+  TP_summary$model=model
   TP_summary$PM_date=PM
   TP_summary$TP=TP
   TP_summary$date=date
   TP_summary
 }
 #Germination
-TP1_WDH20_BLUE_all=BLUE_summary(list(wdhge1.lm,wdhge1_5D.lm,wdhgi1.lm,wdhgi1_5D.lm),PM="5",TP="TP1",date = "9/06/2020")
-TP2_WDH20_BLUE_all=BLUE_summary(list(wdhge2.lm,wdhge2_5D.lm,wdhgi2.lm,wdhgi2_5D.lm),PM="19",TP="TP2",date = "9/22/2020")
-TP3_WDH20_BLUE_all=BLUE_summary(list(wdhge3.lm,wdhge3_5D.lm,wdhgi3.lm,wdhgi3_5D.lm),PM="47",TP="TP3",date = "10/20/2020")
-TP4_WDH20_BLUE_all=BLUE_summary(list(wdhge4.lm,wdhge4_5D.lm,wdhgi4.lm,wdhgi4_5D.lm),PM="96",TP="TP4",date = "12/08/2020")
-TP5_WDH20_BLUE_all=BLUE_summary(list(wdhge5.lm,wdhge5_5D.lm,wdhgi5.lm,wdhgi5_5D.lm),PM="152",TP="TP5",date = "02/01/2020")
+TP1_WDH20_BLUE_all=BLUE_summary(list(wdhge1.lm,wdhge1_5D.lm,wdhgi1.lm,wdhgi1_5D.lm),model="BLUE",PM="5",TP="TP1",date = "9/06/2020")
+TP2_WDH20_BLUE_all=BLUE_summary(list(wdhge2.lm,wdhge2_5D.lm,wdhgi2.lm,wdhgi2_5D.lm),model="BLUE",PM="19",TP="TP2",date = "9/22/2020")
+TP3_WDH20_BLUE_all=BLUE_summary(list(wdhge3.lm,wdhge3_5D.lm,wdhgi3.lm,wdhgi3_5D.lm),model="BLUE",PM="47",TP="TP3",date = "10/20/2020")
+TP4_WDH20_BLUE_all=BLUE_summary(list(wdhge4.lm,wdhge4_5D.lm,wdhgi4.lm,wdhgi4_5D.lm),model="BLUE",PM="96",TP="TP4",date = "12/08/2020")
+TP5_WDH20_BLUE_all=BLUE_summary(list(wdhge5.lm,wdhge5_5D.lm,wdhgi5.lm,wdhgi5_5D.lm),model="BLUE",PM="152",TP="TP5",date = "02/01/2021")
 #Field
-BLUE_summary_F=function(mods,trait_list,year){
-
+BLUE_summary_F=function(mods,model,trait_list,year){
 
   l=list(get_entry_fixed_Effects(mods[[1]], trait_list[1]),get_entry_fixed_Effects(mods[[2]], trait_list[2]),
          get_entry_fixed_Effects(mods[[3]], trait_list[3]),get_entry_fixed_Effects(mods[[4]], trait_list[4]),get_entry_fixed_Effects(mods[[5]], trait_list[5]),get_entry_fixed_Effects(mods[[6]], trait_list[6]))
@@ -212,13 +211,13 @@ BLUE_summary_F=function(mods,trait_list,year){
     l
   )
   TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
-   TP_summary$year=year
+  TP_summary$model=model 
+  TP_summary$year=year
   TP_summary
 }
 modsE<-list(WDH20phs.lm,wdh_scald.lm,wdh_wh.lm,wdh_HD.lm,wdh_Ht.lm,wdh_PM.lm)
 trait_listE<-c("PHS","scald","wh","HD","Ht","PM")
-
-Field_WDH20_BLUE_all<-BLUE_summary_F(modsE,trait_listE,"2020")
+Field_WDH20_BLUE_all<-BLUE_summary_F(modsE,trait_listE,model="BLUE","2020")
 ```
 
 
@@ -340,11 +339,11 @@ Cullis_H2=function(model){
 
 
 
-Cullis_H2(wdhphs.lmer)#0.999
+Cullis_H2(wdh_phs.lmer)#0.999
 Cullis_H2(wdh_scald.lmer)#0.728
 Cullis_H2(wdh_wh.lmer)#0.706
 Cullis_H2(wdh_HD.lmer)#0.915
-Cullis_H2(wdh_Ht.lmer)#0.695 ,0.779<-there's a data issue here
+Cullis_H2(wdh_Ht.lmer)#0.763 
 Cullis_H2(wdh_PM.lmer)#0.777
 #TP1
 Cullis_H2(wdhGE_TP1.lmer)#0.982
@@ -390,6 +389,13 @@ get_entry_fixed_Effects = function(model,trait){
   colnames(x)[2] = trait
   return(x)
 }
+gapit_blup=function(mod,trait){
+  df=ranef(mod)$'Entry'+fixef(mod)[[1]]; 
+  df=cbind(rownames(df), df); 
+  colnames(df)=c("taxa", trait); 
+  df[,1]=as.character(df[,1])
+  df
+}
 gapit_blup(wdhGE_TP5_5D.lmer,"TP GE 5 Day")[1:10,1:2]
 get_entry_fixed_Effects(wdhge5_5D.lm,"TP5 GE 5 day")[1:10,1:2]
 #Post Maturity days for Germination: 5,19,47,96,152
@@ -421,26 +427,42 @@ TP2_WDH20_BLUP_all=BLUP_summary(mods2,"BLUP","19","TP2","9/22/2020")
 mods3<-list(wdhGE_TP3.lmer,wdhGE_TP3_5D.lmer,wdhGI_TP3.lmer,wdhGI_TP3_5D.lmer)
 TP3_WDH20_BLUP_all=BLUP_summary(mods3,"BLUP","47","TP3","10/20/2020")
 #TP4
-mods2<-list(wdhGE_TP2.lmer,wdhGE_TP2_5D.lmer,wdhGI_TP2.lmer,wdhGI_TP2_5D.lmer)
-TP2_WDH20_BLUP_all=BLUP_summary(mods2,"BLUP","96","TP4","12/08/2020")
+mods4<-list(wdhGE_TP4.lmer,wdhGE_TP4_5D.lmer,wdhGI_TP4.lmer,wdhGI_TP4_5D.lmer)
+TP4_WDH20_BLUP_all=BLUP_summary(mods4,"BLUP","96","TP4","12/08/2020")
+#TP5
+mods5<-list(wdhGE_TP5.lmer,wdhGE_TP5_5D.lmer,wdhGI_TP5.lmer,wdhGI_TP5_5D.lmer)
+TP5_WDH20_BLUP_all=BLUP_summary(mods5,"BLUP","152","TP5","2/1/2021")
 
-BLUE_summary_F=function(mods,trait_list,year){
+modsP<-list(wdh_phs.lmer,wdh_scald.lmer,wdh_wh.lmer,wdh_HD.lmer,wdh_Ht.lmer,wdh_PM.lmer)
+
+BLUP_summary_F=function(mods,trait_list,model,year){
 
 
-  l=list(get_entry_fixed_Effects(mods[[1]], trait_list[1]),get_entry_fixed_Effects(mods[[2]], trait_list[2]),
-         get_entry_fixed_Effects(mods[[3]], trait_list[3]),get_entry_fixed_Effects(mods[[4]], trait_list[4]),get_entry_fixed_Effects(mods[[5]], trait_list[5]),get_entry_fixed_Effects(mods[[6]], trait_list[6]))
+
+  l=list(gapit_blup(mods[[1]], trait_list[1]),gapit_blup(mods[[2]], trait_list[2]),
+         gapit_blup(mods[[3]], trait_list[3]),gapit_blup(mods[[4]], trait_list[4]),gapit_blup(mods[[5]], trait_list[5]),gapit_blup(mods[[6]], trait_list[6]))
   
   TP_summary <- Reduce(
     function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
     l
   )
   TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
-   TP_summary$year=year
+  TP_summary$model=model
+  TP_summary$year=year
   TP_summary
 }
-modsE<-list(WDH20phs.lm,wdh_scald.lm,wdh_wh.lm,wdh_HD.lm,wdh_Ht.lm,wdh_PM.lm)
-trait_listE<-c("PHS","scald","wh","HD","Ht","PM")
 
+
+
+Field_WDH20_BLUP_all=BLUP_summary_F(modsP,trait_listP,model="BLUP",year = "2020")
+#save Rdata files
+save(TP1_WDH20_BLUP_all, file="data/Winter_DH/TP1_WDH20_BLUP_all.RData")
+save(TP2_WDH20_BLUP_all, file="data/Winter_DH/TP2_WDH20_BLUP_all.RData")
+save(TP3_WDH20_BLUP_all, file="data/Winter_DH/TP3_WDH20_BLUP_all.RData")
+save(TP4_WDH20_BLUP_all, file="data/Winter_DH/TP4_WDH20_BLUP_all.RData")
+save(TP5_WDH20_BLUP_all, file="data/Winter_DH/TP5_WDH20_BLUP_all.RData")
+
+save(Field_WDH20_BLUP_all,file="data/Winter_DH/Field_WDH20_BLUP_all.Rdata")
 
 ```
 
