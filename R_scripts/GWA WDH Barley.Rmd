@@ -15,7 +15,8 @@ library(here)
 dir1<-"C:/Users/Karl/git/BarleyGermination-KK"
 setwd(dir1)
 getwd()
-load(here("WMB DH 2020 all data for analysis.RData"))
+load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
+
 #load(here("myGM20_LDprune.Rdata"))
 #load(here("myGD20_LDprune.Rdata"))
 
@@ -26,7 +27,7 @@ colnames(AlaT_markers)[4]<-"Entry"
 table(All_pheno_TPall$Entry)
 str(myGM20$SNP)
 
-All_pheno_TPall
+View(All_pheno_TPall)
 myGD20$taxa
 dim(myGD20)
 str(All_pheno_TPall$Entry)
@@ -176,6 +177,7 @@ anova(wdh_scald.lm)
 
 wdh_wh.lm=lm(wh_percent~Entry+Location,data=WDH20_phenoF)
 anova(wdh_wh.lm)
+
 #cant include check because there isn't balance
 wdh_HD.lm=lm(HD~Entry+Location,data=WDH20_phenoF)
 anova(wdh_HD.lm)
@@ -330,7 +332,15 @@ Cullis_H2(wdhGI_TP5_5D.lmer)#0.913
 ```
 
 ```{r}
-get_entry_fixed_Effects = function(model, trait){
+WDH20phs.lm
+wdh_scald.lm
+wdh_wh.lm
+wdh_HD.lm
+wdh_Ht.lm
+wdh_PM.lm
+as.character(wdh_PM.lm)
+
+get_entry_fixed_Effects = function(model,trait){
   x = data.frame(coef(model))
   x$names = rownames(x)
   x$names2 = substr(x$names,1,5)
@@ -341,24 +351,45 @@ get_entry_fixed_Effects = function(model, trait){
   x$coef.model.[1] = 0
   x = data.frame(taxa = x$taxa, x$coef.model.)
   colnames(x)[2] = trait
+  return(x)
+}
+get_entry_fixed_Effects = function(model){
+  x = data.frame(coef(model))
+  x$names = rownames(x)
+  x$names2 = substr(x$names,1,5)
+  x = subset(x, x$names2 %in% c('(Inte', 'Entry'))
+  x$taxa = substring(x$names, 6)
+  x$taxa[1] = model$xlevels$Entry[1]
+  intercept = x$coef.model.[1]
+  x$coef.model.[1] = 0
+  x = data.frame(taxa = x$taxa, x$coef.model.)
+  colnames(x)[2] = past
   return(x)
 }
 
-#get_entry_fixed_Effects = function(model, trait){
-  x = data.frame(coef(model))
-  x$names = rownames(x)
-  x$names2 = substr(x$names,1,5)
-  x = subset(x, x$names2 %in% c('(Inte', 'Entry'))
-  x$taxa = substring(x$names, 6)
-  x$taxa[1] = model$xlevels$Entry[1]
-  intercept = x$coef.model.[1]
-  x$coef.model.[1] = 0
-  x$coef.model. = x$coef.model.+intercept
-  x = data.frame(taxa = x$taxa, x$coef.model.)
-  colnames(x)[2] = trait
-  return(x)
-}
+get_entry_fixed_Effects(wdh_wh.lm, 'wh')
+
 BLUE_summary=function(mods,PM,TP,date){
+  #need get_entry_fixed_Effects function
+  l=list(get_entry_fixed_Effects(mods[[1]], 'GE'),get_entry_fixed_Effects(mods[[2]], 'GE_5D'),
+         get_entry_fixed_Effects(mods[[3]], 'GIscale'),get_entry_fixed_Effects(mods[[4]], 'GIScale_5D'))
+  
+  TP_summary <- Reduce(
+    function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
+    l
+  )
+  TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
+  TP_summary$PM_date=PM
+  TP_summary$TP=TP
+  TP_summary$date=date
+  TP_summary
+}
+
+
+
+
+
+BLUE_summary_F=function(mods,PM,TP,date){
   l=list(get_entry_fixed_Effects(mods[[1]], 'GE'),get_entry_fixed_Effects(mods[[2]], 'GE_5D'),
          get_entry_fixed_Effects(mods[[3]], 'GIScale'),get_entry_fixed_Effects(mods[[4]], 'GI5scale'))
   
@@ -459,27 +490,14 @@ wdh_Ht.blues = get_entry_fixed_Effects(wdh_Ht.lm, 'Ht')
 wdh_PM.blues = get_entry_fixed_Effects(wdh_PM.lm, 'PM')
 
 ###
-BLUE_summary=function(mods,PM,TP,date){
-  l=list(get_entry_fixed_Effects(mods[[1]], 'GE'),get_entry_fixed_Effects(mods[[2]], 'GE_5D'),
-         get_entry_fixed_Effects(mods[[3]], 'GIscale'),get_entry_fixed_Effects(mods[[4]], 'GIScale_5D'))
-  
-  TP_summary <- Reduce(
-    function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
-    l
-  )
-  TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
-  TP_summary$PM_date=PM
-  TP_summary$TP=TP
-  TP_summary$date=date
-  TP_summary
-}
+
 
 BLUE_summary()
 
 
 
 ###
-data/Winter_DH
+
 #using new function to save data
 save(TP1_WDH20_BLUE_all, file="data/Winter_DH/TP1_WDH20_BLUE_all.RData")
 save(TP2_WDH20_BLUE_all, file="data/Winter_DH/TP2_WDH20_BLUE_all.RData")
@@ -490,6 +508,43 @@ save(TP5_WDH20_BLUE_all, file="data/Winter_DH/TP5_WDH20_BLUE_all.RData")
 
 ###
 #library(lsmeans)
+library(emmeans)
+library(lsmeans)
+Entry = GITP3_5D.blues$taxa
+Entry
+wdhge1.lm
+wdhgi1.lm
+wdhge1_5D.lm
+wdhgi1_5D.lm
+wdhge1.lm
+wdhge1.lm
+emmeans(wdhge1.lm, 'Entry')
+GETP1 = data.frame(lsmeans(wdhge1.lm, 'Entry'))
+lsmeans(wdhge1.lm, 'Entry')
+GETP2 = data.frame(lsmeans(wdhge2.lm, 'Entry'))
+
+GETP3 = data.frame(lsmeans(wdhge3.lm, 'Entry'))
+GETP3
+GETP4 = data.frame(lsmeans(wdhge4.lm, 'Entry'))
+GETP5 = data.frame(lsmeans(wdhge5.lm, 'Entry'))
+GETP5
+GITP1 = data.frame(lsmeans(wdhgi1.lm, 'Entry'))
+GITP2 = data.frame(lsmeans(wdhgi2.lm, 'Entry'))
+GITP3 = data.frame(lsmeans(wdhgi3.lm, 'Entry'))
+GITP4 = data.frame(lsmeans(wdhgi4.lm, 'Entry'))
+GITP5 = data.frame(lsmeans(wdhgi5.lm, 'Entry'))
+
+GETP1_5D = data.frame(lsmeans(wdhge1_5D.lm, 'Entry'))
+GETP2_5D = data.frame(lsmeans(wdhge2_5D.lm, 'Entry'))
+GETP3_5D = data.frame(lsmeans(wdhge3_5D.lm, 'Entry'))
+GETP4_5D = data.frame(lsmeans(wdhge4_5D.lm, 'Entry'))
+GETP5_5D = data.frame(lsmeans(wdhge5_5D.lm, 'Entry'))
+
+GITP1_5D = data.frame(lsmeans(wdhgi1_5D.lm, 'Entry'))
+GITP2_5D = data.frame(lsmeans(wdhgi2_5D.lm, 'Entry'))
+GITP3_5D = data.frame(lsmeans(wdhgi3_5D.lm, 'Entry'))
+GITP4_5D = data.frame(lsmeans(wdhgi4_5D.lm, 'Entry'))
+GITP5_5D = data.frame(lsmeans(wdhgi5_5D.lm, 'Entry'))
 
 PHSlsmeans = data.frame(lsmeans(WDH20phs.lm, 'Entry'))
 scaldmeans = data.frame(lsmeans(wdh_scald.lm, 'Entry'))
