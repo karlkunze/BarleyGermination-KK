@@ -42,6 +42,7 @@ load(here("AlaT_markers.Rdata"))
 colnames(AlaT_markers)[4]<-"Entry"
 
 ```
+NEED TO RUN WDH_PhenotypeData_Model_Calculation for model objects until I make separate .RData object for them
 
 ```{r}
 # GETP1
