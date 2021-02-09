@@ -68,9 +68,6 @@ TP5WDH
 ```
 
 ```{r}
-WDH20phs.lm=lm(phs~Entry, data=WDH20_pheno)
-
-anova(WDH20phs.lm) #all factors signif
 #TP1
 wdhge1.lm=lm(GE~Entry + Location, data=TP1WDH)
 
@@ -138,14 +135,13 @@ anova(wdhgi5_5D.lm) #all signif
 
 
 ```
-Analysis of phenotypes
-```{r}
-hist(WDH20_phenoF$Ht)
-
-```
 
 ```{r}
 #Field Phenotypes fixed effects
+
+WDH20phs.lm=lm(phs~Entry, data=WDH20_pheno)
+
+anova(WDH20phs.lm) #all factors signif
 str(WDH20_phenoF)
 colnames(WDH20_phenoF)
 
@@ -163,154 +159,6 @@ wdh_Ht.lm=lm(Ht~Entry+Location,data=WDH20_phenoF)
 anova(wdh_Ht.lm)
 wdh_PM.lm=lm(PM~Entry+Location+wh_percent,data=WDH20_phenoF)
 anova(wdh_PM.lm)
-```
-
-
-BLUPS
-```{r}
-library(lme4)
-
-##BLUPS
-#base mixed model for each trait for genotypic BLUPs
-wdhphs.lmer=lmer(phs~1+(1|Entry), data=WDH20_pheno)
-summary(wdhphs.lmer)
-
-wdhGE_TP1.lmer=lmer(GE~ Location + (1|Entry), data=TP1WDH)
-AIC(wdhGE_TP1.lmer)
-wdhGI_TP1.lmer=lmer(GIscale~ Location +(1|PM)+ (1|Entry), data=TP1WDH)
-AIC(wdhGI_TP1.lmer)
-wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location +(1|PM)+ (1|Entry), data=TP1WDH)
-AIC(wdhGE_TP1_5D.lmer)
-wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + (1|PM )+ (1|Entry), data=TP1WDH)
-AIC(wdhGI_TP1_5D.lmer)
-
-
-
-
-
-
-
-wdhGE_TP2.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=TP2WDH)
-AIC(wdhGE_TP2.lmer)
-wdhGI_TP2.lmer=lmer(GIscale~Location +(1|PM)+ (1|Entry), data=TP2WDH)
-AIC(wdhGI_TP2.lmer)
-wdhGE_TP2_5D.lmer=lmer(GE_5D~  Location + PM+ (1|Entry) , data=TP2WDH)
-AIC(wdhGE_TP2_5D.lmer)
-wdhGI_TP2_5D.lmer=lmer(GIscale_5D~  Location +PM + (1|Entry), data=TP2WDH)
-AIC(wdhGI_TP2_5D.lmer)
-wdhGE_TP3.lmer=lmer(GE~  Location + PM+PM:replication +(1|Entry) , data=TP3WDH)
-AIC(wdhGE_TP3.lmer)
-wdhGI_TP3.lmer=lmer(GIscale~  Location +PM+PM:replication + (1|Entry), data=TP3WDH)
-AIC(wdhGI_TP3.lmer)
-
-
-wdhGE_TP3_5D.lmer=lmer(GE_5D~  Location +(1|PM)+replication + (1|Entry) , data=TP3WDH)
-AIC(wdhGE_TP3_5D.lmer)
-wdhGI_TP3_5D.lmer=lmer(GIscale_5D~  Location+ (1|PM)+ (1|Entry), data=TP3WDH)
-AIC(wdhGI_TP3_5D.lmer)
-
-
-wdhGE_TP4.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP4WDH)
-AIC(wdhGE_TP4.lmer)
-
-wdhGI_TP4.lmer=lmer(GIscale~  Location +replication + (1|Entry), data=TP4WDH)
-AIC(wdhGI_TP4.lmer)
-wdhGE_TP4_5D.lmer=lmer(GE_5D~  Location + replication+ (1|PM) + (1|Entry) , data=TP4WDH)
-AIC(wdhGE_TP4_5D.lmer)
-
-wdhGI_TP4_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP4WDH)
-AIC(wdhGI_TP4_5D.lmer)
-#TP5
-
-wdhGE_TP5.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP5WDH)
-AIC(wdhGE_TP5.lmer)
-
-wdhGI_TP5.lmer=lmer(GIscale~  Location +replication + (1|Entry), data=TP5WDH)
-AIC(wdhGI_TP5.lmer)
-wdhGE_TP5_5D.lmer=lmer(GE_5D~  Location + replication + (1|Entry) , data=TP5WDH)
-AIC(wdhGE_TP5_5D.lmer)
-
-wdhGI_TP5_5D.lmer=lmer(GIscale_5D~  Location +replication + (1|Entry), data=TP5WDH)
-AIC(wdhGI_TP5_5D.lmer)
-
-```
-Field Phenotypes BLUPS
-```{r}
-#scald
-wdh_scald.lmer=lmer(Scald~(1|Entry),data=WDH20_phenoF)
-summary(wdh_scald.lmer)
-AIC(wdh_scald.lmer)
-anova(wdh_scald.lmer)
-#winter hardiness percentage
-wdh_wh.lmer=lmer(wh_percent~(1|Entry)+HD,data=WDH20_phenoF)
-summary(wdh_wh.lmer)
-AIC(wdh_wh.lmer)
-anova(wdh_wh.lmer)
-Cullis_H2(wdh_wh.lmer)
-#heading data
-wdh_HD.lmer=lmer(HD~(1|Entry)+Location,data=WDH20_phenoF)
-summary(wdh_HD.lmer)
-AIC(wdh_HD.lmer)
-anova(wdh_HD.lmer)
-#height
-wdh_Ht.lmer=lmer(Ht~(1|Entry)+Location+HD,data=WDH20_phenoF)
-summary(wdh_Ht.lmer)
-AIC(wdh_Ht.lmer)
-anova(wdh_Ht.lmer)
-#Physiological maturity
-wdh_PM.lmer=lmer(PM~(1|Entry)+Location+Check,data=WDH20_phenoF)
-summary(wdh_PM.lmer)
-AIC(wdh_PM.lmer)
-anova(wdh_PM.lmer)
-
-```
-Cullis Heritability for unbalanced designs
-```{r}
-Cullis_H2=function(model){
-  library(arm)
-  ses<- se.ranef(model)$'Entry' #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
-  v_BLUP<- ses^2
-  sigma2_g=VarCorr(model, comp="Variance")$'Entry'[1]
-  Reliability<- 1- v_BLUP/ (2*sigma2_g)  #where sigma2_g is the genetic variance estimated with the model saved in 'm'
-  H2<- round(mean(Reliability),3) #This is equivalent to broad-sense heritability on the line-mean (or family-mean, if your individuals are non-inbred families) basis
-  H2
-}
-
-
-
-Cullis_H2(wdhphs.lmer)#0.999
-Cullis_H2(wdh_scald.lmer)#0.728
-Cullis_H2(wdh_wh.lmer)#0.706
-Cullis_H2(wdh_HD.lmer)#0.915
-Cullis_H2(wdh_Ht.lmer)#0.695 ,0.779<-there's a data issue here
-Cullis_H2(wdh_PM.lmer)#0.777
-#TP1
-Cullis_H2(wdhGE_TP1.lmer)#0.982
-Cullis_H2(wdhGI_TP1.lmer)#0.973
-Cullis_H2(wdhGE_TP1_5D.lmer)#0.97
-Cullis_H2(wdhGI_TP1_5D.lmer)#0.97
-#TP2
-Cullis_H2(wdhGE_TP2.lmer)#0.984
-Cullis_H2(wdhGI_TP2.lmer)#0.989
-Cullis_H2(wdhGE_TP2_5D.lmer)#0.958
-Cullis_H2(wdhGI_TP2_5D.lmer)#0.988
-#TP3
-Cullis_H2(wdhGE_TP3.lmer)#0.923
-Cullis_H2(wdhGI_TP3.lmer)#0.976
-Cullis_H2(wdhGE_TP3_5D.lmer)#0.762
-Cullis_H2(wdhGI_TP3_5D.lmer)#0.974
-#TP4
-Cullis_H2(wdhGE_TP4.lmer)#0.855
-Cullis_H2(wdhGI_TP4.lmer)#0.939
-Cullis_H2(wdhGE_TP4_5D.lmer)#0.7
-Cullis_H2(wdhGI_TP4_5D.lmer)#0.934
-#TP5
-Cullis_H2(wdhGE_TP5.lmer)#0.921
-Cullis_H2(wdhGI_TP5.lmer)#0.915
-Cullis_H2(wdhGE_TP5_5D.lmer)#0.633
-Cullis_H2(wdhGI_TP5_5D.lmer)#0.913
-
-
 ```
 
 ```{r}
@@ -547,6 +395,155 @@ save(WDH_BLUEs_2020,file ="data/Winter_DH/WDH_BLUEs_2020.RData")
 
 
 ```
+
+BLUPS
+```{r}
+library(lme4)
+
+##BLUPS
+#base mixed model for each trait for genotypic BLUPs
+wdhphs.lmer=lmer(phs~1+(1|Entry), data=WDH20_pheno)
+summary(wdhphs.lmer)
+
+wdhGE_TP1.lmer=lmer(GE~ Location + (1|Entry), data=TP1WDH)
+AIC(wdhGE_TP1.lmer)
+wdhGI_TP1.lmer=lmer(GIscale~ Location +(1|PM)+ (1|Entry), data=TP1WDH)
+AIC(wdhGI_TP1.lmer)
+wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location +(1|PM)+ (1|Entry), data=TP1WDH)
+AIC(wdhGE_TP1_5D.lmer)
+wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + (1|PM )+ (1|Entry), data=TP1WDH)
+AIC(wdhGI_TP1_5D.lmer)
+
+
+
+
+
+
+
+wdhGE_TP2.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=TP2WDH)
+AIC(wdhGE_TP2.lmer)
+wdhGI_TP2.lmer=lmer(GIscale~Location +(1|PM)+ (1|Entry), data=TP2WDH)
+AIC(wdhGI_TP2.lmer)
+wdhGE_TP2_5D.lmer=lmer(GE_5D~  Location + PM+ (1|Entry) , data=TP2WDH)
+AIC(wdhGE_TP2_5D.lmer)
+wdhGI_TP2_5D.lmer=lmer(GIscale_5D~  Location +PM + (1|Entry), data=TP2WDH)
+AIC(wdhGI_TP2_5D.lmer)
+wdhGE_TP3.lmer=lmer(GE~  Location + PM+PM:replication +(1|Entry) , data=TP3WDH)
+AIC(wdhGE_TP3.lmer)
+wdhGI_TP3.lmer=lmer(GIscale~  Location +PM+PM:replication + (1|Entry), data=TP3WDH)
+AIC(wdhGI_TP3.lmer)
+
+
+wdhGE_TP3_5D.lmer=lmer(GE_5D~  Location +(1|PM)+replication + (1|Entry) , data=TP3WDH)
+AIC(wdhGE_TP3_5D.lmer)
+wdhGI_TP3_5D.lmer=lmer(GIscale_5D~  Location+ (1|PM)+ (1|Entry), data=TP3WDH)
+AIC(wdhGI_TP3_5D.lmer)
+
+
+wdhGE_TP4.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP4WDH)
+AIC(wdhGE_TP4.lmer)
+
+wdhGI_TP4.lmer=lmer(GIscale~  Location +replication + (1|Entry), data=TP4WDH)
+AIC(wdhGI_TP4.lmer)
+wdhGE_TP4_5D.lmer=lmer(GE_5D~  Location + replication+ (1|PM) + (1|Entry) , data=TP4WDH)
+AIC(wdhGE_TP4_5D.lmer)
+
+wdhGI_TP4_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP4WDH)
+AIC(wdhGI_TP4_5D.lmer)
+#TP5
+
+wdhGE_TP5.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP5WDH)
+AIC(wdhGE_TP5.lmer)
+
+wdhGI_TP5.lmer=lmer(GIscale~  Location +replication + (1|Entry), data=TP5WDH)
+AIC(wdhGI_TP5.lmer)
+wdhGE_TP5_5D.lmer=lmer(GE_5D~  Location + replication + (1|Entry) , data=TP5WDH)
+AIC(wdhGE_TP5_5D.lmer)
+
+wdhGI_TP5_5D.lmer=lmer(GIscale_5D~  Location +replication + (1|Entry), data=TP5WDH)
+AIC(wdhGI_TP5_5D.lmer)
+
+```
+Field Phenotypes BLUPS
+```{r}
+#scald
+wdh_scald.lmer=lmer(Scald~(1|Entry),data=WDH20_phenoF)
+summary(wdh_scald.lmer)
+AIC(wdh_scald.lmer)
+anova(wdh_scald.lmer)
+#winter hardiness percentage
+wdh_wh.lmer=lmer(wh_percent~(1|Entry)+HD,data=WDH20_phenoF)
+summary(wdh_wh.lmer)
+AIC(wdh_wh.lmer)
+anova(wdh_wh.lmer)
+Cullis_H2(wdh_wh.lmer)
+#heading data
+wdh_HD.lmer=lmer(HD~(1|Entry)+Location,data=WDH20_phenoF)
+summary(wdh_HD.lmer)
+AIC(wdh_HD.lmer)
+anova(wdh_HD.lmer)
+#height
+wdh_Ht.lmer=lmer(Ht~(1|Entry)+Location+HD,data=WDH20_phenoF)
+summary(wdh_Ht.lmer)
+AIC(wdh_Ht.lmer)
+anova(wdh_Ht.lmer)
+#Physiological maturity
+wdh_PM.lmer=lmer(PM~(1|Entry)+Location+Check,data=WDH20_phenoF)
+summary(wdh_PM.lmer)
+AIC(wdh_PM.lmer)
+anova(wdh_PM.lmer)
+
+```
+Cullis Heritability for unbalanced designs
+```{r}
+Cullis_H2=function(model){
+  library(arm)
+  ses<- se.ranef(model)$'Entry' #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
+  v_BLUP<- ses^2
+  sigma2_g=VarCorr(model, comp="Variance")$'Entry'[1]
+  Reliability<- 1- v_BLUP/ (2*sigma2_g)  #where sigma2_g is the genetic variance estimated with the model saved in 'm'
+  H2<- round(mean(Reliability),3) #This is equivalent to broad-sense heritability on the line-mean (or family-mean, if your individuals are non-inbred families) basis
+  H2
+}
+
+
+
+Cullis_H2(wdhphs.lmer)#0.999
+Cullis_H2(wdh_scald.lmer)#0.728
+Cullis_H2(wdh_wh.lmer)#0.706
+Cullis_H2(wdh_HD.lmer)#0.915
+Cullis_H2(wdh_Ht.lmer)#0.695 ,0.779<-there's a data issue here
+Cullis_H2(wdh_PM.lmer)#0.777
+#TP1
+Cullis_H2(wdhGE_TP1.lmer)#0.982
+Cullis_H2(wdhGI_TP1.lmer)#0.973
+Cullis_H2(wdhGE_TP1_5D.lmer)#0.97
+Cullis_H2(wdhGI_TP1_5D.lmer)#0.97
+#TP2
+Cullis_H2(wdhGE_TP2.lmer)#0.984
+Cullis_H2(wdhGI_TP2.lmer)#0.989
+Cullis_H2(wdhGE_TP2_5D.lmer)#0.958
+Cullis_H2(wdhGI_TP2_5D.lmer)#0.988
+#TP3
+Cullis_H2(wdhGE_TP3.lmer)#0.923
+Cullis_H2(wdhGI_TP3.lmer)#0.976
+Cullis_H2(wdhGE_TP3_5D.lmer)#0.762
+Cullis_H2(wdhGI_TP3_5D.lmer)#0.974
+#TP4
+Cullis_H2(wdhGE_TP4.lmer)#0.855
+Cullis_H2(wdhGI_TP4.lmer)#0.939
+Cullis_H2(wdhGE_TP4_5D.lmer)#0.7
+Cullis_H2(wdhGI_TP4_5D.lmer)#0.934
+#TP5
+Cullis_H2(wdhGE_TP5.lmer)#0.921
+Cullis_H2(wdhGI_TP5.lmer)#0.915
+Cullis_H2(wdhGE_TP5_5D.lmer)#0.633
+Cullis_H2(wdhGI_TP5_5D.lmer)#0.913
+
+
+```
+
+
 
 ```{r}
 gapit_blup=function(mod,trait){
