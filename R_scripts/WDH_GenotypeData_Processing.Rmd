@@ -32,20 +32,24 @@ Winter DH 50K GENOTYPING PROCESSING
 
 ```{r}
 
-getwd()
+setwd("C:/Users/Karl/git/BarleyGermination-KK")
 
 library(here)
-load(here("WMB DH 2020 all data for analysis.RData"))
+load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
 WDH20_pheno<-All_pheno_TPall
 
 #changed to read new table
-wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines_numeric.hmp.txt",skip = 1, header=T,sep ='\t')
-wdh[1:15,1:12]
-wdh[15:20,15:20]
+wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines_numeric.hmp.txt",skip = 1, header=T)
+
+wdh[wdh['X.Marker.'] == "BS911.40"]
 ###
 # This is the area where we add the list of Entry names to remove
 # First is "BS911-50", coverage is too low, seen at PCA plot that it is an outlier, "BS911-67", we will do this when the parents are removed
 table(wdh[wdh['X.Marker.'] == "BS911.50"],useNA = "ifany")
+wdh[1:10,1:10]
+wdh[wdh['X.Marker.'] == "BS911.50"]
+
+sum(table(wdh[wdh['X.Marker.'] == "BS911.50"],useNA = "ifany"))
 
 
 
@@ -85,9 +89,7 @@ Add AlAT marker dat
 ```{r}
 
 AlaT_markers<-read_excel("data/Marker_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results')
-AlaT_markers
 AlaT_markers<-AlaT_markers[,c(1:12)]
-colnames(AlaT_markers)[12]
 colnames(AlaT_markers)[12]<-"AlaT_Allele"
 hist(AlaT_markers$AlaT_Allele)
 AlaT_markers<-AlaT_markers[!AlaT_markers$AlaT_Allele==1,]
@@ -195,22 +197,17 @@ wdh$Qsd1
 
 ```{r}
 library(rrBLUP)
+wdh=as.data.frame(A.mat(wdh-1, return.imputed = T,min.MAF = 0.05)$imputed+1)
 
-wdh=as.data.frame(A.mat(wdh-1, return.imputed = T)$imputed+1)
 str(wdh)
 v2<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",header = F,skip = 1)
 
 
 colnames(v2)<-c("Chromo","Platform","Type","pos","pos2","unknown_1","strand","unknown_2","SNP")
-head(v2)
 v2$Chromo<-sapply(strsplit(v2$Chromo,"r"), "[", 2)
 #v2$Chromo<-sapply(strsplit(v2$Chromo,"H"), "[",1)
 
-
 v2$SNP<-sapply(strsplit(v2$SNP,"D="), "[", 2)
-head(v2)
-head(v2)
-str(v2)
 #dont run this recursively
 v2[nrow(v2)+1,] = c("5H","KASP_marker","KASP",442160000,442160000,NA,"+",NA,"Qsd1")
 v2[nrow(v2),]
@@ -221,9 +218,6 @@ rownames(v2)[26096]
 #find the position for the springs
 #MKK3 5H position JHI-Hv50k-2016-367342
 #Qsd1 5H position "4421600" JHI-Hv50k-2016-308584
-
-
-v2$SNP
 v2[v2$SNP=="JHI-Hv50k-2016-308584",] #26096 this marker is really close to significant marker 309659, which is a significant hit in our population
 v2[v2$SNP=="JHI-Hv50k-2016-308659",]
 
@@ -300,7 +294,7 @@ DH_Entry[DH_Entry$Entry=="Check 1-Flavia",]$Entry<-"Flavia"
 
 DH_Entry[DH_Entry$Entry=="Check 2-Scala",]$Entry<-"Scala"
 DH_Entry[DH_Entry$Entry=="Check 3-DH130910",]$Entry<-"DH130910"
-DH_Entry[DH_Entry$Entry=="Check 4-SY Tepee",]$Entry<-"SY Tepee"
+DH_Entry[DH_Entry$Entry=="Check 4-Sy Tepee",]$Entry<-"SY Tepee"
 DH_Entry[DH_Entry$Entry=="Check 5-Wintmalt",]$Entry<-"Wintmalt"
 DH_Entry[DH_Entry$Entry=="Check 6-Charles",]$Entry<-"Charles"
 
@@ -330,23 +324,15 @@ ggplot(test, aes(x=X1, y=X2, color=pedigree))+
   labs(color="Pedigree")+
   xlab("PC1: 16.30%") +
   ylab("PC2: 4.80%") 
-  
-
-test.R<-as.data.frame(test)
-
-test.W<-test.R[test.R$pedigree=="Wintmalt/DH130910",]
-
-test.W<-test.W[with(test.W, order(X1)),]
-tail(test.W[,c(1:3)])
 ```
 
 
 ```{r}
 getwd()
 
-save(myGD20, file="myGD20.Rdata")
-save(myGM20, file="myGM20.Rdata")
-save(AlaT_markers, file="AlaT_markers.Rdata")
+save(myGD20, file="data/Genotype_data/myGD20.Rdata")
+save(myGM20, file="data/Genotype_data/myGM20.Rdata")
+save(AlaT_markers, file="data/Genotype_data/AlaT_markers.Rdata")
 snpgdsClose(gdsfile)
 
 
@@ -372,7 +358,7 @@ snpgdsClose(gdsfile)
                   
                   
                   
-                  
+```{r}                 
 #SD1 and SD2
 ld_heatmap(myGD[,c(10780:10800, 13000:13075)])
 
