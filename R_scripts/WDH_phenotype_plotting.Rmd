@@ -19,8 +19,9 @@ load(here("data/Winter_DH/TP1_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP2_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP3_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
-load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP5_WDH20_BLUE_all.RData"))
 load(here("WMB DH 2020 all data for analysis.RData"))
+TP2_WDH20_BLUE_all
 All_pheno_TPall$Pedigree
 TP1_WDH20_BLUE_all$Pedigree
 All_pheno_TPall[All_pheno_TPall$Pedigree]
@@ -48,11 +49,8 @@ TP_all_melt=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.
 #wdh2melt$dataset="wdh2"; wdh1melt$dataset="wdh1"; 
 #wdhmelt=rbind(wdh2melt, wdh1melt)
 # levels(wdhmelt$variable)= c("Germination energy", "Germination index")
-TP_all_melt
 
- 
-wdh2melt
-wdh2melt$
+
 TP_all_melt
 TP_WDH20_BLUE_all$PM_date
 TP_all_melt_GE=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GE"))
@@ -101,7 +99,7 @@ ggplot(data=TP_all_melt_GI_5D, aes(x=TP, y=value,color=Pedigree)) +
 # 5 Day
 ```
 ```{r}
-Cwdh$GIscale_5D
+Cwdh$GIscale_5
 
 wdh2melt5=melt(Cwdh, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GE_5D", "GIscale_5D"))
 wdh1melt5=rbind(melt(Cwdh, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GE_5D")),
@@ -134,6 +132,7 @@ WDHmelt_scale_GE=melt(Cwdh, id.vars =c("Entry","Pedigree","Timepoint", "Location
 
 
 wdh2=aggregate(value~ Pedigree+Timepoint, data=WDHmelt_scale_GE, mean)
+
 wdh2[!wdh2$Timepoint==5,]
 ggplot(data=wdh2[!wdh2$Timepoint==5,], aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
   
