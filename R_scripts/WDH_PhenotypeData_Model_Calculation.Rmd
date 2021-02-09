@@ -234,9 +234,7 @@ save(Field_WDH20_BLUE_all,file="data/Winter_DH/Field_WDH20_BLUE_all.Rdata")
 BLUPS
 ```{r}
 library(lme4)
-
-##BLUPS
-#base mixed model for each trait for genotypic BLUPs
+##BLUPS base mixed model for each trait for genotypic BLUPs
 
 #TP1
 wdhGE_TP1.lmer=lmer(GE~ Location + (1|Entry), data=TP1WDH)
@@ -247,13 +245,7 @@ wdhGE_TP1_5D.lmer=lmer(GE_5D~ Location +(1|PM)+ (1|Entry), data=TP1WDH)
 AIC(wdhGE_TP1_5D.lmer)
 wdhGI_TP1_5D.lmer=lmer(GIscale_5D~ Location + (1|PM )+ (1|Entry), data=TP1WDH)
 AIC(wdhGI_TP1_5D.lmer)
-
-
-
-
-
-
-
+#TP2
 wdhGE_TP2.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=TP2WDH)
 AIC(wdhGE_TP2.lmer)
 wdhGI_TP2.lmer=lmer(GIscale~Location +(1|PM)+ (1|Entry), data=TP2WDH)
@@ -286,15 +278,13 @@ AIC(wdhGI_TP4_5D.lmer)
 
 wdhGE_TP5.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP5WDH)
 AIC(wdhGE_TP5.lmer)
-
 wdhGI_TP5.lmer=lmer(GIscale~  Location +replication + (1|Entry), data=TP5WDH)
 AIC(wdhGI_TP5.lmer)
+
 wdhGE_TP5_5D.lmer=lmer(GE_5D~  Location + replication + (1|Entry) , data=TP5WDH)
 AIC(wdhGE_TP5_5D.lmer)
-
 wdhGI_TP5_5D.lmer=lmer(GIscale_5D~  Location +replication + (1|Entry), data=TP5WDH)
 AIC(wdhGI_TP5_5D.lmer)
-
 ```
 Field Phenotypes BLUPS
 ```{r}
@@ -337,14 +327,6 @@ Cullis_H2=function(model){
   H2
 }
 
-
-
-Cullis_H2(wdh_phs.lmer)#0.999
-Cullis_H2(wdh_scald.lmer)#0.728
-Cullis_H2(wdh_wh.lmer)#0.706
-Cullis_H2(wdh_HD.lmer)#0.915
-Cullis_H2(wdh_Ht.lmer)#0.763 
-Cullis_H2(wdh_PM.lmer)#0.777
 #TP1
 Cullis_H2(wdhGE_TP1.lmer)#0.982
 Cullis_H2(wdhGI_TP1.lmer)#0.973
@@ -370,37 +352,18 @@ Cullis_H2(wdhGE_TP5.lmer)#0.921
 Cullis_H2(wdhGI_TP5.lmer)#0.915
 Cullis_H2(wdhGE_TP5_5D.lmer)#0.633
 Cullis_H2(wdhGI_TP5_5D.lmer)#0.913
-
-
+#Field
+Cullis_H2(wdh_phs.lmer)#0.999
+Cullis_H2(wdh_scald.lmer)#0.728
+Cullis_H2(wdh_wh.lmer)#0.706
+Cullis_H2(wdh_HD.lmer)#0.915
+Cullis_H2(wdh_Ht.lmer)#0.763 
+Cullis_H2(wdh_PM.lmer)#0.777
 ```
 
 ```{r}
-
-get_entry_fixed_Effects = function(model,trait){
-  x = data.frame(coef(model))
-  x$names = rownames(x)
-  x$names2 = substr(x$names,1,5)
-  x = subset(x, x$names2 %in% c('(Inte', 'Entry'))
-  x$taxa = substring(x$names, 6)
-  x$taxa[1] = model$xlevels$Entry[1]
-  intercept = x$coef.model.[1]
-  x$coef.model.[1] = 0
-  x = data.frame(taxa = x$taxa, x$coef.model.)
-  colnames(x)[2] = trait
-  return(x)
-}
-gapit_blup=function(mod,trait){
-  df=ranef(mod)$'Entry'+fixef(mod)[[1]]; 
-  df=cbind(rownames(df), df); 
-  colnames(df)=c("taxa", trait); 
-  df[,1]=as.character(df[,1])
-  df
-}
-gapit_blup(wdhGE_TP5_5D.lmer,"TP GE 5 Day")[1:10,1:2]
-get_entry_fixed_Effects(wdhge5_5D.lm,"TP5 GE 5 day")[1:10,1:2]
 #Post Maturity days for Germination: 5,19,47,96,152
 #Dates plated for Timepoints: 9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
-
 BLUP_summary=function(mods,Model,PM,TP,date){
 
   l=list(gapit_blup(mods[[1]], 'GE'),gapit_blup(mods[[2]], 'GE_5D'),
@@ -417,6 +380,7 @@ BLUP_summary=function(mods,Model,PM,TP,date){
   TP_summary$date=date
   TP_summary
 }
+
 #TP1
 mods<-list(wdhGE_TP1.lmer,wdhGE_TP1_5D.lmer,wdhGI_TP1.lmer,wdhGI_TP1_5D.lmer)
 TP1_WDH20_BLUP_all=BLUP_summary(mods,"BLUP","5","TP1","9/6/2020")
@@ -432,9 +396,8 @@ TP4_WDH20_BLUP_all=BLUP_summary(mods4,"BLUP","96","TP4","12/08/2020")
 #TP5
 mods5<-list(wdhGE_TP5.lmer,wdhGE_TP5_5D.lmer,wdhGI_TP5.lmer,wdhGI_TP5_5D.lmer)
 TP5_WDH20_BLUP_all=BLUP_summary(mods5,"BLUP","152","TP5","2/1/2021")
-
+#Field
 modsP<-list(wdh_phs.lmer,wdh_scald.lmer,wdh_wh.lmer,wdh_HD.lmer,wdh_Ht.lmer,wdh_PM.lmer)
-
 BLUP_summary_F=function(mods,trait_list,model,year){
 
 
@@ -451,9 +414,6 @@ BLUP_summary_F=function(mods,trait_list,model,year){
   TP_summary$year=year
   TP_summary
 }
-
-
-
 Field_WDH20_BLUP_all=BLUP_summary_F(modsP,trait_listP,model="BLUP",year = "2020")
 #save Rdata files
 save(TP1_WDH20_BLUP_all, file="data/Winter_DH/TP1_WDH20_BLUP_all.RData")
@@ -463,57 +423,6 @@ save(TP4_WDH20_BLUP_all, file="data/Winter_DH/TP4_WDH20_BLUP_all.RData")
 save(TP5_WDH20_BLUP_all, file="data/Winter_DH/TP5_WDH20_BLUP_all.RData")
 
 save(Field_WDH20_BLUP_all,file="data/Winter_DH/Field_WDH20_BLUP_all.Rdata")
-
-```
-
-Extracting BLUP Values
-```{r}
-gapit_blup=function(mod,trait){
-  df=ranef(mod)$'Entry'+fixef(mod)[[1]]; 
-  df=cbind(rownames(df), df); 
-  colnames(df)=c("taxa", trait); 
-  df[,1]=as.character(df[,1])
-  df
-}
-
-
-wdhGE_TP1.lmer
-wdhGI_TP1.lmer
-wdhGE_TP1_5D.lmer
-wdhGI_TP1_5D.lmer
-
-GETP1.blups=gapit_blup(wdhGE_TP1.lmer, "GE_TP1")
-GITP1.blups=gapit_blup(wdhGI_TP1.lmer, "GI_TP1")
-GETP1_5D.blups=gapit_blup(wdhGE_TP1_5D.lmer, "GE_TP1")
-GITP1_5D.blups=gapit_blup(wdhGI_TP1_5D.lmer, "GI_TP1")
-
-GETP2.blups=gapit_blup(wdhGE_TP2.lmer, "GE_TP2")
-GITP2.blups=gapit_blup(wdhGI_TP2.lmer, "GI_TP2")
-GETP2_5D.blups=gapit_blup(wdhGE_TP2_5D.lmer, "GE_TP2")
-GITP2_5D.blups=gapit_blup(wdhGI_TP2_5D.lmer, "GI_TP2")
-
-GETP3.blups=gapit_blup(wdhGE_TP3.lmer, "GE_TP3")
-GITP3.blups=gapit_blup(wdhGI_TP3.lmer, "GI_TP3")
-GETP3_5D.blups=gapit_blup(wdhGE_TP3_5D.lmer, "GE_TP3")
-GITP3_5D.blups=gapit_blup(wdhGI_TP3_5D.lmer, "GI_TP3")
-
-GETP4.blups=gapit_blup(wdhGE_TP4.lmer, "GE_TP4")
-GITP4.blups=gapit_blup(wdhGI_TP4.lmer, "GI_TP4")
-GETP4_5D.blups=gapit_blup(wdhGE_TP4_5D.lmer, "GE_TP4")
-GITP4_5D.blups=gapit_blup(wdhGI_TP4_5D.lmer, "GI_TP4")
-#TP5
-GETP5.blups=gapit_blup(wdhGE_TP5.lmer, "GE_TP5")
-GITP5.blups=gapit_blup(wdhGI_TP5.lmer, "GI_TP5")
-GETP5_5D.blups=gapit_blup(wdhGE_TP5_5D.lmer, "GE_TP5")
-GITP5_5D.blups=gapit_blup(wdhGI_TP5_5D.lmer, "GI_TP5")
-
-PHS.blups=gapit_blup(wdhphs.lmer, "PHS")
-wdh_scald.blups=gapit_blup(wdh_scald.lmer, "Scald")
-wh_percent.blups<-gapit_blup(wdh_wh.lmer, "wh_percent")
-HD.blups<-gapit_blup(wdh_HD.lmer, "HD")
-Ht.blups<-gapit_blup(wdh_Ht.lmer, "Ht")
-PM.blups<-gapit_blup(wdh_PM.lmer, "PM")
-
 
 ```
 
@@ -613,4 +522,54 @@ WDH_BLUEs_2020 = Reduce(function(x, y) merge(x, y, all = TRUE,by = 'Entry'),
 colnames(WDH_BLUEs_2020) = c('Entry','PHS','GETP1','GETP2','GETP3','GETP4','GETP5',
                              'GITP1','GITP2','GITP3','GITP4','GITP5','GETP1_5D','GETP2_5D','GETP3_5D','GETP4_5D','GETP5_5D','GITP1_5D','GITP2_5D','GITP3_5D','GITP4_5D','GITP4_5D','scaldmeans','wh_means','HD_means','PM_means','Ht_means')
 save(WDH_BLUEs_2020,file ="data/Winter_DH/WDH_BLUEs_2020.RData")
+```
+BLUP Extra
+```{r}
+#Extracting BLUP Values
+gapit_blup=function(mod,trait){
+  df=ranef(mod)$'Entry'+fixef(mod)[[1]]; 
+  df=cbind(rownames(df), df); 
+  colnames(df)=c("taxa", trait); 
+  df[,1]=as.character(df[,1])
+  df
+}
+
+
+wdhGE_TP1.lmer
+wdhGI_TP1.lmer
+wdhGE_TP1_5D.lmer
+wdhGI_TP1_5D.lmer
+
+GETP1.blups=gapit_blup(wdhGE_TP1.lmer, "GE_TP1")
+GITP1.blups=gapit_blup(wdhGI_TP1.lmer, "GI_TP1")
+GETP1_5D.blups=gapit_blup(wdhGE_TP1_5D.lmer, "GE_TP1")
+GITP1_5D.blups=gapit_blup(wdhGI_TP1_5D.lmer, "GI_TP1")
+
+GETP2.blups=gapit_blup(wdhGE_TP2.lmer, "GE_TP2")
+GITP2.blups=gapit_blup(wdhGI_TP2.lmer, "GI_TP2")
+GETP2_5D.blups=gapit_blup(wdhGE_TP2_5D.lmer, "GE_TP2")
+GITP2_5D.blups=gapit_blup(wdhGI_TP2_5D.lmer, "GI_TP2")
+
+GETP3.blups=gapit_blup(wdhGE_TP3.lmer, "GE_TP3")
+GITP3.blups=gapit_blup(wdhGI_TP3.lmer, "GI_TP3")
+GETP3_5D.blups=gapit_blup(wdhGE_TP3_5D.lmer, "GE_TP3")
+GITP3_5D.blups=gapit_blup(wdhGI_TP3_5D.lmer, "GI_TP3")
+
+GETP4.blups=gapit_blup(wdhGE_TP4.lmer, "GE_TP4")
+GITP4.blups=gapit_blup(wdhGI_TP4.lmer, "GI_TP4")
+GETP4_5D.blups=gapit_blup(wdhGE_TP4_5D.lmer, "GE_TP4")
+GITP4_5D.blups=gapit_blup(wdhGI_TP4_5D.lmer, "GI_TP4")
+#TP5
+GETP5.blups=gapit_blup(wdhGE_TP5.lmer, "GE_TP5")
+GITP5.blups=gapit_blup(wdhGI_TP5.lmer, "GI_TP5")
+GETP5_5D.blups=gapit_blup(wdhGE_TP5_5D.lmer, "GE_TP5")
+GITP5_5D.blups=gapit_blup(wdhGI_TP5_5D.lmer, "GI_TP5")
+
+PHS.blups=gapit_blup(wdhphs.lmer, "PHS")
+wdh_scald.blups=gapit_blup(wdh_scald.lmer, "Scald")
+wh_percent.blups<-gapit_blup(wdh_wh.lmer, "wh_percent")
+HD.blups<-gapit_blup(wdh_HD.lmer, "HD")
+Ht.blups<-gapit_blup(wdh_Ht.lmer, "Ht")
+PM.blups<-gapit_blup(wdh_PM.lmer, "PM")
+
 ```
