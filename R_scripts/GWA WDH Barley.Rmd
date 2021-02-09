@@ -490,43 +490,6 @@ save(TP5_WDH20_BLUE_all, file="data/Winter_DH/TP5_WDH20_BLUE_all.RData")
 
 ###
 #library(lsmeans)
-library(emmeans)
-library(lsmeans)
-Entry = GITP3_5D.blues$taxa
-Entry
-wdhge1.lm
-wdhgi1.lm
-wdhge1_5D.lm
-wdhgi1_5D.lm
-wdhge1.lm
-wdhge1.lm
-emmeans(wdhge1.lm, 'Entry')
-GETP1 = data.frame(lsmeans(wdhge1.lm, 'Entry'))
-lsmeans(wdhge1.lm, 'Entry')
-GETP2 = data.frame(lsmeans(wdhge2.lm, 'Entry'))
-
-GETP3 = data.frame(lsmeans(wdhge3.lm, 'Entry'))
-GETP3
-GETP4 = data.frame(lsmeans(wdhge4.lm, 'Entry'))
-GETP5 = data.frame(lsmeans(wdhge5.lm, 'Entry'))
-GETP5
-GITP1 = data.frame(lsmeans(wdhgi1.lm, 'Entry'))
-GITP2 = data.frame(lsmeans(wdhgi2.lm, 'Entry'))
-GITP3 = data.frame(lsmeans(wdhgi3.lm, 'Entry'))
-GITP4 = data.frame(lsmeans(wdhgi4.lm, 'Entry'))
-GITP5 = data.frame(lsmeans(wdhgi5.lm, 'Entry'))
-
-GETP1_5D = data.frame(lsmeans(wdhge1_5D.lm, 'Entry'))
-GETP2_5D = data.frame(lsmeans(wdhge2_5D.lm, 'Entry'))
-GETP3_5D = data.frame(lsmeans(wdhge3_5D.lm, 'Entry'))
-GETP4_5D = data.frame(lsmeans(wdhge4_5D.lm, 'Entry'))
-GETP5_5D = data.frame(lsmeans(wdhge5_5D.lm, 'Entry'))
-
-GITP1_5D = data.frame(lsmeans(wdhgi1_5D.lm, 'Entry'))
-GITP2_5D = data.frame(lsmeans(wdhgi2_5D.lm, 'Entry'))
-GITP3_5D = data.frame(lsmeans(wdhgi3_5D.lm, 'Entry'))
-GITP4_5D = data.frame(lsmeans(wdhgi4_5D.lm, 'Entry'))
-GITP5_5D = data.frame(lsmeans(wdhgi5_5D.lm, 'Entry'))
 
 PHSlsmeans = data.frame(lsmeans(WDH20phs.lm, 'Entry'))
 scaldmeans = data.frame(lsmeans(wdh_scald.lm, 'Entry'))
