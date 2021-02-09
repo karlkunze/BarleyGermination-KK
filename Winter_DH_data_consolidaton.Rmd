@@ -345,8 +345,14 @@ All_pheno_TPall$GIscale_5D
 All_pheno_TPall$GIscale
 TP
 #View(All_pheno_TPall)
+
+
+
+
+
+
 getwd()
-save(All_pheno_TPall, file="WMB DH 2020 all data for analysis.RData")
+save(All_pheno_TPall, file="data/Winter_DH/WMB DH 2020 all data for analysis.RData")
 
 ```
 #data analysis of phenotypes
