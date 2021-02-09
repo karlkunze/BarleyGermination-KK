@@ -34,6 +34,8 @@ All_pheno_TPall[All_pheno_TPall$Entry=="Check 2-Scala",]$Entry<-"Scala"
 All_pheno_TPall[All_pheno_TPall$Entry=="Check 3-DH130910",]$Entry<-"DH130910"
 All_pheno_TPall[All_pheno_TPall$Entry=="Check 4-SY Tepee",]$Entry<-"SY Tepee"
 All_pheno_TPall[All_pheno_TPall$Entry=="Check 5-Wintmalt",]$Entry<-"Wintmalt"
+All_pheno_TPall[All_pheno_TPall$Entry=="Check 6-Charles",]$Entry
+All_pheno_TPall[All_pheno_TPall$Entry=="Check 6-Charles",]$Entry<-"Charles"
 WDH20_pheno<-All_pheno_TPall
 
 str(WDH20_pheno)
@@ -62,9 +64,9 @@ TP1WDH<-TP1WDH[!is.na(TP1WDH$PLOT),]
 TP2WDH<-TP2WDH[!is.na(TP2WDH$PLOT),]
 TP3WDH<-TP3WDH[!is.na(TP3WDH$PLOT),]
 TP4WDH<-TP4WDH[!is.na(TP4WDH$PLOT),]
-TP4WDH[TP4WDH$PLOT==11023,]#checking to see if the a{1}1023 lines were retained
 TP5WDH<-TP5WDH[!is.na(TP5WDH$PLOT),]
-TP5WDH
+
+TP4WDH[TP4WDH$PLOT==11023,]#checking to see if the a{1}1023 lines were retained
 ```
 
 ```{r}
@@ -219,6 +221,7 @@ trait_listE<-c("PHS","scald","wh","HD","Ht","PM")
 Field_WDH20_BLUE_all<-BLUE_summary_F(modsE,trait_listE,"2020")
 ```
 
+
 ```{r}
 #using new function to save data
 save(TP1_WDH20_BLUE_all, file="data/Winter_DH/TP1_WDH20_BLUE_all.RData")
@@ -235,9 +238,8 @@ library(lme4)
 
 ##BLUPS
 #base mixed model for each trait for genotypic BLUPs
-wdhphs.lmer=lmer(phs~1+(1|Entry), data=WDH20_pheno)
-summary(wdhphs.lmer)
 
+#TP1
 wdhGE_TP1.lmer=lmer(GE~ Location + (1|Entry), data=TP1WDH)
 AIC(wdhGE_TP1.lmer)
 wdhGI_TP1.lmer=lmer(GIscale~ Location +(1|PM)+ (1|Entry), data=TP1WDH)
@@ -261,26 +263,24 @@ wdhGE_TP2_5D.lmer=lmer(GE_5D~  Location + PM+ (1|Entry) , data=TP2WDH)
 AIC(wdhGE_TP2_5D.lmer)
 wdhGI_TP2_5D.lmer=lmer(GIscale_5D~  Location +PM + (1|Entry), data=TP2WDH)
 AIC(wdhGI_TP2_5D.lmer)
+#TP3
 wdhGE_TP3.lmer=lmer(GE~  Location + PM+PM:replication +(1|Entry) , data=TP3WDH)
 AIC(wdhGE_TP3.lmer)
 wdhGI_TP3.lmer=lmer(GIscale~  Location +PM+PM:replication + (1|Entry), data=TP3WDH)
 AIC(wdhGI_TP3.lmer)
 
-
 wdhGE_TP3_5D.lmer=lmer(GE_5D~  Location +(1|PM)+replication + (1|Entry) , data=TP3WDH)
 AIC(wdhGE_TP3_5D.lmer)
 wdhGI_TP3_5D.lmer=lmer(GIscale_5D~  Location+ (1|PM)+ (1|Entry), data=TP3WDH)
 AIC(wdhGI_TP3_5D.lmer)
-
-
+#TP4
 wdhGE_TP4.lmer=lmer(GE~  Location + replication +(1|Entry) , data=TP4WDH)
 AIC(wdhGE_TP4.lmer)
-
 wdhGI_TP4.lmer=lmer(GIscale~  Location +replication + (1|Entry), data=TP4WDH)
 AIC(wdhGI_TP4.lmer)
+
 wdhGE_TP4_5D.lmer=lmer(GE_5D~  Location + replication+ (1|PM) + (1|Entry) , data=TP4WDH)
 AIC(wdhGE_TP4_5D.lmer)
-
 wdhGI_TP4_5D.lmer=lmer(GIscale_5D~  Location +PM+PM:replication  + (1|Entry), data=TP4WDH)
 AIC(wdhGI_TP4_5D.lmer)
 #TP5
@@ -299,29 +299,28 @@ AIC(wdhGI_TP5_5D.lmer)
 ```
 Field Phenotypes BLUPS
 ```{r}
+#phs
+wdh_phs.lmer=lmer(phs~1+(1|Entry), data=WDH20_pheno)
+summary(wdhphs.lmer)
 #scald
 wdh_scald.lmer=lmer(Scald~(1|Entry),data=WDH20_phenoF)
 summary(wdh_scald.lmer)
 AIC(wdh_scald.lmer)
-anova(wdh_scald.lmer)
 #winter hardiness percentage
 wdh_wh.lmer=lmer(wh_percent~(1|Entry)+HD,data=WDH20_phenoF)
 summary(wdh_wh.lmer)
 AIC(wdh_wh.lmer)
-anova(wdh_wh.lmer)
-Cullis_H2(wdh_wh.lmer)
 #heading data
 wdh_HD.lmer=lmer(HD~(1|Entry)+Location,data=WDH20_phenoF)
 summary(wdh_HD.lmer)
 AIC(wdh_HD.lmer)
-anova(wdh_HD.lmer)
 #height
 wdh_Ht.lmer=lmer(Ht~(1|Entry)+Location+HD,data=WDH20_phenoF)
 summary(wdh_Ht.lmer)
 AIC(wdh_Ht.lmer)
 anova(wdh_Ht.lmer)
 #Physiological maturity
-wdh_PM.lmer=lmer(PM~(1|Entry)+Location+Check,data=WDH20_phenoF)
+wdh_PM.lmer=lmer(PM~(1|Entry)+Location,data=WDH20_phenoF)
 summary(wdh_PM.lmer)
 AIC(wdh_PM.lmer)
 anova(wdh_PM.lmer)
@@ -376,8 +375,76 @@ Cullis_H2(wdhGI_TP5_5D.lmer)#0.913
 
 ```
 
+```{r}
+
+get_entry_fixed_Effects = function(model,trait){
+  x = data.frame(coef(model))
+  x$names = rownames(x)
+  x$names2 = substr(x$names,1,5)
+  x = subset(x, x$names2 %in% c('(Inte', 'Entry'))
+  x$taxa = substring(x$names, 6)
+  x$taxa[1] = model$xlevels$Entry[1]
+  intercept = x$coef.model.[1]
+  x$coef.model.[1] = 0
+  x = data.frame(taxa = x$taxa, x$coef.model.)
+  colnames(x)[2] = trait
+  return(x)
+}
+gapit_blup(wdhGE_TP5_5D.lmer,"TP GE 5 Day")[1:10,1:2]
+get_entry_fixed_Effects(wdhge5_5D.lm,"TP5 GE 5 day")[1:10,1:2]
+#Post Maturity days for Germination: 5,19,47,96,152
+#Dates plated for Timepoints: 9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
+
+BLUP_summary=function(mods,Model,PM,TP,date){
+
+  l=list(gapit_blup(mods[[1]], 'GE'),gapit_blup(mods[[2]], 'GE_5D'),
+         gapit_blup(mods[[3]], 'GIscale'),gapit_blup(mods[[4]], 'GIScale_5D'))
+  
+  TP_summary <- Reduce(
+    function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
+    l
+  )
+  TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
+  TP_summary$Model<-Model
+  TP_summary$PM_date=PM
+  TP_summary$TP=TP
+  TP_summary$date=date
+  TP_summary
+}
+#TP1
+mods<-list(wdhGE_TP1.lmer,wdhGE_TP1_5D.lmer,wdhGI_TP1.lmer,wdhGI_TP1_5D.lmer)
+TP1_WDH20_BLUP_all=BLUP_summary(mods,"BLUP","5","TP1","9/6/2020")
+#TP2
+mods2<-list(wdhGE_TP2.lmer,wdhGE_TP2_5D.lmer,wdhGI_TP2.lmer,wdhGI_TP2_5D.lmer)
+TP2_WDH20_BLUP_all=BLUP_summary(mods2,"BLUP","19","TP2","9/22/2020")
+#TP3
+mods3<-list(wdhGE_TP3.lmer,wdhGE_TP3_5D.lmer,wdhGI_TP3.lmer,wdhGI_TP3_5D.lmer)
+TP3_WDH20_BLUP_all=BLUP_summary(mods3,"BLUP","47","TP3","10/20/2020")
+#TP4
+mods2<-list(wdhGE_TP2.lmer,wdhGE_TP2_5D.lmer,wdhGI_TP2.lmer,wdhGI_TP2_5D.lmer)
+TP2_WDH20_BLUP_all=BLUP_summary(mods2,"BLUP","96","TP4","12/08/2020")
+
+BLUE_summary_F=function(mods,trait_list,year){
 
 
+  l=list(get_entry_fixed_Effects(mods[[1]], trait_list[1]),get_entry_fixed_Effects(mods[[2]], trait_list[2]),
+         get_entry_fixed_Effects(mods[[3]], trait_list[3]),get_entry_fixed_Effects(mods[[4]], trait_list[4]),get_entry_fixed_Effects(mods[[5]], trait_list[5]),get_entry_fixed_Effects(mods[[6]], trait_list[6]))
+  
+  TP_summary <- Reduce(
+    function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
+    l
+  )
+  TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
+   TP_summary$year=year
+  TP_summary
+}
+modsE<-list(WDH20phs.lm,wdh_scald.lm,wdh_wh.lm,wdh_HD.lm,wdh_Ht.lm,wdh_PM.lm)
+trait_listE<-c("PHS","scald","wh","HD","Ht","PM")
+
+
+```
+
+Extracting BLUP Values
 ```{r}
 gapit_blup=function(mod,trait){
   df=ranef(mod)$'Entry'+fixef(mod)[[1]]; 
@@ -392,9 +459,6 @@ wdhGE_TP1.lmer
 wdhGI_TP1.lmer
 wdhGE_TP1_5D.lmer
 wdhGI_TP1_5D.lmer
-
-
-PHS.blups=gapit_blup(wdhphs.lmer, "PHS")
 
 GETP1.blups=gapit_blup(wdhGE_TP1.lmer, "GE_TP1")
 GITP1.blups=gapit_blup(wdhGI_TP1.lmer, "GI_TP1")
@@ -421,7 +485,7 @@ GITP5.blups=gapit_blup(wdhGI_TP5.lmer, "GI_TP5")
 GETP5_5D.blups=gapit_blup(wdhGE_TP5_5D.lmer, "GE_TP5")
 GITP5_5D.blups=gapit_blup(wdhGI_TP5_5D.lmer, "GI_TP5")
 
-
+PHS.blups=gapit_blup(wdhphs.lmer, "PHS")
 wdh_scald.blups=gapit_blup(wdh_scald.lmer, "Scald")
 wh_percent.blups<-gapit_blup(wdh_wh.lmer, "wh_percent")
 HD.blups<-gapit_blup(wdh_HD.lmer, "HD")
