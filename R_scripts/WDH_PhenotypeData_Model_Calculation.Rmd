@@ -160,16 +160,8 @@ anova(wdh_Ht.lm)
 wdh_PM.lm=lm(PM~Entry+Location+wh_percent,data=WDH20_phenoF)
 anova(wdh_PM.lm)
 ```
-
+Summary Functions
 ```{r}
-WDH20phs.lm
-wdh_scald.lm
-wdh_wh.lm
-wdh_HD.lm
-wdh_Ht.lm
-wdh_PM.lm
-
-
 get_entry_fixed_Effects = function(model,trait){
   x = data.frame(coef(model))
   x$names = rownames(x)
@@ -183,22 +175,8 @@ get_entry_fixed_Effects = function(model,trait){
   colnames(x)[2] = trait
   return(x)
 }
-get_entry_fixed_Effects = function(model){
-  x = data.frame(coef(model))
-  x$names = rownames(x)
-  x$names2 = substr(x$names,1,5)
-  x = subset(x, x$names2 %in% c('(Inte', 'Entry'))
-  x$taxa = substring(x$names, 6)
-  x$taxa[1] = model$xlevels$Entry[1]
-  intercept = x$coef.model.[1]
-  x$coef.model.[1] = 0
-  x = data.frame(taxa = x$taxa, x$coef.model.)
-  colnames(x)[2] = past
-  return(x)
-}
-
-get_entry_fixed_Effects(wdh_wh.lm, 'wh')
-
+#Post Maturity days for Germination: 5,19,47,96,152
+#Dates plated for Timepoints: 9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
 BLUE_summary=function(mods,PM,TP,date){
   #need get_entry_fixed_Effects function
   l=list(get_entry_fixed_Effects(mods[[1]], 'GE'),get_entry_fixed_Effects(mods[[2]], 'GE_5D'),
@@ -214,186 +192,41 @@ BLUE_summary=function(mods,PM,TP,date){
   TP_summary$date=date
   TP_summary
 }
+#Germination
+TP1_WDH20_BLUE_all=BLUE_summary(list(wdhge1.lm,wdhge1_5D.lm,wdhgi1.lm,wdhgi1_5D.lm),PM="5",TP="TP1",date = "9/06/2020")
+TP2_WDH20_BLUE_all=BLUE_summary(list(wdhge2.lm,wdhge2_5D.lm,wdhgi2.lm,wdhgi2_5D.lm),PM="19",TP="TP2",date = "9/22/2020")
+TP3_WDH20_BLUE_all=BLUE_summary(list(wdhge3.lm,wdhge3_5D.lm,wdhgi3.lm,wdhgi3_5D.lm),PM="47",TP="TP3",date = "10/20/2020")
+TP4_WDH20_BLUE_all=BLUE_summary(list(wdhge4.lm,wdhge4_5D.lm,wdhgi4.lm,wdhgi4_5D.lm),PM="96",TP="TP4",date = "12/08/2020")
+TP5_WDH20_BLUE_all=BLUE_summary(list(wdhge5.lm,wdhge5_5D.lm,wdhgi5.lm,wdhgi5_5D.lm),PM="152",TP="TP5",date = "02/01/2020")
+#Field
+BLUE_summary_F=function(mods,trait_list,year){
 
 
-
-
-
-BLUE_summary_F=function(mods,PM,TP,date){
-  l=list(get_entry_fixed_Effects(mods[[1]], 'GE'),get_entry_fixed_Effects(mods[[2]], 'GE_5D'),
-         get_entry_fixed_Effects(mods[[3]], 'GIScale'),get_entry_fixed_Effects(mods[[4]], 'GI5scale'))
+  l=list(get_entry_fixed_Effects(mods[[1]], trait_list[1]),get_entry_fixed_Effects(mods[[2]], trait_list[2]),
+         get_entry_fixed_Effects(mods[[3]], trait_list[3]),get_entry_fixed_Effects(mods[[4]], trait_list[4]),get_entry_fixed_Effects(mods[[5]], trait_list[5]),get_entry_fixed_Effects(mods[[6]], trait_list[6]))
   
   TP_summary <- Reduce(
     function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
     l
   )
   TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
-  TP_summary$PM_date=PM
-  TP_summary$TP=TP
-  TP_summary$date=date
+   TP_summary$year=year
   TP_summary
 }
+modsE<-list(WDH20phs.lm,wdh_scald.lm,wdh_wh.lm,wdh_HD.lm,wdh_Ht.lm,wdh_PM.lm)
+trait_listE<-c("PHS","scald","wh","HD","Ht","PM")
 
+Field_WDH20_BLUE_all<-BLUE_summary_F(modsE,trait_listE,"2020")
+```
 
-
-wdhge1.lm
-wdhgi1.lm
-wdhge1_5D.lm
-wdhgi1_5D.lm
-phs.blues = get_entry_fixed_Effects(WDH20phs.lm, 'phs')
-phs.blues
-GETP1.blues = get_entry_fixed_Effects(wdhge1.lm, 'GE_TP1')
-GITP1.blues = get_entry_fixed_Effects(wdhgi1.lm, 'GI_TP1')
-
-GETP1_5D.blues = get_entry_fixed_Effects(wdhge1_5D.lm, 'GE_5D_TP1')
-GITP1_5D.blues = get_entry_fixed_Effects(wdhgi1_5D.lm, 'GI_5D_TP1')
-
-##
-TP1_WDH20_BLUE_all=BLUE_summary(list(wdhge1.lm,wdhge1_5D.lm,wdhgi1.lm,wdhgi1_5D.lm),PM="5",TP="TP1",date = "9/06/2020")
-
-#5,19,47,96,152
-#9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
-All_pheno_TPall$Plus_PM
-
-
-GETP2.blues = get_entry_fixed_Effects(wdhge2.lm, 'GE_TP2')
-GITP2.blues = get_entry_fixed_Effects(wdhgi2.lm, 'GI_TP2')
-
-GETP2_5D.blues = get_entry_fixed_Effects(wdhge2_5D.lm, 'GE_5D_TP2')
-GITP2_5D.blues = get_entry_fixed_Effects(wdhgi2_5D.lm, 'GI_5D_TP2')
-
-TP2_WDH20_BLUE_all=BLUE_summary(list(wdhge2.lm,wdhge2_5D.lm,wdhgi2.lm,wdhgi2_5D.lm),PM="19",TP="TP2",date = "9/22/2020")
-
-#5,19,47,96,152
-#9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
-
-
-GETP3.blues = get_entry_fixed_Effects(wdhge3.lm, 'GE_TP3')
-GITP3.blues = get_entry_fixed_Effects(wdhgi3.lm, 'GI_TP3')
-
-GETP3_5D.blues = get_entry_fixed_Effects(wdhge3_5D.lm, 'GE_5D_TP3')
-GITP3_5D.blues = get_entry_fixed_Effects(wdhgi3_5D.lm, 'GI_5D_TP3')
-
-TP3_WDH20_BLUE_all=BLUE_summary(list(wdhge3.lm,wdhge3_5D.lm,wdhgi3.lm,wdhgi3_5D.lm),PM="47",TP="TP3",date = "10/20/2020")
-
-#5,19,47,96,152
-#9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
-
-
-
-GETP4.blues = get_entry_fixed_Effects(wdhge4.lm, 'GE_TP4')
-GITP4.blues = get_entry_fixed_Effects(wdhgi4.lm, 'GI_TP4')
-
-GETP4_5D.blues = get_entry_fixed_Effects(wdhge4_5D.lm, 'GE_5D_TP4')
-GITP4_5D.blues = get_entry_fixed_Effects(wdhgi4_5D.lm, 'GI_5D_TP4')
-
-TP4_WDH20_BLUE_all=BLUE_summary(list(wdhge4.lm,wdhge4_5D.lm,wdhgi4.lm,wdhgi4_5D.lm),PM="96",TP="TP4",date = "12/08/2020")
-
-#5,19,47,96,152
-#9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
-
-#TP5
-GETP5.blues = get_entry_fixed_Effects(wdhge5.lm, 'GE_TP5')
-GITP5.blues = get_entry_fixed_Effects(wdhgi5.lm, 'GI_TP5')
-
-GETP5_5D.blues = get_entry_fixed_Effects(wdhge5_5D.lm, 'GE_5D_TP5')
-GITP5_5D.blues = get_entry_fixed_Effects(wdhgi5_5D.lm, 'GI_5D_TP5')
-
-
-TP5_WDH20_BLUE_all=BLUE_summary(list(wdhge5.lm,wdhge5_5D.lm,wdhgi5.lm,wdhgi5_5D.lm),PM="152",TP="TP5",date = "02/01/2020")
-TP5_WDH20_BLUE_all
-
-#5,19,47,96,152
-#9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
-
-
-wdh_wh.blues = get_entry_fixed_Effects(wdh_wh.lm, 'wh')
-wdh_HD.blues = get_entry_fixed_Effects(wdh_HD.lm, 'HD')
-
-
-
-
-wdh_scald.blues = get_entry_fixed_Effects(wdh_scald.lm, 'Scald')
-
-
-wdh_Ht.blues = get_entry_fixed_Effects(wdh_Ht.lm, 'Ht')
-wdh_PM.blues = get_entry_fixed_Effects(wdh_PM.lm, 'PM')
-
-###
-
-
-BLUE_summary()
-
-
-
-###
-
+```{r}
 #using new function to save data
 save(TP1_WDH20_BLUE_all, file="data/Winter_DH/TP1_WDH20_BLUE_all.RData")
 save(TP2_WDH20_BLUE_all, file="data/Winter_DH/TP2_WDH20_BLUE_all.RData")
 save(TP3_WDH20_BLUE_all, file="data/Winter_DH/TP3_WDH20_BLUE_all.RData")
 save(TP4_WDH20_BLUE_all, file="data/Winter_DH/TP4_WDH20_BLUE_all.RData")
 save(TP5_WDH20_BLUE_all, file="data/Winter_DH/TP5_WDH20_BLUE_all.RData")
-
-
-###
-#library(lsmeans)
-library(emmeans)
-library(lsmeans)
-Entry = GITP3_5D.blues$taxa
-Entry
-wdhge1.lm
-wdhgi1.lm
-wdhge1_5D.lm
-wdhgi1_5D.lm
-wdhge1.lm
-wdhge1.lm
-emmeans(wdhge1.lm, 'Entry')
-GETP1 = data.frame(lsmeans(wdhge1.lm, 'Entry'))
-lsmeans(wdhge1.lm, 'Entry')
-GETP2 = data.frame(lsmeans(wdhge2.lm, 'Entry'))
-
-GETP3 = data.frame(lsmeans(wdhge3.lm, 'Entry'))
-GETP3
-GETP4 = data.frame(lsmeans(wdhge4.lm, 'Entry'))
-GETP5 = data.frame(lsmeans(wdhge5.lm, 'Entry'))
-GETP5
-GITP1 = data.frame(lsmeans(wdhgi1.lm, 'Entry'))
-GITP2 = data.frame(lsmeans(wdhgi2.lm, 'Entry'))
-GITP3 = data.frame(lsmeans(wdhgi3.lm, 'Entry'))
-GITP4 = data.frame(lsmeans(wdhgi4.lm, 'Entry'))
-GITP5 = data.frame(lsmeans(wdhgi5.lm, 'Entry'))
-
-GETP1_5D = data.frame(lsmeans(wdhge1_5D.lm, 'Entry'))
-GETP2_5D = data.frame(lsmeans(wdhge2_5D.lm, 'Entry'))
-GETP3_5D = data.frame(lsmeans(wdhge3_5D.lm, 'Entry'))
-GETP4_5D = data.frame(lsmeans(wdhge4_5D.lm, 'Entry'))
-GETP5_5D = data.frame(lsmeans(wdhge5_5D.lm, 'Entry'))
-
-GITP1_5D = data.frame(lsmeans(wdhgi1_5D.lm, 'Entry'))
-GITP2_5D = data.frame(lsmeans(wdhgi2_5D.lm, 'Entry'))
-GITP3_5D = data.frame(lsmeans(wdhgi3_5D.lm, 'Entry'))
-GITP4_5D = data.frame(lsmeans(wdhgi4_5D.lm, 'Entry'))
-GITP5_5D = data.frame(lsmeans(wdhgi5_5D.lm, 'Entry'))
-
-PHSlsmeans = data.frame(lsmeans(WDH20phs.lm, 'Entry'))
-scaldmeans = data.frame(lsmeans(wdh_scald.lm, 'Entry'))
-wh_means = data.frame(lsmeans(wdh_wh.lm, 'Entry'))
-HD_means = data.frame(lsmeans(wdh_HD.lm, 'Entry'))
-PM_means = data.frame(lsmeans(wdh_PM.lm, 'Entry'))
-Ht_means = data.frame(lsmeans(wdh_Ht.lm, 'Entry'))
-
-
-WDH_BLUEs_2020 = Reduce(function(x, y) merge(x, y, all = TRUE,by = 'Entry'), 
-                        list(PHSlsmeans[,1:2], GETP1[,1:2], GETP2[,1:2], GETP3[,1:2],GETP4[,1:2], GETP5[,1:2],GITP1[,1:2], GITP2[,1:2], GITP3[,1:2],GITP4[,1:2],GITP5[,1:2],GETP1_5D[,1:2],GETP2_5D[,1:2],GETP3_5D[,1:2],GETP4_5D[,1:2],GETP5_5D[,1:2],GITP1_5D[,1:2],GITP2_5D[,1:2],GITP3_5D[,1:2],GITP4_5D[,1:2],GITP5_5D[,1:2],scaldmeans[,1:2],wh_means[,1:2],HD_means[,1:2],PM_means[,1:2],Ht_means[,1:2]))
-                             
-colnames(WDH_BLUEs_2020) = c('Entry','PHS','GETP1','GETP2','GETP3','GETP4','GETP5',
-                             'GITP1','GITP2','GITP3','GITP4','GITP5','GETP1_5D','GETP2_5D','GETP3_5D','GETP4_5D','GETP5_5D','GITP1_5D','GITP2_5D','GITP3_5D','GITP4_5D','GITP4_5D','scaldmeans','wh_means','HD_means','PM_means','Ht_means')
-save(WDH_BLUEs_2020,file ="data/Winter_DH/WDH_BLUEs_2020.RData")
-
-
-
-
+save(Field_WDH20_BLUE_all,file="data/Winter_DH/TP5_WDH20_BLUE_all.Rdata")
 ```
 
 BLUPS
@@ -594,3 +427,104 @@ wh_percent.blups<-gapit_blup(wdh_wh.lmer, "wh_percent")
 HD.blups<-gapit_blup(wdh_HD.lmer, "HD")
 Ht.blups<-gapit_blup(wdh_Ht.lmer, "Ht")
 PM.blups<-gapit_blup(wdh_PM.lmer, "PM")
+
+
+```
+
+BLUE extra
+```{r}
+#Extra code for extracting fixed effects
+
+#TP1
+GETP1.blues = get_entry_fixed_Effects(wdhge1.lm, 'GE_TP1')
+GITP1.blues = get_entry_fixed_Effects(wdhgi1.lm, 'GI_TP1')
+GETP1_5D.blues = get_entry_fixed_Effects(wdhge1_5D.lm, 'GE_5D_TP1')
+GITP1_5D.blues = get_entry_fixed_Effects(wdhgi1_5D.lm, 'GI_5D_TP1')
+
+#TP2
+GETP2.blues = get_entry_fixed_Effects(wdhge2.lm, 'GE_TP2')
+GITP2.blues = get_entry_fixed_Effects(wdhgi2.lm, 'GI_TP2')
+GETP2_5D.blues = get_entry_fixed_Effects(wdhge2_5D.lm, 'GE_5D_TP2')
+GITP2_5D.blues = get_entry_fixed_Effects(wdhgi2_5D.lm, 'GI_5D_TP2')
+
+#TP3
+GETP3.blues = get_entry_fixed_Effects(wdhge3.lm, 'GE_TP3')
+GITP3.blues = get_entry_fixed_Effects(wdhgi3.lm, 'GI_TP3')
+GETP3_5D.blues = get_entry_fixed_Effects(wdhge3_5D.lm, 'GE_5D_TP3')
+GITP3_5D.blues = get_entry_fixed_Effects(wdhgi3_5D.lm, 'GI_5D_TP3')
+
+
+#TP4
+GETP4.blues = get_entry_fixed_Effects(wdhge4.lm, 'GE_TP4')
+GITP4.blues = get_entry_fixed_Effects(wdhgi4.lm, 'GI_TP4')
+GETP4_5D.blues = get_entry_fixed_Effects(wdhge4_5D.lm, 'GE_5D_TP4')
+GITP4_5D.blues = get_entry_fixed_Effects(wdhgi4_5D.lm, 'GI_5D_TP4')
+
+#TP5
+GETP5.blues = get_entry_fixed_Effects(wdhge5.lm, 'GE_TP5')
+GITP5.blues = get_entry_fixed_Effects(wdhgi5.lm, 'GI_TP5')
+GETP5_5D.blues = get_entry_fixed_Effects(wdhge5_5D.lm, 'GE_5D_TP5')
+GITP5_5D.blues = get_entry_fixed_Effects(wdhgi5_5D.lm, 'GI_5D_TP5')
+#Field
+phs.blues = get_entry_fixed_Effects(WDH20phs.lm, 'phs')
+wdh_wh.blues = get_entry_fixed_Effects(wdh_wh.lm, 'wh')
+wdh_HD.blues = get_entry_fixed_Effects(wdh_HD.lm, 'HD')
+wdh_scald.blues = get_entry_fixed_Effects(wdh_scald.lm, 'Scald')
+wdh_Ht.blues = get_entry_fixed_Effects(wdh_Ht.lm, 'Ht')
+wdh_PM.blues = get_entry_fixed_Effects(wdh_PM.lm, 'PM')
+
+###
+#library(lsmeans)
+library(emmeans)
+library(lsmeans)
+Entry = GITP3_5D.blues$taxa
+Entry
+wdhge1.lm
+wdhgi1.lm
+wdhge1_5D.lm
+wdhgi1_5D.lm
+wdhge1.lm
+wdhge1.lm
+emmeans(wdhge1.lm, 'Entry')
+GETP1 = data.frame(lsmeans(wdhge1.lm, 'Entry'))
+lsmeans(wdhge1.lm, 'Entry')
+GETP2 = data.frame(lsmeans(wdhge2.lm, 'Entry'))
+
+GETP3 = data.frame(lsmeans(wdhge3.lm, 'Entry'))
+GETP3
+GETP4 = data.frame(lsmeans(wdhge4.lm, 'Entry'))
+GETP5 = data.frame(lsmeans(wdhge5.lm, 'Entry'))
+GETP5
+GITP1 = data.frame(lsmeans(wdhgi1.lm, 'Entry'))
+GITP2 = data.frame(lsmeans(wdhgi2.lm, 'Entry'))
+GITP3 = data.frame(lsmeans(wdhgi3.lm, 'Entry'))
+GITP4 = data.frame(lsmeans(wdhgi4.lm, 'Entry'))
+GITP5 = data.frame(lsmeans(wdhgi5.lm, 'Entry'))
+
+GETP1_5D = data.frame(lsmeans(wdhge1_5D.lm, 'Entry'))
+GETP2_5D = data.frame(lsmeans(wdhge2_5D.lm, 'Entry'))
+GETP3_5D = data.frame(lsmeans(wdhge3_5D.lm, 'Entry'))
+GETP4_5D = data.frame(lsmeans(wdhge4_5D.lm, 'Entry'))
+GETP5_5D = data.frame(lsmeans(wdhge5_5D.lm, 'Entry'))
+
+GITP1_5D = data.frame(lsmeans(wdhgi1_5D.lm, 'Entry'))
+GITP2_5D = data.frame(lsmeans(wdhgi2_5D.lm, 'Entry'))
+GITP3_5D = data.frame(lsmeans(wdhgi3_5D.lm, 'Entry'))
+GITP4_5D = data.frame(lsmeans(wdhgi4_5D.lm, 'Entry'))
+GITP5_5D = data.frame(lsmeans(wdhgi5_5D.lm, 'Entry'))
+
+PHSlsmeans = data.frame(lsmeans(WDH20phs.lm, 'Entry'))
+scaldmeans = data.frame(lsmeans(wdh_scald.lm, 'Entry'))
+wh_means = data.frame(lsmeans(wdh_wh.lm, 'Entry'))
+HD_means = data.frame(lsmeans(wdh_HD.lm, 'Entry'))
+PM_means = data.frame(lsmeans(wdh_PM.lm, 'Entry'))
+Ht_means = data.frame(lsmeans(wdh_Ht.lm, 'Entry'))
+
+
+WDH_BLUEs_2020 = Reduce(function(x, y) merge(x, y, all = TRUE,by = 'Entry'), 
+                        list(PHSlsmeans[,1:2], GETP1[,1:2], GETP2[,1:2], GETP3[,1:2],GETP4[,1:2], GETP5[,1:2],GITP1[,1:2], GITP2[,1:2], GITP3[,1:2],GITP4[,1:2],GITP5[,1:2],GETP1_5D[,1:2],GETP2_5D[,1:2],GETP3_5D[,1:2],GETP4_5D[,1:2],GETP5_5D[,1:2],GITP1_5D[,1:2],GITP2_5D[,1:2],GITP3_5D[,1:2],GITP4_5D[,1:2],GITP5_5D[,1:2],scaldmeans[,1:2],wh_means[,1:2],HD_means[,1:2],PM_means[,1:2],Ht_means[,1:2]))
+                             
+colnames(WDH_BLUEs_2020) = c('Entry','PHS','GETP1','GETP2','GETP3','GETP4','GETP5',
+                             'GITP1','GITP2','GITP3','GITP4','GITP5','GETP1_5D','GETP2_5D','GETP3_5D','GETP4_5D','GETP5_5D','GITP1_5D','GITP2_5D','GITP3_5D','GITP4_5D','GITP4_5D','scaldmeans','wh_means','HD_means','PM_means','Ht_means')
+save(WDH_BLUEs_2020,file ="data/Winter_DH/WDH_BLUEs_2020.RData")
+```
