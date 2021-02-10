@@ -41,40 +41,29 @@ WDH20_pheno<-All_pheno_TPall
 #changed to read new table
 wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines_numeric.hmp.txt",skip = 1, header=T)
 
-wdh[wdh['X.Marker.'] == "BS911.40"]
-###
+##
 # This is the area where we add the list of Entry names to remove
 # First is "BS911-50", coverage is too low, seen at PCA plot that it is an outlier, "BS911-67", we will do this when the parents are removed
-table(wdh[wdh['X.Marker.'] == "BS911.50"],useNA = "ifany")
-wdh[1:10,1:10]
-wdh[wdh['X.Marker.'] == "BS911.50"]
-
-sum(table(wdh[wdh['X.Marker.'] == "BS911.50"],useNA = "ifany"))
-
-
-
 
 ###
 #wdh0<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines.hmp.txt",skip = 1, header=T,sep ='\t')
-rm(wdh0)
-list.files("data/Genotype_data")
-
+#rm(wdh0)
 ```
 Check Entry names
 ```{r}
 #Check marker names
 #txt tab delimited files replace "-" character with ".", need to replace "." with "-"
-colnames(wdh)
+
 colnames(wdh)=gsub("\\.","-",colnames(wdh))
-colnames(wdh)
+
 #which(colnames(wdh)%in%allsnps$Name)
 ncol(wdh)
 colnames(wdh)[1]
 
 colnames(wdh)[1]<-"Entry"
 
-#13142 entries match
-#allsnps retained 39,621 but we only want the 13,143 in the genotype file beacause those are the filtered ones
+#15467entries match
+#retained 39,621 but we only want the 15467 in the genotype file beacause those are the filtered ones
 
 #remove markers in allsnps(paired sample file) not in the genotype file
 
@@ -87,17 +76,18 @@ colnames(wdh)[1]<-"Entry"
 
 Add AlAT marker dat
 ```{r}
-
+library(readxl)
 AlaT_markers<-read_excel("data/Marker_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results')
 AlaT_markers<-AlaT_markers[,c(1:12)]
+colnames(AlaT_markers)[12]
 colnames(AlaT_markers)[12]<-"AlaT_Allele"
 hist(AlaT_markers$AlaT_Allele)
-AlaT_markers<-AlaT_markers[!AlaT_markers$AlaT_Allele==1,]
-AlaT_markers
+AlaT_markers<-AlaT_markers[!is.na(AlaT_markers$AlaT_Allele),]
+hist(AlaT_markers$AlaT_Allele)
 #remove het called markers, most likely a mistake
 #AlaT_markers$AlaT_Allele<-as.factor(AlaT_markers$AlaT_Allele)
 #cant be a factor once its in the genotype table
-AlaT_markers[,c(4,12)]
+
 colnames(AlaT_markers)[4]
 colnames(AlaT_markers)[4]<-"Entry"
 #in 0 and 2 coding
@@ -106,7 +96,7 @@ retain relevant wdh_parents for analysis
 ```{r}
 #we want to keep DH1301910, SY Tepee, KWS Scala, Flavia, Wintmalt, Charles, and Endeavor(will be for 20-21)
 
-#THIS IS Now 
+
 
 wdh[c(3,489,490),]$Entry
 wdh[c(3,489,490),]$Entry<-c("Flavia","Scala","SY Tepee")
@@ -122,48 +112,21 @@ wdh<-wdh[!(wdh$Entry=="BS911.50" | wdh$Entry=="BS911.67"),]
 Check Entry Names
 
 ```{r}
-wdh[1:8,1:8]
+wdh[1:4,1:4]
 
 rownames(wdh)<-wdh[,1]
 rownames(wdh)
 wdh[,1]
 wdh<-wdh[,-1]
-#added ALaT marker to genotype matrix
+
 colnames(wdh)[ncol(wdh)-1]
 
 rownames(wdh)=gsub("\\.","-",rownames(wdh))
 
 ncol(wdh)
 wdh[1:4,c(15464:ncol(wdh))]
-
-
-library(tidyverse)
-#wdh<-as.data.frame(merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE))
-which( colnames(wdh)=="JHI-Hv50k-2016-308659")#8890, now 9583-1
-#determined that this is closet marker upstream of QsD1 position
-AlaT_markers$AlaT_Allele[match( rownames(wdh), AlaT_markers$Entry)]
-AlaT_markers[498,]$Entry<-"SY Tepee"
-wdh=add_column(wdh,AlaT_markers$AlaT_Allele[match( rownames(wdh), AlaT_markers$Entry)],.before="JHI-Hv50k-2016-308659");colnames(wdh)[9583]
-#check for changing column name
-
-
-
-
-
-colnames(wdh)[9583]="Qsd1"
-
-wdh$Qsd1
-
-wdh[c(1:5),9580:9584]
-
-
-
-
-
-#Entry names appear unchanged in genotype file from phenotype entry list(maybe
-#every line we use should have a non name entry)
-
 ```
+
 
 Change coding
 This step should be modified if using GAPIT or rrBLUP
@@ -174,7 +137,6 @@ nrow(wdh)
 
 str(wdh$BK_01)
 wdh=as.data.frame(apply(wdh,1, function(x) { 
-  x[which(x == 2)] = 2
   x[which(x == 0)] = 0
   x[which(x == 1)] = 2
   x[which(x == 0.5)] <- NA
@@ -191,51 +153,62 @@ rownames(wdh)[1:10]
 head(wdh)
 wdh=as.data.frame(t(wdh))
 wdh[c(1:5),c(1:5)]
-wdh$Qsd1
+```
+Add AlAt
+```{r}
+library(tidyverse)
+#need to find marker position location
+str(wdh)
+v2<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",header = F,skip = 1)
+colnames(v2)<-c("Chromo","Platform","Type","pos","pos2","unknown_1","strand","unknown_2","SNP")
+v2$Chromo<-sapply(strsplit(v2$Chromo,"r"), "[", 2)
+v2$SNP<-sapply(strsplit(v2$SNP,"D="), "[", 2)
+v2[nrow(v2)+1,] = c("5H","KASP_marker","KASP",442160000,442160000,NA,"+",NA,"Qsd1")
+v2[nrow(v2),]
+v2$pos<-as.integer(v2$pos)
+v2<-as.data.frame(v2[with(v2, order(Chromo,pos)),])
+v2$Order<-1:nrow(v2)
+
+
+Qsd_number<-v2[v2$SNP=="Qsd1",]$Order
+which(v2[c((Qsd_number+1):c(Qsd_number+4)),9] %in% colnames(wdh))#3,16 above 26098
+which(v2[c((Qsd_number-11):c(Qsd_number-1)),9] %in% colnames(wdh))#13 below 26098
+v2[c((Qsd_number-13):c(Qsd_number-1)),9][1]
+v2[c((Qsd_number+1):c(Qsd_number+16)),9][1]
+
+
+v2[v2$SNP=="JHI-Hv50k-2016-308537",]$pos#Before
+v2[v2$SNP=="Qsd1",]$pos
+v2[v2$SNP=="JHI-Hv50k-2016-308590",]$pos#after
+
+#as a result we will put this marker in the dataframe after JHI-Hv50k-2016-308537 and before JHI-Hv50k-2016-308590 at 44216000
+
+
+#wdh<-as.data.frame(merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE))
+which(colnames(wdh)=="JHI-Hv50k-2016-308537")#9580
+#determined that this is closet marker dowstream of QsD1 position
+AlaT_markers[AlaT_markers$AlaT_Allele=="Tepee",]<-"SY Tepee"
+AlaT_markers=AlaT_markers[with(AlaT_markers,order(Entry)),]
+AlaT_markers$AlaT_Allele[match( rownames(wdh), AlaT_markers$Entry)]
+
+
+
+wdh=add_column(wdh,AlaT_markers$AlaT_Allele[match( rownames(wdh), AlaT_markers$Entry)],.after="JHI-Hv50k-2016-308537");colnames(wdh)[c(9580+1)]
+#check for changing column name
+
+colnames(wdh)[9580+1]="Qsd1"
+table(wdh$Qsd1)
+#Entry names appear unchanged in genotype file from phenotype entry list(maybe
+#every line we use should have a non name entry)
 
 ```
+
 
 ```{r}
 library(rrBLUP)
 wdh=as.data.frame(A.mat(wdh-1, return.imputed = T,min.MAF = 0.05)$imputed+1)
 
-str(wdh)
-v2<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",header = F,skip = 1)
 
-
-colnames(v2)<-c("Chromo","Platform","Type","pos","pos2","unknown_1","strand","unknown_2","SNP")
-v2$Chromo<-sapply(strsplit(v2$Chromo,"r"), "[", 2)
-#v2$Chromo<-sapply(strsplit(v2$Chromo,"H"), "[",1)
-
-v2$SNP<-sapply(strsplit(v2$SNP,"D="), "[", 2)
-#dont run this recursively
-v2[nrow(v2)+1,] = c("5H","KASP_marker","KASP",442160000,442160000,NA,"+",NA,"Qsd1")
-v2[nrow(v2),]
-v2<-as.data.frame(v2[with(v2, order(Chromo,pos)),])
-v2$Order<-1:nrow(v2)
-#need to find closest segregating marker to Qsd1(alat) in winter DH population
-rownames(v2)[26096]
-#find the position for the springs
-#MKK3 5H position JHI-Hv50k-2016-367342
-#Qsd1 5H position "4421600" JHI-Hv50k-2016-308584
-v2[v2$SNP=="JHI-Hv50k-2016-308584",] #26096 this marker is really close to significant marker 309659, which is a significant hit in our population
-v2[v2$SNP=="JHI-Hv50k-2016-308659",]
-
-#5H 442160000
-
-442160000- 442158883
-
-446690041-442160000
-v2$SNP
-v2[1:3,1:3]
-v2[c(26096),c(9)]
-v2[c(26097),c(4,9)]
-
-
-which(v2[c(26096:c(26096+16)),9] %in% colnames(wdh))#17 above 26096
-which(v2[c((26096-12):c(26096)),9] %in% colnames(wdh))#12 below 26096
-v2[c(26096:c(26096+16)),9][17]#this marker is significant
-#as a result we will put this marker in the dataframe before #JHI-Hv50k-2016-308659 at 44216000
 
 
 
@@ -251,8 +224,8 @@ myGM20$Chromosome[which(myGM20$Chromosome=="U")]="8"
 
 myGM20$Position = as.character(v2$pos[match(myGM20$SNP, v2$SNP)])
 
-myGM20[myGM20$SNP=="JHI-Hv50k-2016-308659",]#8889 -inserting before 8889
-
+myGM20[myGM20$SNP=="JHI-Hv50k-2016-308537",]#8745 -inserting after 8745
+myGM20[myGM20$SNP=="Qsd1",]
 
 myGD20=as.data.frame(cbind(rownames(wdh), wdh)); colnames(myGD20)[1]="taxa"
 str(myGD20)
