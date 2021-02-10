@@ -30,9 +30,9 @@ library(compiler)
 #source code for GAPIT functions since GAPIT is not on CRAN
 source("http://zzlab.net/GAPIT/gapit_functions.txt")
 
-load(here("myGD20.Rdata"))
-load(here("myGM20.Rdata"))
-load(here("AlaT_markers.Rdata"))
+load(here("data/Genotype_data/myGD20.Rdata"))
+load(here("data/Genotype_data/myGM20.Rdata"))
+load(here("data/Genotype_data/AlaT_markers.Rdata"))
 colnames(AlaT_markers)[4]<-"Entry"
 
 ```
