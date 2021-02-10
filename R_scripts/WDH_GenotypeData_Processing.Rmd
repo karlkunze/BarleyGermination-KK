@@ -167,11 +167,16 @@ v2[nrow(v2)+1,] = c("5H","KASP_marker","KASP",442160000,442160000,NA,"+",NA,"Qsd
 v2[nrow(v2),]
 v2$pos<-as.integer(v2$pos)
 v2<-as.data.frame(v2[with(v2, order(Chromo,pos)),])
-v2$Order<-1:nrow(v2)
+v2
+v2$Order=1:nrow(v2)
 
-
+v2[v2$SNP=="Qsd1",]
 Qsd_number<-v2[v2$SNP=="Qsd1",]$Order
-which(v2[c((Qsd_number+1):c(Qsd_number+4)),9] %in% colnames(wdh))#3,16 above 26098
+
+v2[c(Qsd_number+1),9]
+v
+
+which(v2[c((Qsd_number+1):c(Qsd_number+10)),9] %in% colnames(wdh))#3,16 above 26098
 which(v2[c((Qsd_number-11):c(Qsd_number-1)),9] %in% colnames(wdh))#13 below 26098
 v2[c((Qsd_number-13):c(Qsd_number-1)),9][1]
 v2[c((Qsd_number+1):c(Qsd_number+16)),9][1]
@@ -207,8 +212,9 @@ table(wdh$Qsd1)
 ```{r}
 library(rrBLUP)
 wdh=as.data.frame(A.mat(wdh-1, return.imputed = T,min.MAF = 0.05)$imputed+1)
-
-
+wdh=round(wdh,0)
+wdh0[1:10,1:10]
+wdh$`JHI-Hv50k-2016-6222`
 
 
 
