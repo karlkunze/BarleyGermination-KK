@@ -10,12 +10,6 @@ Workflow:
 Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd->WDH_PhenotypeData_Model_Claculation.Rmd->GWA_WDH_Barley.Rmd->Haplotype_analysis.Rmd->GWA_results_interpretation.Rmd
 Add_morex_v2_postions.. file is for aligning correct genome
 read in phenotype files
-
-```{r}
-table(myGD20$Qsd1)
-hist(myGD20$`JHI-Hv50k-2016-38563`)
-
-```
 genotype
 Read in packages and functions
 ```{r}
@@ -86,6 +80,9 @@ GWAS.GITP1.blues.mlmm  =GAPIT(Y= TP1_WDH20_BLUE_all[,c('taxa','GI')], GD=myGD20,
 GWAS.GITP1_5D.blues.mlmm  =GAPIT(Y= TP1_WDH20_BLUE_all[,c('taxa','GI_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T,Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 #blups
+local1.P<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT_results/TP1/BLUPS"
+#when setting these directories, using MLMM
+setwd(local1.P)
 
 GWAS.GETP1.blups.mlmm  =GAPIT(Y= TP1_WDH20_BLUP_all[,c('taxa','GE')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
@@ -114,6 +111,12 @@ GWAS.GETP2_5D.blues.mlmm  =GAPIT(Y= TP2_WDH20_BLUE_all[,c('taxa','GE_5D')], GD=m
 
 GWAS.GITP2_5D.blues.mlmm  =GAPIT(Y= TP2_WDH20_BLUE_all[,c('taxa','GI_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 ##BLUPS
+local2.P<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT_results/TP2/BLUPS"
+#when setting these directories, using MLMM
+setwd(local2.P)
+
+
+
 GWAS.GETP2.blups.mlmm  =GAPIT(Y= TP2_WDH20_BLUP_all[,c('taxa','GE')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 GWAS.GETP2_5D.blups.mlmm  =GAPIT(Y= TP2_WDH20_BLUP_all[,c('taxa','GE_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)# significant marker on 5H and 1H
 
