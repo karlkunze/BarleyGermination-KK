@@ -194,14 +194,14 @@ getwd()
 local4.P<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT_results/TP4/BLUPS"
 setwd(local4.P)
 
-GWAS.GETP4.blups.mlmm  =GAPIT(Y= GETP4.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP4.blups.mlmm  =GAPIT(Y= TP4_WDH20_BLUP_all[,c('taxa','GE')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP4.blups.mlmm  =GAPIT(Y= GITP4.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP4.blups.mlmm  =GAPIT(Y= TP4_WDH20_BLUP_all[,c('taxa','GIscale')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
-GWAS.GETP4.blups_5D.mlmm  =GAPIT(Y= GETP4_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP4.blups_5D.mlmm  =GAPIT(Y= TP4_WDH20_BLUP_all[,c('taxa','GE_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP4_5D.blups.mlmm  =GAPIT(Y= GITP4_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP4_5D.blups.mlmm  =GAPIT(Y= TP4_WDH20_BLUP_all[,c('taxa','GIscale_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
 
@@ -214,26 +214,28 @@ local5<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/G
 setwd(local5)
 getwd()
 #blues
-GWAS.GETP5.blues.mlmm  =GAPIT(Y= GETP5.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP5.blues.mlmm  =GAPIT(Y= TP5_WDH20_BLUE_all[,c('taxa','GE')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP5.blues.mlmm  =GAPIT(Y= GITP5.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP5.blues_5D.mlmm  =GAPIT(Y= TP5_WDH20_BLUE_all[,c('taxa','GE_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.GITP5.blues.mlmm  =GAPIT(Y= TP5_WDH20_BLUE_all[,c('taxa','GIscale')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
-GWAS.GETP5.blues_5D.mlmm  =GAPIT(Y= GETP5_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP5_5D.blues.mlmm  =GAPIT(Y= GITP5_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.GITP5_5D.blues.mlmm  =GAPIT(Y= TP5_WDH20_BLUE_all[,c('taxa','GIscale_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 #blups
 local5.P<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/GAPIT_results/TP5/BLUPS"
 setwd(local5.P)
 
-GWAS.GETP5.blups.mlmm  =GAPIT(Y= GETP5.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP5.blups.mlmm  =GAPIT(Y= TP5_WDH20_BLUE_all[,c('taxa','GE')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP5.blups.mlmm  =GAPIT(Y= GITP5.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP5.blups.mlmm  =GAPIT(Y= TP5_WDH20_BLUE_all[,c('taxa','GI')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
-GWAS.GETP5.blups_5D.mlmm  =GAPIT(Y= GETP5_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GETP5.blups_5D.mlmm  =GAPIT(Y= TP5_WDH20_BLUE_all[,c('taxa','GE_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP5_5D.blups.mlmm  =GAPIT(Y= GITP5_5D.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP5_5D.blups.mlmm  =GAPIT(Y= TP5_WDH20_BLUE_all[,c('taxa','GIscale_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
 
