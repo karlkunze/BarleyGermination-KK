@@ -17,7 +17,7 @@ dir1<-"C:/Users/Karl/git/BarleyGermination-KK"
 setwd(dir1)
 getwd()
 load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
-load(here("myGD20.Rdata"))
+load(here("data/Genotype_data/myGD20.Rdata"))
 #load(here("myGM20_LDprune.Rdata"))
 #load(here("myGD20_LDprune.Rdata"))
 
@@ -181,7 +181,7 @@ get_entry_fixed_Effects = function(model,trait){
 BLUE_summary=function(mods,model,PM,TP,date){
   #need get_entry_fixed_Effects function
   l=list(get_entry_fixed_Effects(mods[[1]], 'GE'),get_entry_fixed_Effects(mods[[2]], 'GE_5D'),
-         get_entry_fixed_Effects(mods[[3]], 'GIscale'),get_entry_fixed_Effects(mods[[4]], 'GIScale_5D'))
+         get_entry_fixed_Effects(mods[[3]], 'GIscale'),get_entry_fixed_Effects(mods[[4]], 'GIscale_5D'))
   
   TP_summary <- Reduce(
     function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
@@ -364,10 +364,17 @@ Cullis_H2(wdh_PM.lmer)#0.777
 ```{r}
 #Post Maturity days for Germination: 5,19,47,96,152
 #Dates plated for Timepoints: 9/6/2020,9/22/2020,10/20/2020,12/08/2020,2/01/2020
+gapit_blup=function(mod,trait){
+  df=ranef(mod)$'Entry'+fixef(mod)[[1]]; 
+  df=cbind(rownames(df), df); 
+  colnames(df)=c("taxa", trait); 
+  df[,1]=as.character(df[,1])
+  df
+}
 BLUP_summary=function(mods,Model,PM,TP,date){
 
   l=list(gapit_blup(mods[[1]], 'GE'),gapit_blup(mods[[2]], 'GE_5D'),
-         gapit_blup(mods[[3]], 'GIscale'),gapit_blup(mods[[4]], 'GIScale_5D'))
+         gapit_blup(mods[[3]], 'GIscale'),gapit_blup(mods[[4]], 'GIscale_5D'))
   
   TP_summary <- Reduce(
     function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
@@ -414,6 +421,7 @@ BLUP_summary_F=function(mods,trait_list,model,year){
   TP_summary$year=year
   TP_summary
 }
+trait_listP<-c("PHS","scald","wh","HD","Ht","PM")
 Field_WDH20_BLUP_all=BLUP_summary_F(modsP,trait_listP,model="BLUP",year = "2020")
 #save Rdata files
 save(TP1_WDH20_BLUP_all, file="data/Winter_DH/TP1_WDH20_BLUP_all.RData")
