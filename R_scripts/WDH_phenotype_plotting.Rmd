@@ -21,6 +21,8 @@ load(here("data/Winter_DH/TP3_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP5_WDH20_BLUE_all.RData"))
 load(here("WMB DH 2020 all data for analysis.RData"))
+TP_all_WDH20_BLUE_all<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
+TP1_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP1_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
 TP2_WDH20_BLUE_all
 All_pheno_TPall$Pedigree
 TP1_WDH20_BLUE_all$Pedigree
@@ -51,8 +53,7 @@ TP_all_melt=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.
 # levels(wdhmelt$variable)= c("Germination energy", "Germination index")
 
 
-TP_all_melt
-TP_WDH20_BLUE_all$PM_date
+
 TP_all_melt_GE=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GE"))
 ggplot(data=TP_all_melt_GE, aes(x=TP, y=value,color=Pedigree)) +
   geom_boxplot()+
