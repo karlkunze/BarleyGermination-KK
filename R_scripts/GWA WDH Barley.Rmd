@@ -60,6 +60,16 @@ load(here("data/Winter_DH/Field_WDH20_BLUP_all.Rdata"))
 
 
 ```
+Code for adding marker effects
+```{r}
+"JHI-Hv50k-2016-312121"
+TP2.test<-TP2_WDH20_BLUE_all[,c('taxa','GE')]
+Qsd1<-myGD20[,c('taxa','Qsd1')]
+TP2.test<-merge(TP2_WDH20_BLUE_all,Qsd1,by='taxa',all.x = TRUE)
+TP2.test[,c('taxa','Qsd1')]
+
+
+```
 
 
 ```{r}
@@ -102,13 +112,9 @@ local2<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/G
 setwd(local2)
 getwd()
 #blues
-"JHI-Hv50k-2016-312121"
-TP2.test<-TP2_WDH20_BLUE_all[,c('taxa','GE')]
-Qsd1<-myGD20[,c('taxa','Qsd1')]
-TP2.test<-merge(TP2_WDH20_BLUE_all,Qsd1,by='taxa',all.x = TRUE)
-TP2.test[,c('taxa','Qsd1')]
 
-GWAS.GETP2.blues.mlmm  =GAPIT(Y= TP2.test[,c('taxa','GE')], GD=myGD20,CV=TP2.test[,c('taxa','Qsd1')], GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS.GETP2.blues.mlmm  =GAPIT(Y= TP2_WDH20_BLUE_all[,c('taxa','GE')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 GWAS.GITP2.blues.mlmm =GAPIT(Y= TP2_WDH20_BLUE_all[,c('taxa','GI')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
