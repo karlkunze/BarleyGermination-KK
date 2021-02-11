@@ -347,18 +347,19 @@ snpgdsCreateGeno("test2.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.i
 
 set.seed(1000)
 
-snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 1000)
+snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 8000)
 
 snpset_names=unlist(snpset)
 myGD20_prune=myGD20[,c(1,which(colnames(myGD20) %in% snpset_names))]
 myGM20_prune=myGM20[which(myGM20$SNP %in% colnames(myGD20_prune)),]
 str(myGM20_prune)
-library(GenWin)
+
 
 myGM20_prune<-myGM20_prune[with(myGM20_prune, order(Chromosome, Position)),]
 str(myGM20_prune)
 myGM20_prune$Position<-as.integer(myGM20_prune$Position)
 table(myGM20_prune$Chromosome)
+setwd("C:/Users/Karl/git/BarleyGermination-KK")
 save(myGD20_prune, file="data/Genotype_data/myGD20_LDprune.Rdata")
 save(myGM20_prune, file="data/Genotype_data/myGM20_LDprune.Rdata")
 
