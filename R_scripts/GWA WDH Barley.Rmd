@@ -29,11 +29,18 @@ library(compiler)
 
 #source code for GAPIT functions since GAPIT is not on CRAN
 source("http://zzlab.net/GAPIT/gapit_functions.txt")
-
-load(here("data/Genotype_data/myGD20.Rdata"))
-load(here("data/Genotype_data/myGM20.Rdata"))
-load(here("data/Genotype_data/AlaT_markers.Rdata"))
-colnames(AlaT_markers)[4]<-"Entry"
+#load LD prune data at 1000 bp sliding window
+load(here("data/Genotype_data/myGD20_LDprune.Rdata"))#myGD20_prune
+load(here("data/Genotype_data/myGM20_LDprune.Rdata"))#myGM20_prune
+myGD20<-myGD20_prune
+myGM20<-myGM20_prune
+rm(myGD20_prune)
+rm(myGM20_prune)
+dim(myGD20)
+#load(here("data/Genotype_data/myGD20.Rdata"))
+#load(here("data/Genotype_data/myGM20.Rdata"))
+#load(here("data/Genotype_data/AlaT_markers.Rdata"))
+#colnames(AlaT_markers)[4]<-"Entry"
 
 ```
 ```{r}

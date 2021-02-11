@@ -74,8 +74,9 @@ ld_heatmap=function(df){
 }
 
 grep("Qsd1", colnames(myGD20))
-grep("JHI-Hv50k-2016-312121", colnames(myGD20))
 grep("JHI-Hv50k-2016-308652", colnames(myGD20))
+grep("JHI-Hv50k-2016-312121", colnames(myGD20))
+
 
 #grep("JHI-Hv50k-2016-312094", colnames(myGD20))
 
@@ -88,12 +89,12 @@ grep("JHI-Hv50k-2016-316934", colnames(myGD20))
 ld_heatmap(myGD20[,c(4502:4503)])
 ###
 
-ld_heatmap(myGD20[,c(8746:8748,9039:9048)]) + ggtitle('LD between significant marker regions at 5H') +
+ld_heatmap(myGD20[,c(4502:4503)]) + ggtitle('LD between significant marker regions at 5H') +
   theme(axis.text.x = element_text(angle = 90))+
   
 
-  scale_x_discrete(label = c("Qsd1","312217","312121"), breaks = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121"))+
-  scale_y_discrete(label = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121"), breaks = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121"))+ 
+  scale_x_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652"), breaks = c("Qsd1"))+
+  scale_y_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652"), breaks = c("Qsd1","JHI-Hv50k-2016-308652"))+ 
   xlab(NULL)+ylab(NULL)
 
 
