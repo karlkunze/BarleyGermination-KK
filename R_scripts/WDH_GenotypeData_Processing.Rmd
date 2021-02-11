@@ -329,8 +329,8 @@ save(myGD20, file="data/Genotype_data/myGD20.Rdata")
 save(myGM20, file="data/Genotype_data/myGM20.Rdata")
 save(AlaT_markers, file="data/Genotype_data/AlaT_markers.Rdata")
 snpgdsClose(gdsfile)
-
-
+rm(myGM20)
+rm(myGD20)
 ```
 
 
