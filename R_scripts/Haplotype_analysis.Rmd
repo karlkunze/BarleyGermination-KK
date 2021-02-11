@@ -75,8 +75,12 @@ ld_heatmap=function(df){
 
 grep("Qsd1", colnames(myGD20))
 grep("JHI-Hv50k-2016-308652", colnames(myGD20))
-grep("JHI-Hv50k-2016-312121", colnames(myGD20))
+"JHI-Hv50k-2016-308584"
 
+#TP1 5H marker
+grep("JHI-Hv50k-2016-311960", colnames(myGD20))
+#TP2 5H marker
+grep("JHI-Hv50k-2016-311497",colnames(myGD20))
 
 #grep("JHI-Hv50k-2016-312094", colnames(myGD20))
 
@@ -86,15 +90,19 @@ grep("JHI-Hv50k-2016-316934", colnames(myGD20))
 
 #to remove the marker labels on each axis, use theme_void() instead of theme_classic()
 #test of some random markers
-ld_heatmap(myGD20[,c(4502:4503)])
+#TP1 5H marker
+grep("JHI-Hv50k-2016-311960", colnames(myGD20))
+#TP2 5H marker
+grep("JHI-Hv50k-2016-311497",colnames(myGD20))
+ld_heatmap(myGD20[,c(5149:5150,5289,5308)])
 ###
 
-ld_heatmap(myGD20[,c(4502:4503)]) + ggtitle('LD between significant marker regions at 5H') +
+ld_heatmap(myGD20[,c(5149:5150,5289,5308)]) + ggtitle('LD between significant marker regions at 5H') +
   theme(axis.text.x = element_text(angle = 90))+
   
 
-  scale_x_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652"), breaks = c("Qsd1"))+
-  scale_y_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652"), breaks = c("Qsd1","JHI-Hv50k-2016-308652"))+ 
+  scale_x_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652","TP2 5H 311497","TP1 5H 311960"), breaks = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-311960"))+
+  scale_y_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-311960"), breaks = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-311960"))+ 
   xlab(NULL)+ylab(NULL)
 
 
