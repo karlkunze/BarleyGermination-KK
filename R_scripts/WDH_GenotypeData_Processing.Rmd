@@ -337,7 +337,8 @@ snpgdsClose(gdsfile)
 LD Pruning
 
 ```{r}
-
+load(here("data/Genotype_data/myGD20.Rdata"))
+load(here("data/Genotype_data/myGM20.Rdata"))
 chr=as.integer(myGM20$Chromosome)
 chr
 snpgdsCreateGeno("test2.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.id=myGD20$taxa, snp.id = colnames(myGD20)[-1], snp.chromosome = chr,
