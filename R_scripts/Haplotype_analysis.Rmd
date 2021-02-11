@@ -8,6 +8,7 @@ editor_options:
 ---
 read in phenotypes
 ```{r}
+setwd("C:/Users/Karl/git/BarleyGermination-KK")
 load(here("data/Winter_DH/TP1_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP2_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP3_WDH20_BLUE_all.RData"))
@@ -28,10 +29,13 @@ load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
 ```
 read in Genotypes
 ```{r}
-load(here("data/Genotype_data/myGD20.Rdata"))
-load(here("data/Genotype_data/myGM20.Rdata"))
-
-
+getwd()
+list.files("data/Genotype_data")
+load(here("data/Genotype_data/myGD20_LDprune.Rdata"))
+load(here("data/Genotype_data/myGM20_LDprune.Rdata"))
+myGD20<-myGD20_prune
+myGM20<-myGM20_prune
+rm(myGD20_prune);rm(myGM20_prune)
 ```
 
 LD heatmap
@@ -40,22 +44,6 @@ LD heatmap
 library(LDcorSV)
 library(ggplot2)
 library(reshape2)
-
-grep("Qsd1", colnames(myGD20))
-grep("JHI-Hv50k-2016-312121", colnames(myGD20))
-grep("JHI-Hv50k-2016-312217", colnames(myGD20))
-
-#grep("JHI-Hv50k-2016-312094", colnames(myGD20))
-
-
-grep("JHI-Hv50k-2016-316817", colnames(myGD20))
-grep("JHI-Hv50k-2016-316934", colnames(myGD20))
-
-
-myGD20$Qsd1
-
-
-colnames(myGD20)
 
 ld_heatmap=function(df){
   ld <- as.matrix(round(df,0))
@@ -84,13 +72,21 @@ ld_heatmap=function(df){
     theme_classic() #+    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
   return(graphic)
 }
-library(ggplot2)
+
+grep("Qsd1", colnames(myGD20))
+grep("JHI-Hv50k-2016-312121", colnames(myGD20))
+grep("JHI-Hv50k-2016-308652", colnames(myGD20))
+
+#grep("JHI-Hv50k-2016-312094", colnames(myGD20))
+
+
+grep("JHI-Hv50k-2016-316817", colnames(myGD20))
+grep("JHI-Hv50k-2016-316934", colnames(myGD20))
+
 #to remove the marker labels on each axis, use theme_void() instead of theme_classic()
 #test of some random markers
-ld_heatmap(myGD20[,c(8746:8748,9039:9048)])
+ld_heatmap(myGD20[,c(4502:4503)])
 ###
-
-ld_heatmap(myGD20[,c(8750:8752,9043:9052)])
 
 ld_heatmap(myGD20[,c(8746:8748,9039:9048)]) + ggtitle('LD between significant marker regions at 5H') +
   theme(axis.text.x = element_text(angle = 90))+
