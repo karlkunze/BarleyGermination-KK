@@ -15,6 +15,7 @@ Update: This is for the wrong alignment, use the .gff file for correct alignment
 Correct Morex v2 2019 upload
 ```{r}
 library(stringr)
+setwd("C:/Users/Karl/git/BarleyGermination-KK")
 Morex2019<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",skip=1,header = FALSE)
 #should be the correct alignment
 Morex2019=Morex2019[,c(1,2,4,7,9)]
@@ -40,7 +41,7 @@ WDH20_pheno<-All_pheno_TPall
 
 #changed to read new table
 wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines_numeric.hmp.txt",skip = 1, header=T)
-
+length(wdh[duplicated(t(wdh))])
 ##
 # This is the area where we add the list of Entry names to remove
 # First is "BS911-50", coverage is too low, seen at PCA plot that it is an outlier, "BS911-67", we will do this when the parents are removed
@@ -108,6 +109,9 @@ dim(wdh)
 wdh<-wdh[!(wdh$Entry=="BS911.50" | wdh$Entry=="BS911.67"),]
 #DONT RUN RECURSIVELY
 
+library(tidyverse)
+duplicated(wdh)
+
 ```
 Check Entry Names
 
@@ -136,10 +140,17 @@ nrow(wdh)
 #QsD1 is already in 0/2 coding
 
 str(wdh$BK_01)
+table(wdh)
+str(wdh)
+str(wdh)[1:5]
+class(wdh)
+
+
 wdh=as.data.frame(apply(wdh,1, function(x) { 
   x[which(x == 0)] = 0
-  x[which(x == 1)] = 2
   x[which(x == 0.5)] <- NA
+  x[which(x == 1)] = 2
+  
   
   
   x
@@ -151,8 +162,9 @@ wdh=as.data.frame(apply(wdh,1, function(x) {
 colnames(wdh)[1:10]
 rownames(wdh)[1:10]
 head(wdh)
+
 wdh=as.data.frame(t(wdh))
-wdh[c(1:5),c(1:5)]
+wdh[c(20:80),c(140:150)]
 ```
 Add AlAt
 ```{r}
@@ -174,7 +186,7 @@ v2[v2$SNP=="Qsd1",]
 Qsd_number<-v2[v2$SNP=="Qsd1",]$Order
 
 v2[c(Qsd_number+1),9]
-v
+v2
 
 which(v2[c((Qsd_number+1):c(Qsd_number+10)),9] %in% colnames(wdh))#3,16 above 26098
 which(v2[c((Qsd_number-11):c(Qsd_number-1)),9] %in% colnames(wdh))#13 below 26098
@@ -211,9 +223,13 @@ table(wdh$Qsd1)
 
 ```{r}
 library(rrBLUP)
-wdh=as.data.frame(A.mat(wdh-1, return.imputed = T,min.MAF = 0.05)$imputed+1)
+wdh[1:10,1:3]
+which(!duplicated(t(wdh)))
+rankMatrix(as.matrix(wdh),method = "qr.R")
+
+wdh=as.data.frame(A.mat(wdh-1, return.imputed = T,impute.method = "EM")$imputed+1)
 wdh=round(wdh,0)
-wdh0[1:10,1:10]
+wdh[1:10,1:10]
 wdh$`JHI-Hv50k-2016-6222`
 
 
@@ -318,54 +334,12 @@ snpgdsClose(gdsfile)
 ```
 
 
-
-
-
-
-
-
-###
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-```{r}                 
-#SD1 and SD2
-ld_heatmap(myGD[,c(10780:10800, 13000:13075)])
-
-
-c("JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934")
-
-ld_heatmap(myGD20[,c(9043:9055,9290:9302)]) + ggtitle('LD between significant marker regions at 5H') +
-  theme(axis.text.x = element_text(angle = 90))+
-  
-#opts(axis.title.x = theme_text(vjust=-2))+
-  scale_x_discrete(label = c("312217","312121","316817","316934"), breaks = c("JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"))+
-  scale_y_discrete(label = c("JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"), breaks = c("JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"))+ 
-  xlab(NULL)+ylab(NULL)
-
-ld_heatmap(myGD20[,c(10785:10795,13000:13010,13055:13070)]) + ggtitle('LD between AlaAt, GA20Ox, and MKK3 markers') +
- 
-  scale_x_discrete(label = c('GA20Ox','MKK3','AlaAt'), 
-                   breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253','JHI-Hv50k-2016-308584'))+
-  scale_y_discrete(label = c('GA20Ox','MKK3','AlaAt'), 
-                   breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253','JHI-Hv50k-2016-308584'))+ 
-  xlab('470-670 Mb, selected markers')+ylab(NULL)
-```
-
 LD Pruning
 
 ```{r}
 
 chr=as.integer(myGM20$Chromosome)
+chr
 snpgdsCreateGeno("test2.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.id=myGD20$taxa, snp.id = colnames(myGD20)[-1], snp.chromosome = chr,
                  snp.position = as.integer(myGM20$Position), snpfirstdim = F)
 
@@ -373,18 +347,20 @@ snpgdsCreateGeno("test2.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.i
 
 set.seed(1000)
 
-snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 7000)
+snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 1000)
 
 snpset_names=unlist(snpset)
 myGD20_prune=myGD20[,c(1,which(colnames(myGD20) %in% snpset_names))]
 myGM20_prune=myGM20[which(myGM20$SNP %in% colnames(myGD20_prune)),]
 str(myGM20_prune)
+library(GenWin)
 
 myGM20_prune<-myGM20_prune[with(myGM20_prune, order(Chromosome, Position)),]
 str(myGM20_prune)
+myGM20_prune$Position<-as.integer(myGM20_prune$Position)
 table(myGM20_prune$Chromosome)
-save(myGD20_prune, file="myGD20_LDprune.Rdata")
-save(myGM20_prune, file="myGM20_LDprune.Rdata")
+save(myGD20_prune, file="data/Genotype_data/myGD20_LDprune.Rdata")
+save(myGM20_prune, file="data/Genotype_data/myGM20_LDprune.Rdata")
 
 snpgdsClose(gdsfile)
 
