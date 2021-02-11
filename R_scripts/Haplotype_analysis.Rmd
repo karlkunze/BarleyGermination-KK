@@ -40,22 +40,23 @@ LD heatmap
 library(LDcorSV)
 library(ggplot2)
 library(reshape2)
-grep("JHI-Hv50k-2016-312217", colnames(myGD20))
 
+grep("Qsd1", colnames(myGD20))
 grep("JHI-Hv50k-2016-312121", colnames(myGD20))
+grep("JHI-Hv50k-2016-312217", colnames(myGD20))
 
 #grep("JHI-Hv50k-2016-312094", colnames(myGD20))
 
 
 grep("JHI-Hv50k-2016-316817", colnames(myGD20))
 grep("JHI-Hv50k-2016-316934", colnames(myGD20))
-grep("Qsd1", colnames(myGD20))
+
 
 myGD20$Qsd1
 
 
 colnames(myGD20)
-library(LD.Measures)
+
 ld_heatmap=function(df){
   ld <- as.matrix(round(df,0))
   
@@ -83,18 +84,20 @@ ld_heatmap=function(df){
     theme_classic() #+    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
   return(graphic)
 }
-
+library(ggplot2)
 #to remove the marker labels on each axis, use theme_void() instead of theme_classic()
 #test of some random markers
-ld_heatmap(myGD20[,c(8750:8752,9043:9052)])
+ld_heatmap(myGD20[,c(8746:8748,9039:9048)])
 ###
 
-ld_heatmap(myGD20[,c(8750:8752,9043:9052)]) + ggtitle('LD between significant marker regions at 5H') +
+ld_heatmap(myGD20[,c(8750:8752,9043:9052)])
+
+ld_heatmap(myGD20[,c(8746:8748,9039:9048)]) + ggtitle('LD between significant marker regions at 5H') +
   theme(axis.text.x = element_text(angle = 90))+
   
-opts(axis.title.x = theme_text(vjust=-2))+
-  scale_x_discrete(label = c("Qsd1","312217","312121","316817","316934"), breaks = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"))+
-  scale_y_discrete(label = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"), breaks = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"))+ 
+
+  scale_x_discrete(label = c("Qsd1","312217","312121"), breaks = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121"))+
+  scale_y_discrete(label = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121"), breaks = c("Qsd1","JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121"))+ 
   xlab(NULL)+ylab(NULL)
 
 
@@ -105,15 +108,21 @@ Qsd Haplotype
 ```{r}
 TP_all_WDH20_BLUE_all<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
 TP_all_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
-
+"JHI-Hv50k-2016-312121"
 Qsd1<-myGD20[,c('taxa','Qsd1')]
+Hv_312217<-myGD20[,c('taxa','JHI-Hv50k-2016-312217')]
 TP_all_WDH20_BLUE_all[,c(8)]
+str(myGD20)
+
+Hv_312217_haplotype<-merge(TP_all_WDH20_BLUE_all[,c(1:5,8)],Hv_312217,by='taxa',all.x = TRUE)
 Qsd_haplotype<-merge(TP_all_WDH20_BLUE_all[,c(1:5,8)],Qsd1,by='taxa',all.x = TRUE)
 
-
 table(Qsd_haplotype[!Qsd_haplotype$Qsd1=="0" & !Qsd_haplotype$Qsd1=="2",]$Qsd1)
+table(Hv_312217_haplotype$`JHI-Hv50k-2016-312217`)
+
 Qsd_haplotype<-Qsd_haplotype[!is.na(Qsd_haplotype$Qsd1),]
 Qsd_haplotype$Qsd1<-as.factor(Qsd_haplotype$Qsd1)
+Hv_312217_haplotype$`JHI-Hv50k-2016-312217`<-as.factor(Hv_312217_haplotype$`JHI-Hv50k-2016-312217`)
 colnames(Qsd_haplotype)
 Qsd_haplotype
 
@@ -138,6 +147,47 @@ ggplot(data=Qsd_GI, aes(x=TP, y=value,color=Qsd1)) +
   
   xlab("Qsd Haplotype") + ylab("BLUE GI Scale") 
 
+#HV
+Hv_312217_haplotype$`JHI-Hv50k-2016-312217`<-as.factor(Hv_312217_haplotype$`JHI-Hv50k-2016-312217`)
+Hv_312121_haplotype$`JHI-Hv50k-2016-312217`
 
+Hv_312217_GE=melt(Hv_312217_haplotype, id.vars =c("taxa","TP","JHI-Hv50k-2016-312217"), measure.vars = c("GE"))
+ggplot(data=Hv_312217_GE, aes(x=TP, y=value,color=`JHI-Hv50k-2016-312217`)) +
+  geom_boxplot()+
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle("Fixed Effect GE Haplotype WDH")+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+  
+  xlab("JHI-Hv50k-2016-312217 Haplotype") + ylab("BLUE GE")
+
+
+
+```
+
+#extra from genotype processing
+```{r}
+```{r}                 
+#SD1 and SD2
+ld_heatmap(myGD[,c(10780:10800, 13000:13075)])
+
+
+c("JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934")
+
+ld_heatmap(myGD20[,c(9043:9055,9290:9302)]) + ggtitle('LD between significant marker regions at 5H') +
+  theme(axis.text.x = element_text(angle = 90))+
+  
+#opts(axis.title.x = theme_text(vjust=-2))+
+  scale_x_discrete(label = c("312217","312121","316817","316934"), breaks = c("JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"))+
+  scale_y_discrete(label = c("JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"), breaks = c("JHI-Hv50k-2016-312217","JHI-Hv50k-2016-312121","JHI-Hv50k-2016-316817","JHI-Hv50k-2016-316934"))+ 
+  xlab(NULL)+ylab(NULL)
+
+ld_heatmap(myGD20[,c(10785:10795,13000:13010,13055:13070)]) + ggtitle('LD between AlaAt, GA20Ox, and MKK3 markers') +
+ 
+  scale_x_discrete(label = c('GA20Ox','MKK3','AlaAt'), 
+                   breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253','JHI-Hv50k-2016-308584'))+
+  scale_y_discrete(label = c('GA20Ox','MKK3','AlaAt'), 
+                   breaks = c('SCRI_RS_121526','JHI-Hv50k-2016-367253','JHI-Hv50k-2016-308584'))+ 
+  xlab('470-670 Mb, selected markers')+ylab(NULL)
 
 ```
