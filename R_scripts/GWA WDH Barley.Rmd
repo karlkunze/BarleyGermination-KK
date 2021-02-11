@@ -119,11 +119,11 @@ local2<-"C:/Users/Karl/Google Drive/Grad School_/Field 2020/Germination_assays/G
 setwd(local2)
 getwd()
 #blues
-
+GWAS.GITP2
 
 GWAS.GETP2.blues.mlmm  =GAPIT(Y= TP2_WDH20_BLUE_all[,c('taxa','GE')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP2.blues.mlmm =GAPIT(Y= TP2_WDH20_BLUE_all[,c('taxa','GI')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS.GITP2.blues.mlmm =GAPIT(Y= TP2_WDH20_BLUE_all[,c('taxa','GIscale')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
 
 
 #GWAS.GITP2.blues_5D.mlmm =GAPIT(Y= GITP2_5D.blues, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
@@ -332,9 +332,9 @@ GWAS.PM.blups.mlmm  =GAPIT(Y= Field_WDH20_BLUP_all[,c('taxa','PM')], GD=myGD20, 
 
 
 #Field Phenotypes
-GWAS.Scald.blups.farmcpu =GAPIT(Y= wdhscald.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
-wh_percent.blups
-GWAS.wh_percent.blups.farmcpu=GAPIT(Y= wh_percent.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
+#GWAS.Scald.blups.farmcpu =GAPIT(Y= wdhscald.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
+#wh_percent.blups
+#GWAS.wh_percent.blups.farmcpu=GAPIT(Y= wh_percent.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="FarmCPU", Major.allele.zero = F)
 
 
 
@@ -349,6 +349,7 @@ save(PHS.blues.mlmm,PHS.blups.mlmm,file="GWA_WDH_phs.Rdata")
 #TP1
 save(GWAS.GETP1.blues.mlmm,GWAS.GETP1_5D.blues.mlmm,GWAS.GITP1.blues.mlmm,GWAS.GITP1_5D.blues.mlmm,GWAS.GETP1.blups.mlmm,GWAS.GETP1_5D.blups.mlmm,GWAS.GITP1.blups.mlmm,GWAS.GITP1_5D.blups.mlmm, file = "GWA_WDH_TP1.RData")
 #TP2
+
 save(GWAS.GETP2.blues.mlmm,GWAS.GETP2_5D.blues.mlmm,GWAS.GITP2.blues.mlmm,GWAS.GITP2_5D.blues.mlmm,GWAS.GETP2.blups.mlmm,GWAS.GETP2_5D.blups.mlmm,GWAS.GITP2.blups.mlmm,GWAS.GITP2_5D.blups.mlmm, file = "GWA_WDH_TP2.RData")
 #TP3
 save(GWAS.GETP3.blues.mlmm,GWAS.GETP3.blues_5D.mlmm,GWAS.GITP3.blues.mlmm,GWAS.GITP3_5D.blues.mlmm,GWAS.GETP3.blups.mlmm,GWAS.GETP3_5D.blups.mlmm,GWAS.GITP3.blups.mlmm,GWAS.GITP3_5D.blups.mlmm, file = "GWA_WDH_TP3.RData")
