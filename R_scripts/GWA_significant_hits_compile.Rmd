@@ -257,4 +257,6 @@ Field_sign<-rbind(phs.blues,phs.blups,scald.blues,scald.blups,HD.blues,HD.blups,
 ```{r}
 save(GWAS.sign.TP_all,file="data/Genotype_data/GWAS.TP.hits.Rdata")
 save(Field_sign,file="data/Genotype_data/GWAS.Field.hits.Rdata")
+#save(GWAS.sign.TP_all,file="data/Genotype_data/GWAS.TP.hits.csv")
+#save(Field_sign,file="data/Genotype_data/GWAS.Field.hits.csv")
 
