@@ -15,7 +15,7 @@ setwd(dir1)
 #the set wd is only for this chunk which should be fine once data is read in
 library(here)
 
-load(here("WMB DH 2020 all data for analysis.RData"))
+#load(here("WMB DH 2020 all data for analysis.RData"))
 load(here("data/GWA_results/GWA_WDH_field_phenotypes.Rdata"))
 load(here("data/GWA_results/GWA_WDH_TP1.RData"))
 load(here("data/GWA_results/GWA_WDH_TP2.RData"))
@@ -28,16 +28,184 @@ library(ggplot2)
 ```
 
 ```{r}
+#TP1
+Pval<-function(i){
+    sign<-0.05/nrow(i)
+    sign
+  i<-i[i$P.value<sign,]
+  i$TP=NA
+  i$Trait=NA
+  i$model=NA
+  return(i)
+  
+}
+
+GE.TP1.blues<-Pval(GWAS.GETP1.blues.mlmm$GWAS)
+GE.TP1.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP1.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP1.blues<-Pval(GWAS.GITP1.blues.mlmm$GWAS)
+GI.TP1.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP1.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP1.blues<-Pval(GWAS.GETP1_5D.blues.mlmm$GWAS)
+GE_5D.TP1.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP1.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP1.blues
+GI_5D.TP1.blues<-Pval(GWAS.GITP1_5D.blues.mlmm$GWAS)
+GI_5D.TP1.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP1.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blues<-rbind(GE.TP1.blues,GI.TP1.blues,GE_5D.TP1.blues,GI_5D.TP1.blues)
+
+###
+GE.TP1.blups<-Pval(GWAS.GETP1.blups.mlmm$GWAS)
+GE.TP1.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP1.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP1.blups<-Pval(GWAS.GITP1.blups.mlmm$GWAS)
+GI.TP1.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP1.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP1.blups<-Pval(GWAS.GETP1_5D.blups.mlmm$GWAS)
+GE_5D.TP1.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP1.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP1.blups
+GI_5D.TP1.blups<-Pval(GWAS.GITP1_5D.blups.mlmm$GWAS)
+GI_5D.TP1.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP1.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blups<-rbind(GE.TP1.blups,GI.TP1.blups,GE_5D.TP1.blups,GI_5D.TP1.blups)
+
+GWAS.sign.TP1<-rbind(GWAS.sign.blues,GWAS.sign.blups)
+GWAS.sign.TP1
+
+
+##TP2
+GE.TP2.blues<-Pval(GWAS.GETP2.blues.mlmm$GWAS)
+GE.TP2.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP2.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP2.blues<-Pval(GWAS.GITP2.blues.mlmm$GWAS)
+GI.TP2.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP2.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP2.blues<-Pval(GWAS.GETP2_5D.blues.mlmm$GWAS)
+GE_5D.TP2.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP2.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP2.blues
+GI_5D.TP2.blues<-Pval(GWAS.GITP2_5D.blues.mlmm$GWAS)
+GI_5D.TP2.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP2.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blues<-rbind(GE.TP2.blues,GI.TP2.blues,GE_5D.TP2.blues,GI_5D.TP2.blues)
+
+###BLUPS
+GE.TP2.blups<-Pval(GWAS.GETP2.blups.mlmm$GWAS)
+GE.TP2.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP2.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP2.blups<-Pval(GWAS.GITP2.blups.mlmm$GWAS)
+GI.TP2.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP2.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP2.blups<-Pval(GWAS.GETP2_5D.blups.mlmm$GWAS)
+GE_5D.TP2.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP2.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP2.blups
+GI_5D.TP2.blups<-Pval(GWAS.GITP2_5D.blups.mlmm$GWAS)
+GI_5D.TP2.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP2.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blups<-rbind(GE.TP2.blups,GI.TP2.blups,GE_5D.TP2.blups,GI_5D.TP2.blups)
+
+GWAS.sign.TP2<-rbind(GWAS.sign.blues,GWAS.sign.blups)
+GWAS.sign.TP2
 
 
 
+###
+#TP3
+GE.TP3.blues<-Pval(GWAS.GETP3.blues.mlmm$GWAS)
+GE.TP3.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP3.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP3.blues<-Pval(GWAS.GITP3.blues.mlmm$GWAS)
+GI.TP3.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP3.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP3.blues<-Pval(GWAS.GETP3.blues_5D.mlmm$GWAS)
+GE_5D.TP3.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP3.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP3.blues
+GI_5D.TP3.blues<-Pval(GWAS.GITP3_5D.blues.mlmm$GWAS)
+GI_5D.TP3.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP3.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blues<-rbind(GE.TP3.blues,GI.TP3.blues,GE_5D.TP3.blues,GI_5D.TP3.blues)
+
+###BLUPS
+GE.TP3.blups<-Pval(GWAS.GETP3.blups.mlmm$GWAS)
+GE.TP3.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP3.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP3.blups<-Pval(GWAS.GITP3.blups.mlmm$GWAS)
+GI.TP3.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP3.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP3.blups<-Pval(GWAS.GETP3_5D.blups.mlmm$GWAS)
+GE_5D.TP3.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP3.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP3.blups
+GI_5D.TP3.blups<-Pval(GWAS.GITP3_5D.blups.mlmm$GWAS)
+GI_5D.TP3.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP3.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blups<-rbind(GE.TP3.blups,GI.TP3.blups,GE_5D.TP3.blups,GI_5D.TP3.blups)
+
+GWAS.sign.TP3<-rbind(GWAS.sign.blues,GWAS.sign.blups)
+GWAS.sign.TP3
 
 
-library(ggpubr)
-library(tidyverse)
-colnames(GWAS.GETP1.blues.mlmm$GWAS)
+#TP4
+GE.TP4.blues<-Pval(GWAS.GETP4.blues.mlmm$GWAS)
+GE.TP4.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP4.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
 
+GI.TP4.blues<-Pval(GWAS.GITP4.blues.mlmm$GWAS)
+GI.TP4.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP4.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
 
+GE_5D.TP4.blues<-Pval(GWAS.GETP4.blues_5D.mlmm$GWAS)
+GE_5D.TP4.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP4.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP4.blues
+GI_5D.TP4.blues<-Pval(GWAS.GITP4_5D.blues.mlmm$GWAS)
+GI_5D.TP4.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP4.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blues<-rbind(GE.TP4.blues,GI.TP4.blues,GE_5D.TP4.blues,GI_5D.TP4.blues)
+
+###BLUPS
+GE.TP4.blups<-Pval(GWAS.GETP4.blups.mlmm$GWAS)
+GE.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP4.blups<-Pval(GWAS.GITP4.blups.mlmm$GWAS)
+GI.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP4.blups<-Pval(GWAS.GETP4.blups_5D.mlmm$GWAS)
+GE_5D.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP4.blups
+GI_5D.TP4.blups<-Pval(GWAS.GITP4_5D.blups.mlmm$GWAS)
+GI_5D.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blups<-rbind(GE.TP4.blups,GI.TP4.blups,GE_5D.TP4.blups,GI_5D.TP4.blups)
+
+GWAS.sign.TP4<-rbind(GWAS.sign.blues,GWAS.sign.blups)
+GWAS.sign.TP4
+#TP5
+
+GE.TP5.blues<-Pval(GWAS.GETP5.blues.mlmm$GWAS)
+GE.TP5.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP5.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP5.blues<-Pval(GWAS.GITP5.blues.mlmm$GWAS)
+GI.TP5.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP5.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP5.blues<-Pval(GWAS.GETP5.blues_5D.mlmm$GWAS)
+GE_5D.TP5.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP5.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP5.blues
+GI_5D.TP5.blues<-Pval(GWAS.GITP5_5D.blues.mlmm$GWAS)
+GI_5D.TP5.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP5.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blues<-rbind(GE.TP5.blues,GI.TP5.blues,GE_5D.TP5.blues,GI_5D.TP5.blues)
+
+###BLUPS
+GE.TP5.blups<-Pval(GWAS.GETP5.blups.mlmm$GWAS)
+GE.TP5.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP5.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GI.TP5.blups<-Pval(GWAS.GITP5.blups.mlmm$GWAS)
+GI.TP5.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP5.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+
+GE_5D.TP5.blups<-Pval(GWAS.GETP5.blups_5D.mlmm$GWAS)
+GE_5D.TP5.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP5.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GE_5D.TP5.blups
+GI_5D.TP5.blups<-Pval(GWAS.GITP5_5D.blups.mlmm$GWAS)
+GI_5D.TP5.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP5.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
+GWAS.sign.blups<-rbind(GE.TP5.blups,GI.TP5.blups,GE_5D.TP5.blups,GI_5D.TP5.blups)
+
+GWAS.sign.TP5<-rbind(GWAS.sign.blues,GWAS.sign.blups)
+GWAS.sign.TP5
+
+#merge all
+GWAS.sign.TP_all<-rbind(GWAS.sign.TP1,GWAS.sign.TP2,GWAS.sign.TP3,GWAS.sign.TP4,GWAS.sign.TP5)
+GWAS.sign.TP_all
+
+```
+
+```{r}
 mahatoutput<-function(df,title){
 
 my_title <- paste(paste(title))
