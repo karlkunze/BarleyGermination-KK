@@ -199,9 +199,78 @@ GWAS.sign.blups<-rbind(GE.TP5.blups,GI.TP5.blups,GE_5D.TP5.blups,GI_5D.TP5.blups
 GWAS.sign.TP5<-rbind(GWAS.sign.blues,GWAS.sign.blups)
 GWAS.sign.TP5
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #merge all
 GWAS.sign.TP_all<-rbind(GWAS.sign.TP1,GWAS.sign.TP2,GWAS.sign.TP3,GWAS.sign.TP4,GWAS.sign.TP5)
 GWAS.sign.TP_all
+
+Pval_Field<-function(i,sig=0){
+    i<-i$GWAS
+    sign<-0.05/(nrow(i)-sig)
+    sign
+  i<-i[i$P.value<sign,]
+  i$TP="Field"
+  i$Trait=NA
+  i$model=NA
+  return(i)
+  
+}
+
+phs.blues<-Pval_Field(PHS.blues.mlmm)
+phs.blues[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(phs.blues)),"\\.",2)[c(1,2)])[c(1,2)]
+phs.blups<-Pval_Field(PHS.blups.mlmm)
+phs.blups[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(phs.blups)),"\\.",2)[c(1,2)])[c(1,2)]
+
+scald.blues<-Pval_Field(GWAS.scald.blues.mlmm)
+scald.blues[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(scald.blues)),"\\.",2)[c(1,2)])[c(1,2)]
+
+scald.blups<-Pval_Field(GWAS.scald.blups.mlmm,sig=13000)
+scald.blups[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(scald.blups)),"\\.",2)[c(1,2)])[c(1,2)]
+
+HD.blues<-Pval_Field(GWAS.HD.blues.mlmm)
+HD.blues[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(HD.blues)),"\\.",2)[c(1,2)])[c(1,2)]
+HD.blups<-Pval_Field(GWAS.HD.blups.mlmm)
+HD.blups[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(HD.blups)),"\\.",2)[c(1,2)])[c(1,2)]
+
+wh.blues<-Pval_Field(GWAS.wh.blues.mlmm,sig=14100)
+wh.blues[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(wh.blues)),"\\.",2)[c(1,2)])[c(1,2)]
+wh.blups<-Pval_Field(GWAS.wh.blups.mlmm)
+wh.blups[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(wh.blups)),"\\.",2)[c(1,2)])[c(1,2)]
+
+Ht.blues<-Pval_Field(GWAS.Ht.blues.mlmm,sig=13900)
+
+Ht.blues[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(Ht.blues)),"\\.",2)[c(1,2)])[c(1,2)]
+Ht.blups<-Pval_Field(GWAS.Ht.blups.mlmm)
+Ht.blups[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(Ht.blups)),"\\.",2)[c(1,2)])[c(1,2)]
+PM.blues<-Pval_Field(GWAS.PM.blues.mlmm,sig=14050)
+
+PM.blues[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(PM.blues)),"\\.",2)[c(1,2)])[c(1,2)]
+PM.blups<-Pval_Field(GWAS.PM.blups.mlmm,sig=13900)
+PM.blups[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(PM.blups)),"\\.",2)[c(1,2)])[c(1,2)]
+
+Field_sign<-rbind(phs.blues,phs.blups,scald.blues,scald.blups,HD.blues,HD.blups,Ht.blues,Ht.blups,PM.blues,PM.blups)
+
+
+```
+
+```{r}
+save(GWAS.sign.TP_all,file="data/Genotype_data/GWAS.TP.hits.Rdata")
+save(Field_sign,file="data/Genotype_data/GWAS.Field.hits.Rdata")
+
 
 ```
 
