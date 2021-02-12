@@ -27,10 +27,72 @@ load(here("data/GWA_results/GWA_WDH_phs.Rdata"))
 library(ggplot2)
 ```
 
-
-
-
 ```{r}
+var<-GWAS.GETP1.blues.mlmm
+c<-as.name(paste0(var, "_time"))
+c
+GETP1.blues<-GWAS.GETP1.blues.mlmm$GWAS
+sign<-0.05/nrow(GETP1.blues)
+sign
+GETP1.blues[GETP1.blues$P.value<sign,]
+Pval(GWAS.GETP1.blues.mlmm,1,"GE")
+
+z=list(df1,df2)
+ df=NULL
+ for (i in z) {
+ i$Avg=(i$x+i$y)/2
+ df<-rbind(df,i)
+ print (df)
+ }
+library(stringr)
+library(tidyverse)
+str_split_fixed(obj)
+
+
+listM=list(GWAS.GETP1.blues.mlmm,GWAS.GETP1_5D.blues.mlmm)
+i<-list(deparse(substitute(GWAS.GETP1.blues.mlmm)),GWAS.GETP1.blues.mlmm)
+
+i[1]
+i_name<-deparse(substitute(GWAS.GETP1.blues.mlmm))
+
+i_name
+str_split_fixed(i_name,"\\.",4)[1:4]
+list(i)
+GWAS.GETP1.blups.mlmm
+obj<-list(deparse(substitute(GWAS.GETP1.blues.mlmm))
+
+
+lazyeval::expr_text(obj)
+
+
+v<-c(GWAS.GETP1.blues.mlmm,GWAS.GETP1.blups.mlmm)
+v
+ds2(v)
+## [1] "square"
+## [1] "sum"
+
+obj<-substitute(GWAS.GETP1.blues.mlmm)
+
+Pval<-function(list){
+  df=NULL
+    for (i in list){
+      i_name<-deparse(substitute(i))
+  i<-i$GWAS
+  sign<-0.05/nrow(i)
+  i<-i[i$P.value<sign,]
+    i$Year=2020
+  df<-rbind(df,i)
+    }
+  return(df)
+  
+}
+Pval(listM)
+
+library(ggpubr)
+library(tidyverse)
+colnames(GWAS.GETP1.blues.mlmm$GWAS)
+
+
 mahatoutput<-function(df,title){
 
 my_title <- paste(paste(title))
