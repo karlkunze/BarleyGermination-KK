@@ -11,8 +11,10 @@ library(bedr)
 str(Ger)
 Field_sign$start=Field_sign$Position-1
 Field_sign$end=Field_sign$Position+1
-Field_sign$Chromosome=Field_sign$Chromosome-1
+
 Field=Field_sign[,c('Chromosome','start','end','SNP')]
+Field.Genome=Field
+Field_sign$Chromosome=Field_sign$Chromosome-1
 Field$Chromosome=paste0("chr",Field$Chromosome)
 colnames(Field)<-c("chr","start","end","name")
 Field=Field[with(Field,order(chrom,start)),]
@@ -35,8 +37,10 @@ write.table(Field_bed3.bed,file = "data/Genotype_data/Field_sig_SNPS.bed",sep="\
 str(GWAS.sign.TP_all)
 GWAS.sign.TP_all$start=GWAS.sign.TP_all$Position-1
 GWAS.sign.TP_all$end=GWAS.sign.TP_all$Position+1
-GWAS.sign.TP_all$Chromosome=GWAS.sign.TP_all$Chromosome-1
+
 TP_all=GWAS.sign.TP_all[,c('Chromosome','start','end','SNP')]
+TP_all.Genome=TP_all
+GWAS.sign.TP_all$Chromosome=GWAS.sign.TP_all$Chromosome-1
 TP_all$Chromosome=paste0("chr",TP_all$Chromosome)
 colnames(TP_all)<-c("chr","start","end","name")
 TP_all=TP_all[with(TP_all,order(chr,start)),]
@@ -45,3 +49,15 @@ TP_all=distinct(TP_all)
 library(dplyr)
 TP_all_bed3.bed=convert2bed(TP_all[,1:3])
 write.table(TP_all,file = "data/Genotype_data/GermTP_SNPS.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+set_inv=1000000
+TP_all.Genome=TP_all.Genome[with(TP_all.Genome,order(Chromosome,start)),]
+TP_all.Genome$Browser=NA
+TP_all.Genome$Browser=paste0("chr",TP_all.Genome$Chromosome,"H:",TP_all.Genome$start-set_inv,"..",TP_all.Genome$end+set_inv)
+TP_all.Genome$Browser
+write.table(TP_all.Genome,file = "data/Genotype_Data/Germination_Hits_Genome.txt",sep="\t",col.names = TRUE,quote=FALSE,row.names = FALSE)
+Field.Genome=Field.Genome[with(Field.Genome,order(Chromosome,start)),]
+Field.Genome$Browser=NA
+Field.Genome$Browser=paste0("chr",Field.Genome$Chromosome,"H:",Field.Genome$start-set_inv,"..",Field.Genome$end+set_inv)
+Field.Genome$Browser
+write.table(Field.Genome,file = "data/Genotype_Data/Field.Genome.txt",sep="\t",col.names = TRUE,quote=FALSE,row.names = FALSE)
