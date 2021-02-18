@@ -7,6 +7,7 @@ load(here("data/Genotype_data/GWAS.TP.hits.Rdata"))
 #format example  chr1  11873  14409  uc001aaa.3
 getwd()
 str(Field_sign)
+str(Ger)
 Field_sign$start=Field_sign$Position-1
 Field_sign$end=Field_sign$Position+1
 Field_sign$Chromosome=Field_sign$Chromosome-1
@@ -23,4 +24,4 @@ TP_all=GWAS.sign.TP_all[,c('Chromosome','start','end','SNP')]
 TP_all$Chromosome=paste0("chr",TP_all$Chromosome)
 colnames(TP_all)<-c("chrom","start","end","name")
 TP_all
-write.table(Field,file = "data/Genotype_data/GermTP_SNPS.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+write.table(TP_all,file = "data/Genotype_data/GermTP_SNPS.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
