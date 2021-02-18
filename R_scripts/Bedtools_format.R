@@ -13,7 +13,7 @@ Field_sign$Chromosome=Field_sign$Chromosome-1
 Field=Field_sign[,c('Chromosome','start','end','SNP')]
 Field$Chromosome=paste0("chr",Field$Chromosome)
 colnames(Field)<-c("chrom","start","end","name")
-write.table(Field,file = "data/Genotype_data/Field_sig_SNPS.bed",sep="\t",row.names=FALSE,col.names=TRUE,quote=FALSE)
+write.table(Field,file = "data/Genotype_data/Field_sig_SNPS.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
 
 str(GWAS.sign.TP_all)
 GWAS.sign.TP_all$start=GWAS.sign.TP_all$Position-1
@@ -23,4 +23,4 @@ TP_all=GWAS.sign.TP_all[,c('Chromosome','start','end','SNP')]
 TP_all$Chromosome=paste0("chr",TP_all$Chromosome)
 colnames(TP_all)<-c("chrom","start","end","name")
 TP_all
-write.table(Field,file = "data/Genotype_data/GermTP_SNPS.bed",sep="\t",row.names=FALSE,col.names=TRUE,quote=FALSE)
+write.table(Field,file = "data/Genotype_data/GermTP_SNPS.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
