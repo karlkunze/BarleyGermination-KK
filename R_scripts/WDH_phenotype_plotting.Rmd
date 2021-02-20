@@ -15,36 +15,52 @@ library(gridExtra); library(here)
 library(reshape2)
 #load(here("WMB DH 2020 all data for analysis.RData"))
 #load(here("data/Winter_DH/WDH_BLUEs_2020.RData"))
-load(here("data/Winter_DH/TP1_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP1_WDH20_BLUE_all.RData"))#TP1_WDH20_BLUE_all
 load(here("data/Winter_DH/TP2_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP3_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP5_WDH20_BLUE_all.RData"))
-load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
+load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))#All_pheno_TPall
+
 TP_all_WDH20_BLUE_all<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
 
-TP1_WDH20_BLUE_all$Pedigree<-TP_all_WDH20_BLUE_all$Pedigree[match(TP1_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Flavia",]$taxa="Check 1-Flavia"
 
-TP2_WDH20_BLUE_all
-All_pheno_TPall$Pedigree
-TP1_WDH20_BLUE_all$Pedigree
-All_pheno_TPall[All_pheno_TPall$Pedigree]
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Scala",]$taxa="Check 2-Scala"
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="DH130910",]$taxa="Check 3-DH130910"
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="SY Tepee",]$taxa="Check 4-SY Tepee"
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Wintmalt",]$taxa="Check 5-Wintmalt"
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Charles",]$taxa="Check 6-Charles"
+
+table(All_pheno_TPall[is.na(All_pheno_TPall$Pedigree),]$Entry)
 
 
 
-TP1_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP1_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
-TP2_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP2_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+TP_all_WDH20_BLUE_all$Pedigree
+table(TP_all_WDH20_BLUE_all$taxa)
+table(All_pheno_TPall$Entry)
+View(All_pheno_TPall$Family[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)])
 
-TP3_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP3_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
-TP4_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP4_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+TP_all_WDH20_BLUE_all$Pedigree=All_pheno_TPall$Family[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
 
-TP5_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP5_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+TP_all_WDH20_BLUE_all$Check=All_pheno_TPall$Check[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
 
-TP_WDH20_BLUE_all<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
+
+# All_pheno_TPall$Entry
+# TP1_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP1_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# TP2_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP2_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# 
+# TP3_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP3_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# TP4_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP4_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# 
+# TP5_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP5_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# 
+# TP_WDH20_BLUE_all.F<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
+table(TP_WDH20_BLUE_all$Pedigree)
 ```
 box plots
 ```{r}
-TP_all_melt=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GE"))
+TP_all_melt=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c("GE"))
 
 #wdh1melt=rbind(melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
               # melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = #c("GIscale")))
@@ -54,19 +70,34 @@ TP_all_melt=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.
 #wdhmelt=rbind(wdh2melt, wdh1melt)
 # levels(wdhmelt$variable)= c("Germination energy", "Germination index")
 
+TP_WDH20_BLUE_all[is.na(TP_WDH20_BLUE_all$Pedigree),]
 
 
-TP_all_melt_GE=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GE"))
-ggplot(data=TP_all_melt_GE, aes(x=TP, y=value,color=Pedigree)) +
+TP_all_melt_GE=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c("GE"))
+Flavia=TP_all_melt_GE[TP_all_melt_GE$Check=="C"| TP_all_melt_GE$Pedigree=="Flavia",]
+Flavia
+ggplot(data=Flavia, aes(x=TP, y=value,color=Pedigree)) +
   geom_boxplot()+
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
   ggtitle("Fixed Effect GE distributions")+
   scale_fill_manual(values=c("#cccccc", "#636363")) +
-  theme(legend.position = "none")+
+ 
   xlab("Time point") + ylab("BLUE GE") 
-
-TP_all_melt_GI=melt(TP_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree"), measure.vars = c("GIscale"))
+#Germination Energy Line Scale
+TP_all_m
+View(TP_all_melt_GE)
+ggplot(data=Flavia, aes(x=TP, y=value,group=taxa,linetype=Check,color=Pedigree)) +
+  geom_point()+
+  ggtitle(paste0("Fixed Effect GE distributions",substitute(Flavia))+
+  scale_color_manual(values=c("#CC6666", "#9999CC","gray","#CC6666","#CC6666","#CC6666"))+
+  scale_fill_manual()+
+  
+  geom_line(size=1) +
+  theme_bw() 
+  
+#GI
+TP_all_melt_GI=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c("GIscale"))
 ggplot(data=TP_all_melt_GI, aes(x=TP, y=value,color=Pedigree)) +
   geom_boxplot()+
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
@@ -169,6 +200,27 @@ ggplot(data=wdh2, aes(x=Timepoint, y=value, group=Pedigree, color=Pedigree)) +
   #geom_hline(yintercept =5.5, color="red", linetype=3, size=1)+
   #scale_color_manual(values=c("#b2182b","#fddbc7","#d1e5f0", "#67a9cf", "#2166ac"), labels=c("DNN", "DDD","DDN","NDD", "NDN"), name="Haplotype") + 
   ylab("WDH germination Energy") + xlab("Time point")
+```
+
+Graphs from GGS plotting
+```{r}
+
+#This is a line plot, I would like to expand to pedigree for the winter
+BBBReg_allTP=merge(BBBReg_allTP, allGI[,c(1,11)], by="taxa")
+BBBregmelt=melt(BBBReg_allTP, id.vars =c("taxa","haplo","TimePoint", "Location"), measure.vars = c("GIscale"))
+BBBregmelt$haplo=factor(BBBregmelt$haplo, levels = c( "202", "220","222","020",  "022"))
+
+bbbreg2=aggregate(value~ haplo +TimePoint, data=BBBregmelt, mean)
+ggplot(data=bbbreg2, aes(x=TimePoint, y=value, group=haplo, color=haplo)) +
+  geom_point()+
+ 
+  geom_line(size=1.5) +
+  theme_bw() + 
+  geom_hline(yintercept =5.5, color="red", linetype=3, size=1)+
+  scale_color_manual(values=c("#b2182b","#fddbc7","#d1e5f0", "#67a9cf", "#2166ac"), labels=c("DNN", "DDD","DDN","NDD", "NDN"), name="Haplotype") + 
+  ylab("CU2 germination index") + xlab("Time point")
+
+```
 
 
 
