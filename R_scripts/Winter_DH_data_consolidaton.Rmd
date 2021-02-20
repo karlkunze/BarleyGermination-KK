@@ -401,7 +401,7 @@ All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSRLine",]$Family="SR"
 
 
 
-
+All_pheno_TPall[is.na(All_pheno_TPall$Check),]$Entry
 
 table(All_pheno_TPall$Check,useNA = "ifany")
 getwd()
