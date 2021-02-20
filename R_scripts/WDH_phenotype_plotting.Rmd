@@ -20,9 +20,11 @@ load(here("data/Winter_DH/TP2_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP3_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP5_WDH20_BLUE_all.RData"))
-load(here("WMB DH 2020 all data for analysis.RData"))
+load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
 TP_all_WDH20_BLUE_all<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
-TP1_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Pedigree[match(TP1_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+
+TP1_WDH20_BLUE_all$Pedigree<-TP_all_WDH20_BLUE_all$Pedigree[match(TP1_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+
 TP2_WDH20_BLUE_all
 All_pheno_TPall$Pedigree
 TP1_WDH20_BLUE_all$Pedigree
