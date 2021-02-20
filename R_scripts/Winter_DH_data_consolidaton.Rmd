@@ -14,17 +14,19 @@ reading in files
 path<-"C:/Users/Karl/git/BarleyGermination-KK"
 setwd(path)
 getwd()
-
 library(readxl)
-
+#germination
 TP1_half<-as.data.frame(read.csv("data/Winter_DH/TP1/DHtp1_full_F.csv",stringsAsFactors = FALSE))
-
 TP2<-as.data.frame(read.csv("data/Winter_DH/TP2/DHtp2_all_F.csv",stringsAsFactors = FALSE))
-
 TP3<-as.data.frame(read.csv("data/Winter_DH/TP3/DHtp3_all_F.csv",stringsAsFactors = FALSE))
 TP4<-as.data.frame(read.csv("data/Winter_DH/TP4/DHtp4_all_combined_F.csv",stringsAsFactors = FALSE))
-
 TP5<-as.data.frame(read.csv("data/Winter_DH/TP5/TP5_all.csv",stringsAsFactors = FALSE))
+#field data
+DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
+DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
+DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
+##
+#intial germination process steps
 colnames(TP5)
 TP5<-TP5[,-c(2,16)]
 colnames(TP5)
@@ -59,36 +61,41 @@ library(dplyr)
 
 
 ###
-TP3KK<-TP3[TP3$replication=="2",][,c(2,8:13)]
-TP3TR<-TP3[TP3$replication=="1",][,c(2,8:13)]
-TP4KK<-TP4[TP4$replication=="2",][,c(2,8:13)]
-TP4TR<-TP4[TP4$replication=="1",][,c(2,8:13)]
+#check models
+# TP3KK<-TP3[TP3$replication=="2",][,c(2,8:13)]
+# TP3TR<-TP3[TP3$replication=="1",][,c(2,8:13)]
+# TP4KK<-TP4[TP4$replication=="2",][,c(2,8:13)]
+# TP4TR<-TP4[TP4$replication=="1",][,c(2,8:13)]
+# 
+# TP5KK<-TP5[TP5$replication=="2",][,c(2,8:13)]
+# TP5TR<-TP5[TP5$replication=="1",][,c(2,8:13)]
+# TP3[,c(2,8:13)]
+# str(TP3KK)
+# str(TP3TR)
+# cor(TP3TR$Day1Germ,TP3KK$Day1Germ,use = "complete.obs")
+# cor(TP3TR$Day2Germ,TP3KK$Day2Germ,use = "complete.obs")
+# cor(TP3TR$Day3Germ,TP3KK$Day3Germ,use = "complete.obs")
+# cor(TP3TR$Day4Germ,TP3KK$Day4Germ,use = "complete.obs")
+# cor(TP3TR$Day5Germ,TP3KK$Day5Germ,use = "complete.obs")
+# cor(TP5TR$Day5Germ,TP5KK$Day3Germ,use = "complete.obs")
+# 
+# TP3KKmean <- colMeans(TP3KK[,2:7], na.rm=TRUE)
+# TP3TRmean <- colMeans(TP3TR[,2:7],na.rm=TRUE)
+# 
+# TP4KKmean <- colMeans(TP4KK[,2:7], na.rm=TRUE)
+# TP4TRmean <- colMeans(TP4TR[,2:7],na.rm=TRUE)
+# 
+# cor(TP4TR$Day1Germ,TP4KK$Day1Germ,use = "complete.obs")
+# cor(TP4TR$Day2Germ,TP4KK$Day2Germ,use = "complete.obs")
+# cor(TP4TR$Day3Germ,TP4KK$Day3Germ,use = "complete.obs")
+# cor(TP4TR$Day4Germ,TP4KK$Day4Germ,use = "complete.obs")
+# cor(TP4TR$Day5Germ,TP4KK$Day5Germ,use = "complete.obs")
+# 
+# corday3<-merge(TP3[TP3$UserDay5=="KK",][,c(2,8:13)],TP3[TP3$UserDay5=="TR",][,c(2,8:13)],by="Entry")
 
-TP5KK<-TP5[TP5$replication=="2",][,c(2,8:13)]
-TP5TR<-TP5[TP5$replication=="1",][,c(2,8:13)]
-TP3[,c(2,8:13)]
-str(TP3KK)
-str(TP3TR)
-cor(TP3TR$Day1Germ,TP3KK$Day1Germ,use = "complete.obs")
-cor(TP3TR$Day2Germ,TP3KK$Day2Germ,use = "complete.obs")
-cor(TP3TR$Day3Germ,TP3KK$Day3Germ,use = "complete.obs")
-cor(TP3TR$Day4Germ,TP3KK$Day4Germ,use = "complete.obs")
-cor(TP3TR$Day5Germ,TP3KK$Day5Germ,use = "complete.obs")
-cor(TP5TR$Day5Germ,TP5KK$Day3Germ,use = "complete.obs")
+#need to complete pedigree info
 
-TP3KKmean <- colMeans(TP3KK[,2:7], na.rm=TRUE)
-TP3TRmean <- colMeans(TP3TR[,2:7],na.rm=TRUE)
 
-TP4KKmean <- colMeans(TP4KK[,2:7], na.rm=TRUE)
-TP4TRmean <- colMeans(TP4TR[,2:7],na.rm=TRUE)
-
-cor(TP4TR$Day1Germ,TP4KK$Day1Germ,use = "complete.obs")
-cor(TP4TR$Day2Germ,TP4KK$Day2Germ,use = "complete.obs")
-cor(TP4TR$Day3Germ,TP4KK$Day3Germ,use = "complete.obs")
-cor(TP4TR$Day4Germ,TP4KK$Day4Germ,use = "complete.obs")
-cor(TP4TR$Day5Germ,TP4KK$Day5Germ,use = "complete.obs")
-
-corday3<-merge(TP3[TP3$UserDay5=="KK",][,c(2,8:13)],TP3[TP3$UserDay5=="TR",][,c(2,8:13)],by="Entry")
 
 
 colnames(TP5)[1]<-"ï.."
@@ -119,13 +126,10 @@ table(TPall$Entry)
 
 ```{r}
 
-
 ```
-add field phenotype data
+add field phenotype data & PHS data
 ```{r}
-DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
-DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
-DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
+#moved to beginning of fiel
 DH_2020_PHS<-DH_2020_PHS[!is.na(DH_2020_PHS$Sprout.Score),]
 
 DH_2020_PHS$Sprout.Score<-as.character(DH_2020_PHS$Sprout.Score)
@@ -153,12 +157,13 @@ DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all = TRUE)
 
 ```{r}
 str(DH_2020_field)
-str(TPall)
+DH_2020_field[is.na(DH_2020_field$Pedigree),]
+View(DH_2020_field)
 colnames(DH_2020_field)
 table(DH_2020_field$Pedigree)
 #change naming of DH130910/Wintmalt to Wintmalt/DH130910, makes for easier plotting
 DH_2020_field[DH_2020_field$Pedigree=="DH130910/Wintmalt",]$Pedigree<-"Wintmalt/DH130910"
-str(DH_2020_field)
+library(tidyverse)
 
 ```
 Use names below
@@ -243,6 +248,7 @@ DH_2020_field$Ht<-as.numeric(DH_2020_field$Ht)
 DH_2020_field$PM<-as.numeric(DH_2020_field$PM)
 #phs dates
 str(DH_2020_field)
+DH_2020_field=DH_2020_field[!is.na(DH_2020_field$Entry),]
 
 ```
 
@@ -338,12 +344,21 @@ hist(TPall[TPall$Timepoint=="5",]$GE_5D)
 
 table(TPall$Entry)
 colnames(DH_2020_field)
+colnames(TPall)
 table(DH_2020_field$Entry)
+DH_2020_field[is.na(DH_2020_field$Pedigree),]
+DH_2020_field$Pedigree
+DH_2020_field$Check="C"
+DH_2020_field[grep("BS",DH_2020_field[,'Entry']),]$Check="B"
+DH_2020_field$Family=DH_2020_field$Pedigree
+
+DH_2020_field[DH_2020_field$Check=="B",]$Family=sapply(str_split(DH_2020_field[DH_2020_field$Check=="B",]$Pedigree,"/",2),`[`,1)
+DH_2020_field$Family
 All_pheno_TPall<-merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all = TRUE)
 str(All_pheno_TPall)
 All_pheno_TPall$GIscale_5D
 All_pheno_TPall$GIscale
-TP
+
 #View(All_pheno_TPall)
 
 
@@ -359,12 +374,12 @@ save(All_pheno_TPall, file="data/Winter_DH/WMB DH 2020 all data for analysis.RDa
 ```{r}
 library(lme4)
 #this will overwrite original TP files, with ones that have GE, GI and GIscale calculated
-TP1<-TPall[TPall$Timepoint=="1",]
-TP2<-TPall[TPall$Timepoint=="2",]
-TP3<-TPall[TPall$Timepoint=="3",]
-TP4<-TPall[TPall$Timepoint=="4",]
-modelKK<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="2",])
-modelTR<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="1",])
+# TP1<-TPall[TPall$Timepoint=="1",]
+# TP2<-TPall[TPall$Timepoint=="2",]
+# TP3<-TPall[TPall$Timepoint=="3",]
+# TP4<-TPall[TPall$Timepoint=="4",]
+# modelKK<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="2",])
+# modelTR<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="1",])
 
 
 
