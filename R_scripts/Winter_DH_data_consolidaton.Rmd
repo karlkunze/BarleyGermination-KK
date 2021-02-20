@@ -32,7 +32,8 @@ TP5<-TP5[,-c(2,16)]
 colnames(TP5)
 colnames(TP4)
 colnames(TP1_half)[19]<-"UserDay3"
-table(TP1_half$Entry)
+table(TP5$Location)
+TP5[TP5$Location=="Ketola",]$Location="Ketola 5"
 
 
 ##
@@ -100,7 +101,7 @@ library(dplyr)
 
 colnames(TP5)[1]<-"ï.."
 TPall<-rbind(TP1_half,TP2,TP3,TP4,TP5)
-
+table(TPall$Location)
 colnames(TP1_half)
 colnames(TP2)
 colnames(TP3)
@@ -129,7 +130,7 @@ table(TPall$Entry)
 ```
 add field phenotype data & PHS data
 ```{r}
-#moved to beginning of fiel
+#moved to beginning of file
 DH_2020_PHS<-DH_2020_PHS[!is.na(DH_2020_PHS$Sprout.Score),]
 
 DH_2020_PHS$Sprout.Score<-as.character(DH_2020_PHS$Sprout.Score)
@@ -148,8 +149,10 @@ DH_2020_PHS[12,]$Entry<-"Check 3-DH130910"
 which(DH_2020_Snyder$Entry=="Check 4-SY Tepee")
 #4 103 203 303 403 503
 #DH_2020_Snyder[c(4,103,203,303,403,503),]$Entry<-"Check 4-SY Tepee"
-table(DH_2020_Ketola$Entry)
+
+
 DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)
+
 ##issue with Ketola and Snyder of DH130910 naming
 DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all = TRUE)
 
@@ -158,7 +161,7 @@ DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all = TRUE)
 ```{r}
 str(DH_2020_field)
 DH_2020_field[is.na(DH_2020_field$Pedigree),]
-View(DH_2020_field)
+
 colnames(DH_2020_field)
 table(DH_2020_field$Pedigree)
 #change naming of DH130910/Wintmalt to Wintmalt/DH130910, makes for easier plotting
@@ -227,11 +230,12 @@ DH_2020_field$HD<-julian_days(DH_2020_field, 25 )
 
 str(DH_2020_field)
 DH_2020_field$mass<-as.numeric(DH_2020_field$mass)
+DH_2020_field[is.na(DH_2020_field$Pedigree),]
 DH_2020_field<-DH_2020_field[!is.na(DH_2020_field$PLOT),]
 DH_2020_field[is.na(DH_2020_field$HD),]
 DH_2020_field$`CU Plant ID`<-as.numeric(DH_2020_field$`CU Plant ID`)
 table(DH_2020_field$Scald)
-DH_2020_field[DH_2020_field$Scald=="x",]<-NA
+DH_2020_field[DH_2020_field$Scald=="x",]$Scald<-NA
 hist(as.numeric(DH_2020_field[DH_2020_field$Pedigree=="Wintmalt",]$Scald))
 table(DH_2020_Ketola$Pedigree)
 hist(as.numeric(DH_2020_Snyder$Scald))
@@ -249,7 +253,7 @@ DH_2020_field$PM<-as.numeric(DH_2020_field$PM)
 #phs dates
 str(DH_2020_field)
 DH_2020_field=DH_2020_field[!is.na(DH_2020_field$Entry),]
-
+DH_2020_field[is.na(DH_2020_field$Pedigree),]
 ```
 
 #Dissecting GE, GI and GIScale for 5 day
@@ -354,18 +358,52 @@ DH_2020_field$Family=DH_2020_field$Pedigree
 
 DH_2020_field[DH_2020_field$Check=="B",]$Family=sapply(str_split(DH_2020_field[DH_2020_field$Check=="B",]$Pedigree,"/",2),`[`,1)
 DH_2020_field$Family
-All_pheno_TPall<-merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all = TRUE)
-str(All_pheno_TPall)
-All_pheno_TPall$GIscale_5D
-All_pheno_TPall$GIscale
+table(TPall$Check,useNA = "ifany")
+table(DH_2020_field$PLOT,useNA = "ifany")
+View(DH_2020_field)
+table(DH_2020_field$Check,useNA = "ifany")
+table(TPall$Check,useNA = "ifany")
+table(DH_2020_field$Location)
+table(TPall$Location)
+View(DH_2020_field)
+#11303
+DH_2020_field[DH_2020_field$Entry=="Check 3-DH130910",]
+#more naming issues
+DH_2020_field[grep("11303",DH_2020_field[,'PLOT']),]$Entry="Check 4-SY Tepee"
+TPall[grep("11303",TPall[,'PLOT']),]$Entry="Check 4-SY Tepee"
 
+DH_2020_field[grep("11403",DH_2020_field[,'PLOT']),]$Entry="Check 4-SY Tepee"
+TPall[grep("11403",TPall[,'PLOT']),]$Entry="Check 4-SY Tepee"
+
+DH_2020_field[grep("11503",DH_2020_field[,'PLOT']),]$Entry="Check 4-SY Tepee"
+TPall[grep("11503",TPall[,'PLOT']),]$Entry="Check 4-SY Tepee"
+
+TPall[grep("11024",TPall[,'PLOT']),]$Entry="BS613-19"
+
+
+TPall[TPall$PLOT=="11024",]$Entry
+
+
+##
+All_pheno_TPall=merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all =TRUE)
+View(All_pheno_TPall)
+colnames(All_pheno_TPall[,-c(32)])
+All_pheno_TPall=All_pheno_TPall[,-c(32)]
+colnames(All_pheno_TPall)[28]<-"Check"
+All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSNLine",]$Check="C"
+All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSRLine",]$Check="C"
+
+All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSNLine",]$Pedigree="SN"
+All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSRLine",]$Pedigree="SR"
+All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSNLine",]$Family="SN"
+All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSRLine",]$Family="SR"
 #View(All_pheno_TPall)
 
 
 
 
 
-
+table(All_pheno_TPall$Check,useNA = "ifany")
 getwd()
 save(All_pheno_TPall, file="data/Winter_DH/WMB DH 2020 all data for analysis.RData")
 
