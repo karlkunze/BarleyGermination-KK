@@ -74,9 +74,116 @@ TP_WDH20_BLUE_all[is.na(TP_WDH20_BLUE_all$Pedigree),]
 
 
 TP_all_melt_GE=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c("GE"))
-Flavia=TP_all_melt_GE[TP_all_melt_GE$Check=="C"| TP_all_melt_GE$Pedigree=="Flavia",]
-Flavia
-ggplot(data=Flavia, aes(x=TP, y=value,color=Pedigree)) +
+TP_all_melt_GE$TP=sapply(str_split(TP_all_melt_GE$TP,"P",2),`[`,2)
+ 
+#TP_all_melt_GE=TP_all_melt_GE[!TP_all_melt_GE$TP=="5",]
+
+SubGE<-function(c){
+
+df=TP_all_melt_GE[TP_all_melt_GE$Check=="C"| TP_all_melt_GE$Pedigree==c,]
+df$Family=df$Pedigree
+df[df$Check=="C" &df$Pedigree==c,]$Family=paste0(c," Check")
+df[df$Check=="B",]$Family="Experimental Lines"
+df
+}
+Flavia=SubGE("Flavia")
+Flavia$Family
+Scala=SubGE("Scala")
+SY_Tepee=SubGE("SY Tepee")
+Wintmalt=SubGE("Wintmalt")
+
+#Germination Energy Line Scale
+library(gridExtra)
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+
+
+
+
+q1.T<-ggplot(data=Flavia, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
+    ggtitle(paste0("Germination Energy ",as.character(substitute(Flavia))))+
+    
+  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
+
+    
+  scale_fill_manual()+
+  
+  geom_line(size=0.8) +
+  theme_bw()+
+  
+  theme(plot.title = element_text(hjust = 0.5),axis.title.x=element_blank(),axis.title.y=element_blank())
+legend=get_legend(q1.T)
+
+q1<-ggplot(data=Flavia, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
+    ggtitle(paste0("GE Flavia"))+
+    
+  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
+
+    
+  scale_fill_manual()+
+  
+  geom_line(size=0.8) +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
+q1
+
+q2<-ggplot(data=Scala, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
+    ggtitle(paste0("GE Scala"))+
+    
+  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
+
+    
+  scale_fill_manual()+
+  
+  geom_line(size=0.8) +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
+q2
+
+q3<-ggplot(data=SY_Tepee, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
+    ggtitle(paste0("GE SY Tepee"))+
+    
+  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
+
+    
+  scale_fill_manual()+
+  
+  geom_line(size=0.8) +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
+q3
+q4<-ggplot(data=Wintmalt, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
+    ggtitle(paste0("GE Wintmalt"))+
+    
+  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
+
+    
+  scale_fill_manual()+
+  
+  geom_line(size=0.8) +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
+q4
+
+blankPlot <- ggplot()+geom_blank(aes(1,1)) + 
+  cowplot::theme_nothing()
+q4
+# 4. Arrange ggplot2 graphs with a specific width
+grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
+
+figure<-grid.arrange(q1, q2 ,q3, q4, 
+             layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
+
+anno<-annotate_figure(figure,
+                top = text_grob("3 Day Germination BLUES", face = "bold", size = 14),
+                bottom = text_grob("Time Point", size = 12))
+anno
+grid.arrange(legend)
+ggplot(data=Flavia, aes(x=TP, y=value,color=Color)) +
   geom_boxplot()+
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
@@ -84,18 +191,7 @@ ggplot(data=Flavia, aes(x=TP, y=value,color=Pedigree)) +
   scale_fill_manual(values=c("#cccccc", "#636363")) +
  
   xlab("Time point") + ylab("BLUE GE") 
-#Germination Energy Line Scale
-TP_all_m
-View(TP_all_melt_GE)
-ggplot(data=Flavia, aes(x=TP, y=value,group=taxa,linetype=Check,color=Pedigree)) +
-  geom_point()+
-  ggtitle(paste0("Fixed Effect GE distributions",substitute(Flavia))+
-  scale_color_manual(values=c("#CC6666", "#9999CC","gray","#CC6666","#CC6666","#CC6666"))+
-  scale_fill_manual()+
-  
-  geom_line(size=1) +
-  theme_bw() 
-  
+ 
 #GI
 TP_all_melt_GI=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c("GIscale"))
 ggplot(data=TP_all_melt_GI, aes(x=TP, y=value,color=Pedigree)) +
