@@ -110,13 +110,13 @@ wdh<-wdh[!(wdh$Entry=="BS911.50" | wdh$Entry=="BS911.67"),]
 #DONT RUN RECURSIVELY
 
 library(tidyverse)
-duplicated(wdh)
+#duplicated(wdh)
 
 ```
 Check Entry Names
 
 ```{r}
-wdh[1:4,1:4]
+
 
 rownames(wdh)<-wdh[,1]
 rownames(wdh)
@@ -188,8 +188,8 @@ Qsd_number<-v2[v2$SNP=="Qsd1",]$Order
 v2[c(Qsd_number+1),9]
 v2
 
-which(v2[c((Qsd_number+1):c(Qsd_number+10)),9] %in% colnames(wdh))#3,16 above 26098
-which(v2[c((Qsd_number-11):c(Qsd_number-1)),9] %in% colnames(wdh))#13 below 26098
+which(v2[c((Qsd_number+1):c(Qsd_number+10)),9] %in% colnames(wdh))#3 above 26098
+which(v2[c((Qsd_number-11):c(Qsd_number-1)),9] %in% colnames(wdh))#1 below 26098
 v2[c((Qsd_number-13):c(Qsd_number-1)),9][1]
 v2[c((Qsd_number+1):c(Qsd_number+16)),9][1]
 
@@ -224,13 +224,12 @@ table(wdh$Qsd1)
 ```{r}
 library(rrBLUP)
 wdh[1:10,1:3]
-which(!duplicated(t(wdh)))
+
 rankMatrix(as.matrix(wdh),method = "qr.R")
 
 wdh=as.data.frame(A.mat(wdh-1, return.imputed = T,impute.method = "EM")$imputed+1)
 wdh=round(wdh,0)
-wdh[1:10,1:10]
-wdh$`JHI-Hv50k-2016-6222`
+
 
 
 
@@ -341,10 +340,10 @@ load(here("data/Genotype_data/myGD20.Rdata"))
 load(here("data/Genotype_data/myGM20.Rdata"))
 chr=as.integer(myGM20$Chromosome)
 chr
-snpgdsCreateGeno("test2.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.id=myGD20$taxa, snp.id = colnames(myGD20)[-1], snp.chromosome = chr,
+snpgdsCreateGeno("test3.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.id=myGD20$taxa, snp.id = colnames(myGD20)[-1], snp.chromosome = chr,
                  snp.position = as.integer(myGM20$Position), snpfirstdim = F)
 
-(gdsfile <- snpgdsOpen("test2.gds"))
+(gdsfile <- snpgdsOpen("test3.gds"))
 
 set.seed(1000)
 
@@ -360,6 +359,16 @@ myGM20_prune<-myGM20_prune[with(myGM20_prune, order(Chromosome, Position)),]
 str(myGM20_prune)
 myGM20_prune$Position<-as.integer(myGM20_prune$Position)
 table(myGM20_prune$Chromosome)
+library(rrBLUP)
+wdh[1:10,1:3]
+which(!duplicated(t(wdh)))
+rankMatrix(as.matrix(wdh),method = "qr.R")
+str(myGD20_prune)
+
+str(wdh)
+
+#test=as.data.frame(A.mat(wdh-1, return.imputed = T,impute.method = "EM")$imputed+1)
+
 setwd("C:/Users/Karl/git/BarleyGermination-KK")
 save(myGD20_prune, file="data/Genotype_data/myGD20_LDprune.Rdata")
 save(myGM20_prune, file="data/Genotype_data/myGM20_LDprune.Rdata")
