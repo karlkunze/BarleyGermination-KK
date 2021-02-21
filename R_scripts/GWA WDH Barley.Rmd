@@ -238,7 +238,7 @@ setwd(local5.P)
 
 GWAS.GETP5.blups.mlmm  =GAPIT(Y= TP5_WDH20_BLUP_all[,c('taxa','GE')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
 
-GWAS.GITP5.blups.mlmm  =GAPIT(Y= TP5_WDH20_BLUP_all[,c('taxa','GI')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
+GWAS.GITP5.blups.mlmm  =GAPIT(Y= TP5_WDH20_BLUP_all[,c('taxa','GIscale')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
 
 
 GWAS.GETP5.blups_5D.mlmm  =GAPIT(Y= TP5_WDH20_BLUP_all[,c('taxa','GE_5D')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
