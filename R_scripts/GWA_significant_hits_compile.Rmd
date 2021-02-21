@@ -144,7 +144,7 @@ GE.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitu
 
 GI.TP4.blups<-Pval(GWAS.GITP4.blups.mlmm$GWAS)
 GI.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
-
+GWAS.GETP4.blups_5D.mlmm
 GE_5D.TP4.blups<-Pval(GWAS.GETP4.blups_5D.mlmm$GWAS)
 GE_5D.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
 GE_5D.TP4.blups
@@ -249,14 +249,18 @@ PM.blues[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(PM.blu
 PM.blups<-Pval_Field(GWAS.PM.blups.mlmm,sig=13900)
 PM.blups[,c('Trait','model')]<-as.list(str_split_fixed(deparse(substitute(PM.blups)),"\\.",2)[c(1,2)])[c(1,2)]
 
-Field_sign<-rbind(phs.blues,phs.blups,scald.blues,scald.blups,HD.blues,HD.blups,Ht.blues,Ht.blups,PM.blues,PM.blups)
+Field_sign<-rbind(phs.blues,phs.blups,scald.blues,HD.blues,HD.blups,Ht.blups)
 
 
 ```
 
 ```{r}
-save(GWAS.sign.TP_all,file="data/Genotype_data/GWAS.TP.hits.Rdata")
-save(Field_sign,file="data/Genotype_data/GWAS.Field.hits.Rdata")
+getwd()
+setwd("C:/Users/Karl/git/BarleyGermination-KK")
+
+save(GWAS.sign.TP_all,file="data/GWAS.TP.hits2.Rdata")
+save(Field_sign,file="data/GWAS.Field.hits2.Rdata")
 #save(GWAS.sign.TP_all,file="data/Genotype_data/GWAS.TP.hits.csv")
 #save(Field_sign,file="data/Genotype_data/GWAS.Field.hits.csv")
 
+```
