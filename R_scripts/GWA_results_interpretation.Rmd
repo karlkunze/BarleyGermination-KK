@@ -37,56 +37,56 @@ sign
 GETP1.blues[GETP1.blues$P.value<sign,]
 Pval(GWAS.GETP1.blues.mlmm,1,"GE")
 
-z=list(df1,df2)
- df=NULL
- for (i in z) {
- i$Avg=(i$x+i$y)/2
- df<-rbind(df,i)
- print (df)
- }
-library(stringr)
-library(tidyverse)
-str_split_fixed(obj)
+# z=list(df1,df2)
+#  df=NULL
+#  for (i in z) {
+#  i$Avg=(i$x+i$y)/2
+#  df<-rbind(df,i)
+#  print (df)
+#  }
+# library(stringr)
+# library(tidyverse)
+# str_split_fixed(obj)
+# 
+# 
+# listM=list(GWAS.GETP1.blues.mlmm,GWAS.GETP1_5D.blues.mlmm)
+# i<-list(deparse(substitute(GWAS.GETP1.blues.mlmm)),GWAS.GETP1.blues.mlmm)
+# 
+# i[1]
+# i_name<-deparse(substitute(GWAS.GETP1.blues.mlmm))
+# 
+# i_name
+# str_split_fixed(i_name,"\\.",4)[1:4]
+# list(i)
+# GWAS.GETP1.blups.mlmm
+# obj<-list(deparse(substitute(GWAS.GETP1.blues.mlmm)){
+# 
+# 
+# lazyeval::expr_text(obj)
+# 
+# 
+# v<-c(GWAS.GETP1.blues.mlmm,GWAS.GETP1.blups.mlmm)
+# v
+# ds2(v)
+# ## [1] "square"
+# ## [1] "sum"
+# 
+# obj<-substitute(GWAS.GETP1.blues.mlmm)
+# 
+# Pval<-function(list){
+#   df=NULL
+#     for (i in list){
+#       i_name<-deparse(substitute(i))
+#   i<-i$GWAS
+#   sign<-0.05/nrow(i)
+#   i<-i[i$P.value<sign,]
+#     i$Year=2020
+#   df<-rbind(df,i)
+#     }
+#   return(df)
+#   
+# }
 
-
-listM=list(GWAS.GETP1.blues.mlmm,GWAS.GETP1_5D.blues.mlmm)
-i<-list(deparse(substitute(GWAS.GETP1.blues.mlmm)),GWAS.GETP1.blues.mlmm)
-
-i[1]
-i_name<-deparse(substitute(GWAS.GETP1.blues.mlmm))
-
-i_name
-str_split_fixed(i_name,"\\.",4)[1:4]
-list(i)
-GWAS.GETP1.blups.mlmm
-obj<-list(deparse(substitute(GWAS.GETP1.blues.mlmm))
-
-
-lazyeval::expr_text(obj)
-
-
-v<-c(GWAS.GETP1.blues.mlmm,GWAS.GETP1.blups.mlmm)
-v
-ds2(v)
-## [1] "square"
-## [1] "sum"
-
-obj<-substitute(GWAS.GETP1.blues.mlmm)
-
-Pval<-function(list){
-  df=NULL
-    for (i in list){
-      i_name<-deparse(substitute(i))
-  i<-i$GWAS
-  sign<-0.05/nrow(i)
-  i<-i[i$P.value<sign,]
-    i$Year=2020
-  df<-rbind(df,i)
-    }
-  return(df)
-  
-}
-Pval(listM)
 
 library(ggpubr)
 library(tidyverse)
@@ -246,11 +246,11 @@ GITP1.fe<-mahatoutput(GWAS.GITP1.blues.mlmm,"GI TP1 BLUEs")
 GITP1.re<-mahatoutput(GWAS.GITP1.blups.mlmm,"GI TP1 BLUPS")
 getwd()
 
-png("plots/Update/GWAS TP1 3 Day.png",width = 447, height = 346)
+#png("plots/Update/GWAS TP1 3 Day.png",width = 447, height = 346)
 
 ggarrange(GETP1.fe, GETP1.re, GITP1.fe, GITP1.re, 
           ncol = 2, nrow = 2)
-dev.off()
+#dev.off()
 ####
 
 GETP1_5D.fe<-mahatoutput(GWAS.GETP1_5D.blues.mlmm,"TP1 5 Day GE BLUES")
@@ -258,9 +258,9 @@ GETP1_5D.re<-mahatoutput(GWAS.GETP1_5D.blups.mlmm,"TP1 5 Day GE BLUPS")
 GITP1_5D.fe<-mahatoutput(GWAS.GITP1_5D.blues.mlmm,"TP1 5 Day GI BLUES")
 GITP1_5D.re<-mahatoutput(GWAS.GITP1_5D.blups.mlmm,"TP1 5 Day GI BLUPS")
 
-png("plots/Update/GWAS TP1 5 Day.png",width = 447, height = 346)
+#png("plots/Update/GWAS TP1 5 Day.png",width = 447, height = 346)
 ggarrange(GETP1_5D.fe, GETP1_5D.re, GITP1_5D.fe, GITP1_5D.re, ncol = 2, nrow = 2)
-dev.off()
+#dev.off()
 
 GETP1_5D.fe.p<-pval(GWAS.GETP1_5D.blues.mlmm,sig,"GETP1 5 Day Fixed")
 GETP1_5D.re.p<-pval(GWAS.GETP1_5D.blups.mlmm,sig,"GETP1 5 Day Random")
@@ -289,11 +289,11 @@ GETP2.re<-mahatoutput(GWAS.GETP2.blups.mlmm,"GE TP2 BLUPS")
 GITP2.fe<-mahatoutput(GWAS.GITP2.blues.mlmm,"GI TP2 BLUES")
 GITP2.re<-mahatoutput(GWAS.GITP2.blups.mlmm,"GI TP2 BLUPS")
 
-png("plots/Update/GWAS TP2 3 Day.png",width = 447, height = 346)
+#png("plots/Update/GWAS TP2 3 Day.png",width = 447, height = 346)
 ggarrange(GETP2.fe, GETP2.re,GITP2.fe, GITP2.re,
           
           ncol = 2, nrow = 2)
-dev.off()
+#dev.off()
 
 
 
@@ -339,7 +339,7 @@ GWAS.GITP3.blups.mlmm$GWAS
 GETP3.fe<-mahatoutput(GWAS.GETP3.blues.mlmm,"GE TP3 BLUES")
 GETP3.re<-mahatoutput(GWAS.GETP3.blups.mlmm,"GE TP3 BLUPS")
 GITP3.fe<-mahatoutput(GWAS.GITP3.blues.mlmm,"GI TP3 BLUES")
-GITP3.re<-mahatoutput_na(GWAS.GITP3.blups.mlmm,"GI TP3 BLUPS")
+GITP3.re<-mahatoutput(GWAS.GITP3.blups.mlmm,"GI TP3 BLUPS")
 
 
 GETP3_5D.fe<-mahatoutput(GWAS.GETP3.blues_5D.mlmm,"TP3 5 Day GE BLUES")
@@ -347,12 +347,12 @@ GETP3_5D.re<-mahatoutput(GWAS.GETP3_5D.blups.mlmm,"TP3 5 Day GE BLUPS")
 GITP3_5D.fe<-mahatoutput(GWAS.GITP3_5D.blues.mlmm,"TP3 5 Day GI BLUES")
 GITP3_5D.re<-mahatoutput(GWAS.GITP3_5D.blups.mlmm,"TP3 5 Day GI BLUPS")
 
-png("plots/Update/GWAS TP3 3 Day.png",width = 447, height = 346)
+#png("plots/Update/GWAS TP3 3 Day.png",width = 447, height = 346)
 ggarrange(GETP3.fe, GETP3.re,GITP3.fe, GITP3.re, 
                    ncol = 2, nrow = 2)
 
 dev.off()
-png("plots/Update/GWAS TP3 5 Day.png",width = 447, height = 346)
+#png("plots/Update/GWAS TP3 5 Day.png",width = 447, height = 346)
 
 ggarrange(GETP3_5D.fe, GETP3_5D.re, GITP3_5D.fe, GITP3_5D.re, 
                     ncol = 2, nrow = 2)
@@ -387,7 +387,7 @@ GITP4_5D.fe<-mahatoutput(GWAS.GITP4_5D.blues.mlmm,"TP4 5 Day GI BLUES")
 GITP4_5D.re<-mahatoutput(GWAS.GITP4_5D.blups.mlmm,"TP4 5 Day GI BLUPS")
 #GITP3.fe had to remove it
 
-png("plots/Update/GWAS TP4 3 Day.png",width = 447, height = 346)
+#png("plots/Update/GWAS TP4 3 Day.png",width = 447, height = 346)
 ggarrange(GETP4.fe, GETP4.re,GITP4.fe, GITP4.re, 
          
           ncol = 2, nrow = 2)
