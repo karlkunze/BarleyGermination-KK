@@ -24,7 +24,8 @@ load(here("data/Winter_DH/TP5_WDH20_BLUP_all.RData"))
 load(here("data/Winter_DH/Field_WDH20_BLUP_all.Rdata"))
 
 load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
-
+load("C:/Users/Karl/git/BarleyGermination-KK/R_scripts/data/GWAS.Field.hits2.Rdata")
+load("C:/Users/Karl/git/BarleyGermination-KK/R_scripts/data/GWAS.TP.hits2.Rdata")
 
 ```
 read in Genotypes
@@ -89,7 +90,7 @@ ld_heatmap=function(df){
 #Top significant markers
 #Chr 5
 #JHI-Hv50k-2016-311497 475342665
-
+grep("JHI-Hv50k-2016-311497", colnames(myGD20))
 #JHI-Hv50k-2016-316599 493408279
 #BOPA1_5004-375 493200949
 #Chr 4
@@ -98,7 +99,7 @@ ld_heatmap=function(df){
 #JHI-Hv50k-2016-10635057 7412613               
 
 
-grep("JHI-Hv50k-2016-311497", colnames(myGD20))
+
 
 
 #QsD1 block
@@ -111,7 +112,7 @@ grep("JHI-Hv50k-2016-308652", colnames(myGD20))
 grep("JHI-Hv50k-2016-311497",colnames(myGD20))
 
 #grep("JHI-Hv50k-2016-312094", colnames(myGD20))
-
+grep("JHI-Hv50k-2016-311960", colnames(myGD20))
 
 
 
@@ -119,7 +120,7 @@ grep("JHI-Hv50k-2016-311497",colnames(myGD20))
 #to remove the marker labels on each axis, use theme_void() instead of theme_classic()
 #test of some random markers
 #TP1 5H marker
-grep("JHI-Hv50k-2016-311960", colnames(myGD20))
+
 #replace with
 grep("JHI-Hv50k-2016-316599", colnames(myGD20))
 
@@ -227,7 +228,7 @@ marker<-'JHI-Hv50k-2016-311497'
 trait<-'GE'
 model_used<-geom_boxplot()
 Graph_haplotype_pedigree('JHI-Hv50k-2016-311497','GE',geom_boxplot())
-#Graph_haplotype_pedigree=function(marker,trait,model_used){
+Graph_haplotype_pedigree=function(marker,trait,model_used){
 df_marker=myGD20[,c('taxa',marker)]
 df_haplotype=as.data.frame(merge(TP_all_WDH20_BLUE_all,df_marker,by='taxa',all.x = TRUE))
 df_haplotype=df_haplotype[!is.na(df_haplotype[,marker]),]
@@ -247,14 +248,14 @@ plotT=ggplot(data=MeltTP, aes(x=Family, y=value,color=MeltTP[,marker])) +
   guides(color=guide_legend(paste("Haplo ",marker)))
 
 legend=get_legend(plotT)
-View(df_haplotype_m)
+
 #Timepoint 1
-View(df_haplotype_m[df_haplotype_m$TP=="TP1",])
+
 meltTP=as.data.frame(df_haplotype_m[df_haplotype_m$TP=="TP1",])
 
 #Timepoint 1
-meltTP=df_haplotype_m[df_haplotype_m$TP=="TP1",]
-plot1=ggplot(data=meltTP, aes(x=Family, y=value,color=meltTP[,marker])) +
+meltTP1=df_haplotype_m[df_haplotype_m$TP=="TP1",]
+plot1=ggplot(data=meltTP1, aes(x=Family, y=value,color=meltTP1[,marker])) +
   model_used+
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
@@ -275,7 +276,7 @@ plot2=ggplot(data=meltTP, aes(x=Family, y=value,color=meltTP[,marker])) +
   scale_fill_manual(values=c("#cccccc", "#636363")) +
   guides(color=guide_legend(paste(marker)))+
   theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
-plot2
+plot3
 #Timepoint 3
 meltTP=df_haplotype_m[df_haplotype_m$TP=="TP3",]
 plot3=ggplot(data=meltTP, aes(x=Family, y=value,color=meltTP[,marker])) +
@@ -283,7 +284,7 @@ plot3=ggplot(data=meltTP, aes(x=Family, y=value,color=meltTP[,marker])) +
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 60))+
-  ggtitle(paste0("Fixed Effect TP3 ",trait))+
+  ggtitle(paste0("TP3 ",trait))+
   scale_fill_manual(values=c("#cccccc", "#636363")) +
   guides(color=guide_legend(paste(marker)))+
   theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
@@ -302,16 +303,17 @@ plot4=ggplot(data=meltTP, aes(x=Family, y=value,color=meltTP[,marker])) +
 
 #grid.arrange(blankPlot,ncol=3,nrow=2)
 plot1
-figure<-grid.arrange(plot2,plot3,plot4, 
+figure<-grid.arrange(plot1,plot2,plot3,plot4, 
              layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
-return(figure)
-}
+#return(figure)
+
 
 anno<-annotate_figure(figure,
                 top = text_grob("3 Day Germination BLUES", face = "bold", size = 14),
                 bottom = text_grob("Time Point", size = 12))
-anno
-
+return(anno)
+}
+plot(legend)
 
 
 
