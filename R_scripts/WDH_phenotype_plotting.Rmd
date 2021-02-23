@@ -38,9 +38,10 @@ table(All_pheno_TPall[is.na(All_pheno_TPall$Pedigree),]$Entry)
 
 TP_all_WDH20_BLUE_all$Pedigree
 table(TP_all_WDH20_BLUE_all$taxa)
-table(All_pheno_TPall$Entry)
+table(All_pheno_TPall$Entry,useNA="ifany")
 #View(All_pheno_TPall$Family[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)])
-
+hist(TP_all_WDH20_BLUE_all$GIscale_5D)
+table(TP_all_WDH20_BLUE_all$GIscale_5D)
 TP_all_WDH20_BLUE_all$Pedigree=All_pheno_TPall$Family[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
 
 TP_all_WDH20_BLUE_all$Check=All_pheno_TPall$Check[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
@@ -91,10 +92,12 @@ TP_all_melt=as.data.frame(TP_all_melt)
 
 df=TP_all_melt[TP_all_melt$Check=="C"| TP_all_melt$Pedigree==c,]
 df$Family=df$Pedigree
-df[df$Check=="C" &df$Pedigree==c,]$Family=paste0(c," Check")
-df[df$Check=="B",]$Family="Experimental Lines"
-
-
+df[df$Check=="C" &df$Pedigree==c,]$Family=paste0(c)
+#df[df$Check=="C",]$Family=paste0(c)
+df[df$Check=="B",]$Family="Exp Lines"
+df[df$Check=="B",]$Check="DH lines"
+df[df$Check=="C",]$Check="Parent Checks"
+"lw,lh,flt,flx"
 q1.T<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
     ggtitle(paste0(trait," ",c))+
     
@@ -106,14 +109,16 @@ q1.T<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family))
   geom_line(size=0.8) +
   theme_bw()+
   
-  theme(plot.title = element_text(hjust = 0.5),axis.title.x=element_blank(),axis.title.y=element_blank())
+  theme(plot.title = element_text(hjust = 0.5),axis.title.x=element_blank(),axis.title.y=element_blank(),legend.key.height= unit(0.6, 'cm'),legend.key.width= unit(0.2, 'cm'))
 legend=get_legend(q1.T)
 return(legend)
 }
-legend<-Sub_legend('Flavia','GIscale')
+legend<-Sub_legend('Flavia','GIscale',lw,lh,flt,flx)
 plot(legend)
-Sub_legend<-function(c,trait){
 
+Sub<-function(c,trait,scale_value,x,y){
+size.x=x
+size.y=y
 TP_all_melt=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c(trait))
 TP_all_melt$TP=sapply(str_split(TP_all_melt$TP,"P",2),`[`,2)
 TP_all_melt=as.data.frame(TP_all_melt)
@@ -124,95 +129,75 @@ df[df$Check=="C" &df$Pedigree==c,]$Family=paste0(c," Check")
 df[df$Check=="B",]$Family="Experimental Lines"
 
 
-q1.T<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
-    ggtitle(paste0(trait," ",c))+
+
+
+
+q<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
+    ggtitle(paste0("Family ",c))+
     
   scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
 
-    
-  scale_fill_manual()+
+ scale_fill_manual()+
+
   
   geom_line(size=0.8) +
   theme_bw()+
-  
-  theme(plot.title = element_text(hjust = 0.5),axis.title.x=element_blank(),axis.title.y=element_blank())
-legend=get_legend(q1.T)
-return(legend)
+  theme(plot.title = element_text(hjust = 0.5,size = 10),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x =element_text(size=size.x),axis.text.y =element_text(size=size.y))+
+  scale_value
+return(q)
 }
-
-
-q1<-ggplot(data=Flavia, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
-    ggtitle(paste0(trait," ",c))+
-    
-  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
-
-    
-  scale_fill_manual()+
-  
-  geom_line(size=0.8) +
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
-q1
 #Scala
-
-Scala_df=Sub('Scala','GIscale')
-SY_Tepee_df=Sub('SY Tepee','GIscale')
-Wintmalt_df=Sub('Wintmalt','GIscale')
-
-
-q2<-ggplot(data=Scala, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
-    ggtitle(paste0("GE Scala"))+
-    
-  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
-
-    
-  scale_fill_manual()+
-  
-  geom_line(size=0.8) +
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
-q2
-
-q3<-ggplot(data=SY_Tepee, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
-    ggtitle(paste0("GE SY Tepee"))+
-    
-  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
-
-    
-  scale_fill_manual()+
-  
-  geom_line(size=0.8) +
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
-q3
-q4<-ggplot(data=Wintmalt, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
-    ggtitle(paste0("GE Wintmalt"))+
-    
-  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
-
-    
-  scale_fill_manual()+
-  
-  geom_line(size=0.8) +
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
-q4
-
+q1=Sub('Flavia','GIscale',ylim(-7.5,1),0,8)
+q2=Sub('Scala','GIscale',ylim(-7.5,1),0,0)
+q3=Sub('SY Tepee','GIscale',ylim(-7.5,1),8,8)
+q4=Sub('Wintmalt','GIscale',ylim(-7.5,1),8,0)
 blankPlot <- ggplot()+geom_blank(aes(1,1)) + 
   cowplot::theme_nothing()
-q4
-# 4. Arrange ggplot2 graphs with a specific width
-grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
-q1#flavia
-q2#scala
-figure<-grid.arrange(q1, q2 ,q3, q4, 
+q1
+#grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
+
+figureT<-grid.arrange(q1,q2,q3,q4,
              layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
+anno<-annotate_figure(figureT,top = text_grob("GI Scale", size = 14), bottom = text_grob("Time Point", size = 12))
+
+anno
+plot(legend)
+q1=Sub('Flavia','GE',ylim(-1,0.05))
+q2=Sub('Scala','GE',ylim(-1,0.05))
+q3=Sub('SY Tepee','GE',ylim(-1,0.05))
+q4=Sub('Wintmalt','GE',ylim(-1,0.05))
+q3
+blankPlot <- ggplot()+geom_blank(aes(1,1)) + 
+  cowplot::theme_nothing()
+
+#grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
+
 figureT<-grid.arrange(q1, q2,legend,q3,q4,blankPlot,
              layout_matrix=rbind(c(1,1,2,2,3,3), c(4,4,5,5,3,6)))
-anno<-annotate_figure(figureT,
-                top = text_grob("3 Day Germination BLUES", face = "bold", size = 14),
-                bottom = text_grob("Time Point", size = 12))
+anno<-annotate_figure(figureT,top = text_grob("3 Day GE BLUEs", face = "bold", size = 14), bottom = text_grob("Time Point", size = 12))
+
 anno
+
+
+q1=Sub('Flavia','GIscale_5D',ylim(-7.5,0.5))
+q2=Sub('Scala','GIscale_5D',ylim(-7.5,0.05))
+q3=Sub('SY Tepee','GIscale_5D',ylim(-7.5,0.05))
+q4=Sub('Wintmalt','GIscale_5D',ylim(-7.5,0.05))
+q1
+blankPlot <- ggplot()+geom_blank(aes(1,1)) + 
+  cowplot::theme_nothing()
+
+#grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
+
+figureT<-grid.arrange(q1, q2,legend,q3,q4,blankPlot,
+             layout_matrix=rbind(c(1,1,2,2,3,3), c(4,4,5,5,3,6)))
+anno<-annotate_figure(figureT,top = text_grob("5 Day GI Scale BLUEs", face = "bold", size = 14), bottom = text_grob("Time Point", size = 12))
+
+anno
+
+##############
+
+
 grid.arrange(legend)
 ggplot(data=Flavia, aes(x=TP, y=value,color=Color)) +
   geom_boxplot()+
