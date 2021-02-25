@@ -21,6 +21,7 @@ load(here("data/Winter_DH/TP3_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP5_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))#All_pheno_TPall
+load(here("data/Winter_DH/Field_WDH20_BLUE_all.Rdata"))
 
 TP_all_WDH20_BLUE_all<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
 
@@ -33,8 +34,35 @@ TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Wintmalt",]$taxa="Check 5-Win
 TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Charles",]$taxa="Check 6-Charles"
 
 table(All_pheno_TPall[is.na(All_pheno_TPall$Pedigree),]$Entry)
+####
+phs.compare=inner_join(Field_WDH20_BLUE_all[,c(1,2)],TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",],by="taxa")
+phs.compare=as.data.frame(phs.compare[!is.na(phs.compare$PHS),])
+phs<-phs.compare[,c('taxa','PHS')]
+str(phs)
+phs$type="PHS"
+phs=phs[with(phs,order(PHS)),]
+phs$rank=rep(1:nrow(phs))
+phs$value=phs$value/9
+colnames(phs)[2]<-"value"
+GE1=phs.compare[,c('taxa','GE','TP')]
+GE1=GE1[GE1$TP=="TP1",]
+colnames(GE1)
+GE1=GE1[,-3]
+GE1$type="GETP1"
+GE1=GE1[with(GE1,order(GE)),]
+colnames(GE1)[2]<-"value"
+
+GE1$rank=rep(1:nrow(GE1))
+colnames(GE1)
+colnames(phs)
+phs.GE1=rbind(phs,GE1)
+phs.GE1=phs.GE1[with(phs.GE1,order(taxa)),]
 
 
+cor.test(phs.compare$PHS, phs.compare$GE)
+ggplot(phs.GE1, aes(value,fill=type)) + geom_density(alpha=0.2)
+
+###
 
 TP_all_WDH20_BLUE_all$Pedigree
 table(TP_all_WDH20_BLUE_all$taxa)
@@ -84,7 +112,8 @@ get_legend<-function(myggplot){
   legend <- tmp$grobs[[leg]]
   return(legend)
 }
-Sub_legend<-function(c,trait){
+  "lw,lh,flt,flx"
+Sub_legend<-function(c,trait,lw,lh,flt,flx){
 
 TP_all_melt=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c(trait))
 TP_all_melt$TP=sapply(str_split(TP_all_melt$TP,"P",2),`[`,2)
@@ -97,7 +126,7 @@ df[df$Check=="C" &df$Pedigree==c,]$Family=paste0(c)
 df[df$Check=="B",]$Family="Exp Lines"
 df[df$Check=="B",]$Check="DH lines"
 df[df$Check=="C",]$Check="Parent Checks"
-"lw,lh,flt,flx"
+
 q1.T<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
     ggtitle(paste0(trait," ",c))+
     
@@ -107,13 +136,16 @@ q1.T<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family))
   scale_fill_manual()+
   
   geom_line(size=0.8) +
-  theme_bw()+
   
-  theme(plot.title = element_text(hjust = 0.5),axis.title.x=element_blank(),axis.title.y=element_blank(),legend.key.height= unit(0.6, 'cm'),legend.key.width= unit(0.2, 'cm'))
+ #change legend title font size
+  theme_bw()+ 
+  theme(plot.title = element_text(hjust = 0.5),axis.title.x=element_blank(),axis.title.y=element_blank(),legend.key.height= unit(lh, 'cm'),legend.key.width= unit(lw, 'cm'),legend.title = element_text(size=flt),legend.text = element_text(size=flx),plot.background = element_rect(fill = "white"))
+
 legend=get_legend(q1.T)
 return(legend)
 }
-legend<-Sub_legend('Flavia','GIscale',lw,lh,flt,flx)
+legend<-Sub_legend('Flavia','GIscale',0.3,0.6,9,8)
+
 plot(legend)
 
 Sub<-function(c,trait,scale_value,x,y){
@@ -142,42 +174,44 @@ q<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
   
   geom_line(size=0.8) +
   theme_bw()+
+  
   theme(plot.title = element_text(hjust = 0.5,size = 10),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x =element_text(size=size.x),axis.text.y =element_text(size=size.y))+
   scale_value
 return(q)
 }
 #Scala
-q1=Sub('Flavia','GIscale',ylim(-7.5,1),0,8)
+
+q1=Sub('Flavia','GIscale',ylim(-7.5,1),0,10)
 q2=Sub('Scala','GIscale',ylim(-7.5,1),0,0)
-q3=Sub('SY Tepee','GIscale',ylim(-7.5,1),8,8)
-q4=Sub('Wintmalt','GIscale',ylim(-7.5,1),8,0)
+q3=Sub('SY Tepee','GIscale',ylim(-7.5,1),10,10)
+q4=Sub('Wintmalt','GIscale',ylim(-7.5,1),10,0)
 blankPlot <- ggplot()+geom_blank(aes(1,1)) + 
   cowplot::theme_nothing()
 q1
 #grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
-
+legend<-grid.arrange(legend)
+legend
 figureT<-grid.arrange(q1,q2,q3,q4,
              layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
-anno<-annotate_figure(figureT,top = text_grob("GI Scale", size = 14), bottom = text_grob("Time Point", size = 12))
-
+anno<-annotate_figure(figureT,top = text_grob("GI Scale", size = 8), bottom = text_grob("Time Point", size = 8))
 anno
 plot(legend)
-q1=Sub('Flavia','GE',ylim(-1,0.05))
-q2=Sub('Scala','GE',ylim(-1,0.05))
-q3=Sub('SY Tepee','GE',ylim(-1,0.05))
-q4=Sub('Wintmalt','GE',ylim(-1,0.05))
+q1=Sub('Flavia','GE',ylim(-1,0.05),0,8)
+q2=Sub('Scala','GE',ylim(-1,0.05),0,0)
+q3=Sub('SY Tepee','GE',ylim(-1,0.05),8,8)
+q4=Sub('Wintmalt','GE',ylim(-1,0.05),8,0)
 q3
 blankPlot <- ggplot()+geom_blank(aes(1,1)) + 
   cowplot::theme_nothing()
 
 #grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
 
-figureT<-grid.arrange(q1, q2,legend,q3,q4,blankPlot,
-             layout_matrix=rbind(c(1,1,2,2,3,3), c(4,4,5,5,3,6)))
-anno<-annotate_figure(figureT,top = text_grob("3 Day GE BLUEs", face = "bold", size = 14), bottom = text_grob("Time Point", size = 12))
+figureT<-grid.arrange(q1, q2,q3,q4,
+             layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
+anno<-annotate_figure(figureT,top = text_grob("GE",size = 8), bottom = text_grob("Time Point", size = 8))
 
 anno
-
+legend<-grid.arrange(legend)
 
 q1=Sub('Flavia','GIscale_5D',ylim(-7.5,0.5))
 q2=Sub('Scala','GIscale_5D',ylim(-7.5,0.05))

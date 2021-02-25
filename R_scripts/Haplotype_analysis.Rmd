@@ -37,7 +37,7 @@ load(here("data/Genotype_data/myGM20_LDprune.Rdata"))
 load("C:/Users/Karl/git/BarleyGermination-KK/R_scripts/data/GWAS.Field.hits2.Rdata")
 load("C:/Users/Karl/git/BarleyGermination-KK/R_scripts/data/GWAS.TP.hits2.Rdata")
 unique_list
-GWAS.sign.TP_all[with(GWAS.sign.TP_all,order(P.value)),]
+#View(GWAS.sign.TP_all[with(GWAS.sign.TP_all,order(P.value)),])
 
 
 myGD20<-myGD20_prune
@@ -129,12 +129,12 @@ grep("JHI-Hv50k-2016-311497",colnames(myGD20))
 ld_heatmap(myGD20[,c(5149:5150,5289,5441)])
 ###
 
-ld_heatmap(myGD20[,c(5149:5150,5289,5441)]) + ggtitle('LD between significant marker regions at 5H') +
+ld_heatmap(myGD20[,c(5149:5150,5289,5441)]) + ggtitle('LD between Qsd1 marker \n and most significant hit at 5H') +
   theme(axis.text.x = element_text(angle = 90))+
   
 
-  scale_x_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652","TP2 5H 311497","TP1 5H 316599"), breaks = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-316599"))+
-  scale_y_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-316599"), breaks = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-316599"))+ 
+  scale_x_discrete(label = c("Qsd1","308652","311497","316599"), breaks = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-316599"))+
+  scale_y_discrete(label = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-316599"), breaks = c("Qsd1","JHI-Hv50k-2016-308652","JHI-Hv50k-2016-311497","JHI-Hv50k-2016-316599"))+theme(axis.text.x = element_text(angle = 90,size = 10))+
   xlab(NULL)+ylab(NULL)
 
 
@@ -144,6 +144,7 @@ ld_heatmap(myGD20[,c(5149:5150,5289,5441)]) + ggtitle('LD between significant ma
 #Top significant markers
 #Chr 5
 #JHI-Hv50k-2016-311497 475342665
+marker_list<-list('JHI-Hv50k-2016-311497','JHI-Hv50k-2016-316599','JHI-Hv50k-2016-229031','JHI-Hv50k-2016-316599','JHI-Hv50k-2016-106350','JHI-Hv50k-2016-198312')
 
 #JHI-Hv50k-2016-316599 493408279
 #BOPA1_5004-375 493200949
@@ -152,21 +153,108 @@ ld_heatmap(myGD20[,c(5149:5150,5289,5441)]) + ggtitle('LD between significant ma
 #Chr 2
 #JHI-Hv50k-2016-106350 57412613  
 
-marker<-"JHI-Hv50k-2016-106350"
+
 trait<-"GE"
 nrow(TP_all_WDH20_BLUE)
 TP_all_WDH20_BLUE_all=TP_all_WDH20_BLUE
-
+WDH20_PHS=Field_WDH20_BLUE_all[,c('taxa','PHS')]
+WDH20_PHS
 TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP3",]$GE
 
 #if we want to negate outliers, however it has not changed much
 #TP_all_WDH20_BLUE_all$GE[TP_all_WDH20_BLUE_all$TP =="TP3"& TP_all_WDH20_BLUE_all$GE<=-0.25]<-NA
 
 #TP_all_WDH20_BLUE_all$GE[TP_all_WDH20_BLUE_all$TP =="TP5"& TP_all_WDH20_BLUE_all$GE<=-0.15]<-NA
-
-
+table(Graph_haplotype$Qsd1)
 
 Graph_haplotype=function(marker,trait){
+  df_marker=myGD20[,c('taxa',marker)]
+  df_haplotype=as.data.frame(merge(TP_all_WDH20_BLUE_all,df_marker,by='taxa',all.x = TRUE))
+  
+  
+  
+  df_haplotype=df_haplotype[!is.na(df_haplotype[,marker]),]
+  
+  df_haplotype=df_haplotype[!df_haplotype[,marker]=="1",]
+  df_haplotype[,marker]=as.factor(df_haplotype[,marker])
+  df_haplotype_m=melt(df_haplotype, id.vars =c('taxa','TP','Pedigree',marker), measure.vars = c(trait))
+  plot=ggplot(data=df_haplotype_m, aes(x=TP, y=value,color=df_haplotype_m[,marker])) +
+    geom_boxplot()+
+    #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+    theme_bw() + 
+    ggtitle(paste0("Fixed Effect ",trait," Haplotype WDH"))+
+    scale_fill_manual(values=c("#cccccc", "#636363")) +
+    guides(color=guide_legend(paste(marker)))
+    table=table(df_haplotype[,marker],df_haplotype[,'Pedigree'])
+  plot
+  return(plot)
+  }
+plot4=Graph_haplotype('JHI-Hv50k-2016-198312','GIscale')
+plot4
+
+#plot.PHS
+TP1GEqsd1=Graph_haplotype_family('Qsd1','GE','TP1')
+TP1GIqsd1=Graph_haplotype_family('Qsd1','GIscale','TP1')
+TP1GE_5Dqsd1=Graph_haplotype_family('Qsd1','GE_5D','TP1')
+figure<-grid.arrange(plot.PHS,TP1GEqsd1,TP1GIqsd1,TP1GE_5Dqsd1, 
+             layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
+anno<-annotate_figure(figure,
+                top = text_grob(paste("Haplotype fixed effects for ",marker), face = "bold", size = 12),
+                bottom = text_grob("Family", size = 12))
+anno
+
+Graph_haplotype_family=function(marker,trait,TP_value){
+
+#plot=Graph_haplotype_family=function(marker,trait,TP){
+df_marker=myGD20[,c('taxa',marker)]
+df_haplotype=as.data.frame(merge(TP_all_WDH20_BLUE_all,df_marker,by='taxa',all.x = TRUE))
+df_haplotype=df_haplotype[!is.na(df_haplotype[,marker]),]
+df_haplotype=df_haplotype[!df_haplotype[,marker]=="1",]
+df_haplotype[,marker]=as.factor(df_haplotype[,marker])
+df_haplotype_m=df_haplotype[df_haplotype$TP==TP_value,]
+df_haplotype_m=melt(df_haplotype, id.vars =c('taxa','Family',marker), measure.vars = c(trait))
+plot=ggplot(data=df_haplotype_m, aes(x=Family, y=value,color=df_haplotype_m[,marker])) +
+  geom_jitter()+
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle(paste0(trait," of '",marker,"' for ",TP_value))+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+guides(color=guide_legend(paste(marker)))+
+  theme(plot.title = element_text(hjust = 0.5,size=7),axis.text.x = element_text(angle = 20,size = 7),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
+  
+plot
+return(plot)
+}
+Graph_haplotype_family_hist=function(marker,trait,TP_value,fam_value){
+
+#plot=Graph_haplotype_family=function(marker,trait,TP){
+df_marker=myGD20[,c('taxa',marker)]
+df_haplotype=as.data.frame(merge(TP_all_WDH20_BLUE_all,df_marker,by='taxa',all.x = TRUE))
+df_haplotype=df_haplotype[!is.na(df_haplotype[,marker]),]
+df_haplotype=df_haplotype[!df_haplotype[,marker]=="1",]
+df_haplotype[,marker]=as.factor(df_haplotype[,marker])
+df_haplotype_m=df_haplotype[df_haplotype$TP==TP_value,]
+df_haplotype_m=melt(df_haplotype_m, id.vars =c('taxa','Family',marker), measure.vars = c(trait))
+df_haplotype_m=df_haplotype_m[df_haplotype_m$Family==fam_value,]
+plot=ggplot(data=df_haplotype_m, aes(x=value,color=df_haplotype_m[,marker])) +
+  geom_density(alpha=0.2)+
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle(paste0(trait," of '",marker,"' for ",TP_value," of ",fam_value))+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+guides(color=guide_legend(paste(marker)))+
+  theme(plot.title = element_text(hjust = 0.5,size=7),axis.text.x =element_blank(),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
+  
+plot
+return(plot)
+}
+Graph_haplotype_family_hist(marker_list[[2]],'GIscale','TP4','Wintmalt')
+marker_list
+marker_list[[2]]
+#############
+marker_list[[4]]
+Graph_haplotype=function(marker,trait){
+
 df_marker=myGD20[,c('taxa',marker)]
 df_haplotype=as.data.frame(merge(TP_all_WDH20_BLUE_all,df_marker,by='taxa',all.x = TRUE))
 
@@ -188,6 +276,60 @@ plot=ggplot(data=df_haplotype_m, aes(x=TP, y=value,color=df_haplotype_m[,marker]
 plot
 return(plot)
 }
+#plot.PHS
+TP2GI_qsd1=Graph_haplotype_family('Qsd1','GIscale','TP2')
+TP2GI_qsd1
+TP2GI.311497=Graph_haplotype_family(marker_list[[1]],'GIscale','TP2')
+TP2GE.311497=Graph_haplotype_family(marker_list[[1]],'GE','TP2')
+TP3GI.311497=Graph_haplotype_family(marker_list[[1]],'GIscale','TP3')
+
+figure<-grid.arrange(TP2GI_qsd1,TP2GI.311497,TP2GE.311497,TP3GI.311497, 
+             layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
+anno<-annotate_figure(figure,
+                top = text_grob(paste("Comparison of Qsd1 and 50k-311497 Marker"), face = "bold", size = 12),
+                bottom = text_grob("Family", size = 12))
+anno
+
+
+
+
+
+
+
+
+
+
+
+#############
+
+marker_list[1]
+marker<-marker_list[[1]]
+marker<-'Qsd1'
+phs<-merge(WDH20_PHS,TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",],by='taxa',all = TRUE)
+phs=phs[!is.na(phs$PHS),]
+
+df_marker=myGD20[,c('taxa',marker)]
+df_haplotype1=as.data.frame(merge(phs,df_marker,by='taxa',all.x = TRUE))
+
+df_haplotype1
+
+#df_haplotype=df_haplotype[!is.na(df_haplotype[,marker]),]
+
+df_haplotype1=df_haplotype1[!df_haplotype1[,marker]=="1",]
+df_haplotype1[,marker]=as.factor(df_haplotype1[,marker])
+
+df_haplotype_m1=melt(df_haplotype1, id.vars =c('taxa','TP','Family',marker), measure.vars = c('PHS',trait))
+df_haplotype_m1
+plot.PHS=ggplot(data=df_haplotype_m1, aes(x=Family, y=value,color=df_haplotype_m1[,marker])) +
+  geom_boxplot()+
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle(paste0("PHS"))+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+guides(color=guide_legend(paste(marker)))+
+  theme(plot.title = element_text(hjust = 0.5),axis.text.x = element_text(angle = 20,size = 10),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
+plot.PHS
+
 #Top significant markers
 #Chr 5
 #JHI-Hv50k-2016-311497 475342665
@@ -227,8 +369,9 @@ get_legend<-function(myggplot){
 marker<-'JHI-Hv50k-2016-311497'
 trait<-'GE'
 model_used<-geom_boxplot()
-Graph_haplotype_pedigree('JHI-Hv50k-2016-311497','GE',geom_boxplot())
-Graph_haplotype_pedigree=function(marker,trait,model_used){
+Graph_haplotype_pedigree('Qsd1','GE',geom_boxplot(),"BLUE")
+Graph_haplotype_pedigree=function(marker,trait,model_used,model){
+  model<-model
 df_marker=myGD20[,c('taxa',marker)]
 df_haplotype=as.data.frame(merge(TP_all_WDH20_BLUE_all,df_marker,by='taxa',all.x = TRUE))
 df_haplotype=df_haplotype[!is.na(df_haplotype[,marker]),]
@@ -237,13 +380,14 @@ df_haplotype=df_haplotype[!df_haplotype[,marker]=="1",]
 df_haplotype[,marker]=as.factor(df_haplotype[,marker])
 df_haplotype_m=melt(df_haplotype, id.vars =c('taxa','TP','Family',marker), measure.vars = c(trait))
 MeltTP=df_haplotype_m[df_haplotype_m$TP=="TP1",]
+plot(legend)
 ###
 plotT=ggplot(data=MeltTP, aes(x=Family, y=value,color=MeltTP[,marker])) +
   model_used+
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 60))+
-  ggtitle(paste0("Fixed Effect TP1 ",trait))+
+  ggtitle(paste0("TP1",trait))+
   scale_fill_manual(values=c("#cccccc", "#636363")) +
   guides(color=guide_legend(paste("Haplo ",marker)))
 
@@ -260,7 +404,7 @@ plot1=ggplot(data=meltTP1, aes(x=Family, y=value,color=meltTP1[,marker])) +
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 60))+
-  ggtitle(paste0("Fixed Effect TP1 ",trait))+
+  ggtitle(paste0("TP1 ",trait))+
   scale_fill_manual(values=c("#cccccc", "#636363")) +
   guides(color=guide_legend(paste(marker)))+
   theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
@@ -272,7 +416,7 @@ plot2=ggplot(data=meltTP, aes(x=Family, y=value,color=meltTP[,marker])) +
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 60))+
-  ggtitle(paste0("Fixed Effect TP2 ",trait))+
+  ggtitle(paste0("TP2 ",trait))+
   scale_fill_manual(values=c("#cccccc", "#636363")) +
   guides(color=guide_legend(paste(marker)))+
   theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
@@ -296,23 +440,35 @@ plot4=ggplot(data=meltTP, aes(x=Family, y=value,color=meltTP[,marker])) +
   #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 60))+
-  ggtitle(paste0("Fixed Effect TP4 ",trait))+
+  ggtitle(paste0("TP4 ",trait))+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+  guides(color=guide_legend(paste(marker)))+
+  theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
+meltTP=df_haplotype_m[df_haplotype_m$TP=="TP5",]
+plot5=ggplot(data=meltTP, aes(x=Family, y=value,color=meltTP[,marker])) +
+  model_used+
+  #facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 60))+
+  ggtitle(paste0("TP5 ",trait))+
   scale_fill_manual(values=c("#cccccc", "#636363")) +
   guides(color=guide_legend(paste(marker)))+
   theme(plot.title = element_text(hjust = 0.5),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank())
 
+
 #grid.arrange(blankPlot,ncol=3,nrow=2)
 plot1
-figure<-grid.arrange(plot1,plot2,plot3,plot4, 
+figure<-grid.arrange(plot2,plot3,plot4,plot5, 
              layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
 #return(figure)
 
 
+
 anno<-annotate_figure(figure,
-                top = text_grob("3 Day Germination BLUES", face = "bold", size = 14),
-                bottom = text_grob("Time Point", size = 12))
-return(anno)
-}
+                top = text_grob(paste("Haplotype",marker), face = "bold", size = 10),
+               bottom = text_grob("Family", size = 12))
+anno
+
 plot(legend)
 
 
