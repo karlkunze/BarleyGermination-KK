@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r}
+library(here)
 load(here("data/GWA_results/GWA_WDH_field_phenotypes.Rdata"))
 load(here("data/GWA_results/GWA_WDH_TP1.RData"))
 load(here("data/GWA_results/GWA_WDH_TP2.RData"))
@@ -26,7 +27,7 @@ Pval<-function(i){
   return(i)
   
 }
-
+library(stringr)
 GE.TP1.blues<-Pval(GWAS.GETP1.blues.mlmm$GWAS)
 GE.TP1.blues[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP1.blues)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
 
