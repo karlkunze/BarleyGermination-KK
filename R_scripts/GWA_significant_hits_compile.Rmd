@@ -3,6 +3,8 @@ title: "Significant_hits_GWAS"
 author: "Karl Kunze"
 date: "2/12/2021"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
@@ -141,17 +143,23 @@ GWAS.sign.blues<-rbind(GE.TP4.blues,GI.TP4.blues,GE_5D.TP4.blues,GI_5D.TP4.blues
 
 ###BLUPS
 GE.TP4.blups<-Pval(GWAS.GETP4.blups.mlmm$GWAS)
+
 GE.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
 
 GI.TP4.blups<-Pval(GWAS.GITP4.blups.mlmm$GWAS)
+
 GI.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
 GWAS.GETP4.blups_5D.mlmm
-GE_5D.TP4.blups<-Pval(GWAS.GETP4.blups_5D.mlmm$GWAS)
+Pval(GWAS.GETP4.blups_5D.mlmm$GWAS)
+GWAS.GETP4.blups_5D.mlmm$GWAS
+
 GE_5D.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GE_5D.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
 GE_5D.TP4.blups
 GI_5D.TP4.blups<-Pval(GWAS.GITP4_5D.blups.mlmm$GWAS)
+GI_5D.TP4.blups
 GI_5D.TP4.blups[,c('TP','Trait','model')]<-as.list(str_split_fixed(deparse(substitute(GI_5D.TP4.blups)),"\\.",3)[c(2,1,3)])[c(1,2,3)]
-GWAS.sign.blups<-rbind(GE.TP4.blups,GI.TP4.blups,GE_5D.TP4.blups,GI_5D.TP4.blups)
+
+GWAS.sign.blups<-rbind(GE.TP4.blups,GI.TP4.blups,GI_5D.TP4.blups)
 
 GWAS.sign.TP4<-rbind(GWAS.sign.blues,GWAS.sign.blups)
 GWAS.sign.TP4
