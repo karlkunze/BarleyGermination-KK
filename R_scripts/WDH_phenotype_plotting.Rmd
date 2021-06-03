@@ -35,6 +35,7 @@ TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Charles",]$taxa="Check 6-Char
 
 table(All_pheno_TPall[is.na(All_pheno_TPall$Pedigree),]$Entry)
 ####
+library(dplyr)
 phs.compare=inner_join(Field_WDH20_BLUE_all[,c(1,2)],TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",],by="taxa")
 phs.compare=as.data.frame(phs.compare[!is.na(phs.compare$PHS),])
 phs<-phs.compare[,c('taxa','PHS')]
@@ -49,6 +50,7 @@ GE1=GE1[GE1$TP=="TP1",]
 colnames(GE1)
 GE1=GE1[,-3]
 GE1$type="GETP1"
+
 GE1=GE1[with(GE1,order(GE)),]
 colnames(GE1)[2]<-"value"
 
@@ -102,7 +104,7 @@ TP_all_melt=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check
 TP_WDH20_BLUE_all[is.na(TP_WDH20_BLUE_all$Pedigree),]
 
 
-
+library(stringr)
  
 #TP_all_melt_GE=TP_all_melt_GE[!TP_all_melt_GE$TP=="5",]
 library(gridExtra)
@@ -208,7 +210,7 @@ blankPlot <- ggplot()+geom_blank(aes(1,1)) +
 
 figureT<-grid.arrange(q1, q2,q3,q4,
              layout_matrix=rbind(c(1,1,2,2), c(3,3,4,4)))
-anno<-annotate_figure(figureT,top = text_grob("GE",size = 8), bottom = text_grob("Time Point", size = 8))
+anno<-annotate_figure(figureT,top = text_grob("Germination Energy",size = 10), bottom = text_grob("Time Point", size = 8))
 
 anno
 legend<-grid.arrange(legend)
