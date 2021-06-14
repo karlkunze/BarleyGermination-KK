@@ -55,6 +55,11 @@ load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
 load(here("data/Winter_DH/TP5_WDH20_BLUE_all.RData"))
 
 load(here("data/Winter_DH/Field_WDH20_BLUE_all.Rdata"))
+
+#only calculated BLUES for winter 21
+load(here("data/Winter_DH/Field_WDH21_BLUE_part.Rdata"))
+
+
 #BLUPS
 load(here("data/Winter_DH/TP1_WDH20_BLUP_all.RData"))
 load(here("data/Winter_DH/TP2_WDH20_BLUP_all.RData"))
@@ -315,6 +320,22 @@ GWAS.PM.blues.mlmm  =GAPIT(Y=Field_WDH20_BLUE_all[,c('taxa','PM')], GD=myGD20, G
 #GWAS.PM.blups.mlm =GAPIT(Y=PM.blups, GD=myGD20, GM=myGM20, PCA.total=2,file.output=F, Geno.View.output=F, model="MLM", Major.allele.zero = F)
 GWAS.PM.blups.mlmm  =GAPIT(Y= Field_WDH20_BLUP_all[,c('taxa','PM')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=F, Geno.View.output=F, model="MLMM", Major.allele.zero = F)
 
+#2021 field phenotypes
+getwd()
+
+
+#when setting these directories, using MLMM
+
+localF21<-"C:/Users/Karl/Google Drive/Grad School_/Field 2021/GAPIT/Field"
+setwd(localF21)
+
+
+GWAS2021.Scald.blue.mlmm  =GAPIT(Y= Field_WDH21_BLUE_part[,c('taxa','Scald')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+GWAS2021.frost_damage.blue.mlmm  =GAPIT(Y= Field_WDH21_BLUE_part[,c('taxa','frost_damage')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS2021.SB.blue.mlmm  =GAPIT(Y= Field_WDH21_BLUE_part[,c('taxa','SB')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLMM", Major.allele.zero = F)
+
+GWAS2021.HD.blue.mlmm  =GAPIT(Y= Field_WDH21_BLUE_part[,c('taxa','HD')], GD=myGD20, GM=myGM20, PCA.total=2,file.output=T, Geno.View.output=T, model="MLM", Major.allele.zero = F)
 
 
 
