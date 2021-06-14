@@ -16,8 +16,8 @@ library(here)
 dir1<-"C:/Users/Karl/git/BarleyGermination-KK"
 setwd(dir1)
 getwd()
-load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
-load(here("data/Genotype_data/myGD20.Rdata"))
+load("data/Winter_DH/WMB DH 2020 all data for analysis.RData")
+load("data/Genotype_data/myGD20.Rdata")
 #load(here("myGM20_LDprune.Rdata"))
 #load(here("myGD20_LDprune.Rdata"))
 
@@ -36,8 +36,10 @@ All_pheno_TPall[All_pheno_TPall$Entry=="Check 4-SY Tepee",]$Entry<-"SY Tepee"
 All_pheno_TPall[All_pheno_TPall$Entry=="Check 5-Wintmalt",]$Entry<-"Wintmalt"
 All_pheno_TPall[All_pheno_TPall$Entry=="Check 6-Charles",]$Entry
 All_pheno_TPall[All_pheno_TPall$Entry=="Check 6-Charles",]$Entry<-"Charles"
-WDH20_pheno<-All_pheno_TPall
+All_pheno_TPall[All_pheno_TPall$Entry=="Check 8-Endeavor",]$Entry<-"Endeavor"
 
+WDH20_pheno<-All_pheno_TPall[All_pheno_TPall$Year=="2020",]
+WDH21_pheno<-All_pheno_TPall[All_pheno_TPall$Year=="2021",]
 str(WDH20_pheno)
 #make separate data object for field phenotypes
 WDH20_pheno[,c(1:27,30)]
@@ -161,6 +163,23 @@ anova(wdh_Ht.lm)
 wdh_PM.lm=lm(PM~Entry+Location+wh_percent,data=WDH20_phenoF)
 anova(wdh_PM.lm)
 ```
+2021 data
+```{r}
+
+wdh21_HD.lm=lm(HD~Entry+Location,data=WDH21_pheno)
+anova(wdh21_HD.lm)
+WDH21_pheno.M=WDH21_pheno[WDH21_pheno$Location=="McGowan",]
+wdh21_fd.lm=lm(HD~Entry+Check+frost_damage,data=WDH21_pheno.M)
+anova(wdh21_fd.lm)
+wdh21_scald.lm=lm(Scald~Entry+Location+Check,data=WDH21_pheno)
+wdh21_SB.lm=lm(SB~Entry+Check,data=WDH21_pheno)
+anova(wdh21_SB.lm)
+wdh21_HD.lm
+wdh21_fd.lm
+wdh21_scald.lm
+wdh21_SB.lm
+```
+
 Summary Functions
 ```{r}
 get_entry_fixed_Effects = function(model,trait){
@@ -218,6 +237,31 @@ BLUE_summary_F=function(mods,model,trait_list,year){
 modsE<-list(WDH20phs.lm,wdh_scald.lm,wdh_wh.lm,wdh_HD.lm,wdh_Ht.lm,wdh_PM.lm)
 trait_listE<-c("PHS","scald","wh","HD","Ht","PM")
 Field_WDH20_BLUE_all<-BLUE_summary_F(modsE,trait_listE,model="BLUE","2020")
+
+#2021 so far
+BLUE_summary_F21=function(mods,model,trait_list,year){
+
+  l=list(get_entry_fixed_Effects(mods[[1]], trait_list[1]),get_entry_fixed_Effects(mods[[2]], trait_list[2]),
+         get_entry_fixed_Effects(mods[[3]], trait_list[3]),get_entry_fixed_Effects(mods[[4]], trait_list[4]))
+  
+  TP_summary <- Reduce(
+    function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
+    l
+  )
+  TP_summary=TP_summary[-c(which(!TP_summary$taxa %in% myGD20$taxa)),]
+  TP_summary$model=model 
+  TP_summary$year=year
+  TP_summary
+}
+modsE21<-list(wdh21_HD.lm,wdh21_fd.lm,wdh21_scald.lm,wdh21_SB.lm)
+trait_listE21<-c("HD","frost_damage","Scald","SB")
+Field_WDH21_BLUE_part<-BLUE_summary_F21(modsE21,trait_listE21,model="BLUE","2021")
+Field_WDH21_BLUE_part
+
+
+
+
+
 ```
 
 
@@ -229,6 +273,7 @@ save(TP3_WDH20_BLUE_all, file="data/Winter_DH/TP3_WDH20_BLUE_all.RData")
 save(TP4_WDH20_BLUE_all, file="data/Winter_DH/TP4_WDH20_BLUE_all.RData")
 save(TP5_WDH20_BLUE_all, file="data/Winter_DH/TP5_WDH20_BLUE_all.RData")
 save(Field_WDH20_BLUE_all,file="data/Winter_DH/Field_WDH20_BLUE_all.Rdata")
+save(Field_WDH21_BLUE_part,file="data/Winter_DH/Field_WDH21_BLUE_part.Rdata")
 ```
 
 BLUPS
