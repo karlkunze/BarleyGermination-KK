@@ -14,7 +14,7 @@ genotype
 Read in packages and functions
 ```{r}
 #GAPIT functions
-
+library(here)
 library(rrBLUP)
 library(lme4)
 library(readxl)
