@@ -25,6 +25,12 @@ TP5<-as.data.frame(read.csv("data/Winter_DH/TP5/TP5_all.csv",stringsAsFactors = 
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
 DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
+
+#Incomplete 2021 data
+DH_2021_Ketola<-as.data.frame(read_excel("data/Winter_DH/2021/Field_data/WMBMaster21_Incomplete_20210624_kk.xlsx",sheet = "WMB_Field_7001"))
+DH_2021_McGowan<-as.data.frame(read_excel("data/Winter_DH/2021/Field_data/WMBMaster21_Incomplete_20210624_kk.xlsx",sheet = "WMB_Field_6001"))
+DH_2021_Inc=rbind(DH_2021_Ketola,DH_2021_McGowan)
+
 ##
 #intial germination process steps
 colnames(TP5)
@@ -155,6 +161,15 @@ DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)
 
 ##issue with Ketola and Snyder of DH130910 naming
 DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all = TRUE)
+colnames(DH_2020_field)
+DH_2020_field$Year<-"2020"
+colnames(DH_2021_Inc)
+colnames(DH_2021_Inc)[c(3,11,21)]<-c("PLOT","wh_percent","PM")
+Pedigree=DH_2020_field[,c("Entry","Pedigree","Facultative_Spring_planted")]
+library(plyr)
+DH_2021_Inc$Pedigree=mapvalues(DH_2021_Inc$Entry,from=Pedigree$Entry,Pedigree$Pedigree)
+DH_2021_Inc$Facultative_Spring_planted=mapvalues(DH_2021_Inc$Entry,from=Pedigree$Entry,Pedigree$Facultative_Spring_planted)
+DH_2020_field=rbind.fill(DH_2020_field,DH_2021_Inc)
 
 ```
 
@@ -193,7 +208,7 @@ five_avg=function(df,pheno,new_pheno,missing_phenos=F){
 
 }
 
-
+DH_2020_field$Sprout.Score
 
 DH_2020_field$phs=five_avg(df=DH_2020_field,pheno='Sprout.Score',new_pheno='phs')
 table(DH_2020_PHS$Sprout.Score)
@@ -203,6 +218,7 @@ typeof(DH_2020_field$HD)
 #####
 ##################
 DH_2020_field$HD<-as.numeric(DH_2020_field$HD)
+table(DH_2020_field$HD)
 julian_days=function(df, cutoff){
   may=31+29+31+30
   june=may+31
@@ -215,7 +231,11 @@ julian_days=function(df, cutoff){
   df$HD
   
 }
-DH_2020_field$HD<-julian_days(DH_2020_field, 25 )
+DH_2020_field$Year
+
+DH_2020_field[DH_2020_field$Year=="2020",]$HD<-julian_days(DH_2020_field[DH_2020_field$Year=="2020",], 25 )
+DH_2020_field[DH_2020_field$Year=="2021",]$HD<-julian_days(DH_2020_field[DH_2020_field$Year=="2021",], 18 )-1
+
 
 
 
@@ -252,6 +272,7 @@ DH_2020_field$Ht<-as.numeric(DH_2020_field$Ht)
 DH_2020_field$PM<-as.numeric(DH_2020_field$PM)
 #phs dates
 str(DH_2020_field)
+DH_2020_field[!is.na(DH_2020_field$Entry),]
 DH_2020_field=DH_2020_field[!is.na(DH_2020_field$Entry),]
 DH_2020_field[is.na(DH_2020_field$Pedigree),]
 ```
@@ -360,7 +381,7 @@ DH_2020_field[DH_2020_field$Check=="B",]$Family=sapply(str_split(DH_2020_field[D
 DH_2020_field$Family
 table(TPall$Check,useNA = "ifany")
 table(DH_2020_field$PLOT,useNA = "ifany")
-View(DH_2020_field)
+
 table(DH_2020_field$Check,useNA = "ifany")
 table(TPall$Check,useNA = "ifany")
 table(DH_2020_field$Location)
@@ -382,13 +403,17 @@ TPall[grep("11024",TPall[,'PLOT']),]$Entry="BS613-19"
 
 
 TPall[TPall$PLOT=="11024",]$Entry
-
-
+table(DH_2020_field$Entry)
+DH_2020_field[DH_2020_field$Entry=="KWS Scala",]$Entry="Check 2-Scala"
+DH_2020_field[DH_2020_field$Entry=="DH130910",]$Entry="Check 3-DH130910"
+DH_2020_field[DH_2020_field$Entry=="Endeavor",]$Entry="Check 8-Endeavor"
 ##
+table(DH_2020_field$Location)
 All_pheno_TPall=merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all =TRUE)
 View(All_pheno_TPall)
 colnames(All_pheno_TPall[,-c(32)])
 All_pheno_TPall=All_pheno_TPall[,-c(32)]
+colnames(All_pheno_TPall)[28]
 colnames(All_pheno_TPall)[28]<-"Check"
 All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSNLine",]$Check="C"
 All_pheno_TPall[All_pheno_TPall$Entry=="BBBdormSRLine",]$Check="C"
