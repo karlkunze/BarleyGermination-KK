@@ -409,8 +409,9 @@ DH_2020_field[DH_2020_field$Entry=="DH130910",]$Entry="Check 3-DH130910"
 DH_2020_field[DH_2020_field$Entry=="Endeavor",]$Entry="Check 8-Endeavor"
 ##
 table(DH_2020_field$Location)
-All_pheno_TPall=merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location"),all =TRUE)
-View(All_pheno_TPall)
+TPall$Year
+All_pheno_TPall=merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location","Year"),all =TRUE)
+
 colnames(All_pheno_TPall[,-c(32)])
 All_pheno_TPall=All_pheno_TPall[,-c(32)]
 colnames(All_pheno_TPall)[28]
