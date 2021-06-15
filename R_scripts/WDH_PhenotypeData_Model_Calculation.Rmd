@@ -162,6 +162,10 @@ wdh_Ht.lm=lm(Ht~Entry+Location,data=WDH20_phenoF)
 anova(wdh_Ht.lm)
 wdh_PM.lm=lm(PM~Entry+Location+wh_percent,data=WDH20_phenoF)
 anova(wdh_PM.lm)
+
+wdh_mass.lm=lm(mass~Entry+Location,data=WDH20_phenoF)
+anova(wdh_mass.lm)
+summary(wdh_mass.lm)
 ```
 2021 data
 ```{r}
@@ -223,7 +227,7 @@ TP5_WDH20_BLUE_all=BLUE_summary(list(wdhge5.lm,wdhge5_5D.lm,wdhgi5.lm,wdhgi5_5D.
 BLUE_summary_F=function(mods,model,trait_list,year){
 
   l=list(get_entry_fixed_Effects(mods[[1]], trait_list[1]),get_entry_fixed_Effects(mods[[2]], trait_list[2]),
-         get_entry_fixed_Effects(mods[[3]], trait_list[3]),get_entry_fixed_Effects(mods[[4]], trait_list[4]),get_entry_fixed_Effects(mods[[5]], trait_list[5]),get_entry_fixed_Effects(mods[[6]], trait_list[6]))
+         get_entry_fixed_Effects(mods[[3]], trait_list[3]),get_entry_fixed_Effects(mods[[4]], trait_list[4]),get_entry_fixed_Effects(mods[[5]], trait_list[5]),get_entry_fixed_Effects(mods[[6]], trait_list[6]),get_entry_fixed_Effects(mods[[7]], trait_list[7]))
   
   TP_summary <- Reduce(
     function(x, y, ...) merge(x, y, by="taxa" ,all = TRUE),
@@ -234,10 +238,10 @@ BLUE_summary_F=function(mods,model,trait_list,year){
   TP_summary$year=year
   TP_summary
 }
-modsE<-list(WDH20phs.lm,wdh_scald.lm,wdh_wh.lm,wdh_HD.lm,wdh_Ht.lm,wdh_PM.lm)
-trait_listE<-c("PHS","scald","wh","HD","Ht","PM")
+modsE<-list(WDH20phs.lm,wdh_scald.lm,wdh_wh.lm,wdh_HD.lm,wdh_Ht.lm,wdh_PM.lm,wdh_mass.lm)
+trait_listE<-c("PHS","scald","wh","HD","Ht","PM","Seed_weight")
 Field_WDH20_BLUE_all<-BLUE_summary_F(modsE,trait_listE,model="BLUE","2020")
-
+Field_WDH20_BLUE_all
 #2021 so far
 BLUE_summary_F21=function(mods,model,trait_list,year){
 
@@ -256,7 +260,7 @@ BLUE_summary_F21=function(mods,model,trait_list,year){
 modsE21<-list(wdh21_HD.lm,wdh21_fd.lm,wdh21_scald.lm,wdh21_SB.lm)
 trait_listE21<-c("HD","frost_damage","Scald","SB")
 Field_WDH21_BLUE_part<-BLUE_summary_F21(modsE21,trait_listE21,model="BLUE","2021")
-Field_WDH21_BLUE_part
+Field_WDH20_BLUE_all
 
 
 
