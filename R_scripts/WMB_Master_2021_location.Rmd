@@ -1,0 +1,188 @@
+---
+title: "Line selection for second location"
+author: "Karl Kunze"
+date: "6/15/2021"
+output: html_document
+This is a document for making 60(120) line selection for 2021 field season for the second location
+---
+```{r}
+library(readr); library(readxl)
+library(ggplot2); library(ggpubr)
+library(gridExtra); library(here)
+library(reshape2)
+#load(here("WMB DH 2020 all data for analysis.RData"))
+#load(here("data/Winter_DH/WDH_BLUEs_2020.RData"))
+load(here("data/Winter_DH/TP1_WDH20_BLUE_all.RData"))#TP1_WDH20_BLUE_all
+load(here("data/Winter_DH/TP2_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP3_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP4_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/TP5_WDH20_BLUE_all.RData"))
+load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))#All_pheno_TPall
+load(here("data/Winter_DH/Field_WDH20_BLUE_all.Rdata"))
+load(here("data/Winter_DH/Field_WDH21_BLUE_part.Rdata"))
+TP_all_WDH20_BLUE_all<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
+
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Flavia",]$taxa="Check 1-Flavia"
+
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Scala",]$taxa="Check 2-Scala"
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="DH130910",]$taxa="Check 3-DH130910"
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="SY Tepee",]$taxa="Check 4-SY Tepee"
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Wintmalt",]$taxa="Check 5-Wintmalt"
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Charles",]$taxa="Check 6-Charles"
+table(TP_all_WDH20_BLUE_all)
+
+
+####
+library(dplyr)
+phs.compare=inner_join(Field_WDH20_BLUE_all[,c(1,2)],TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",],by="taxa")
+phs.compare=as.data.frame(phs.compare[!is.na(phs.compare$PHS),])
+phs<-phs.compare[,c('taxa','PHS')]
+str(phs)
+phs$type="PHS"
+phs=phs[with(phs,order(PHS)),]
+phs$rank=rep(1:nrow(phs))
+colnames(phs)[2]<-"value"
+phs$value=phs$value/9
+
+GE1=phs.compare[,c('taxa','GE','TP')]
+GE1=GE1[GE1$TP=="TP1",]
+colnames(GE1)
+GE1=GE1[,-3]
+GE1$type="GETP1"
+
+GE1=GE1[with(GE1,order(GE)),]
+colnames(GE1)[2]<-"value"
+
+GE1$rank=rep(1:nrow(GE1))
+colnames(GE1)
+colnames(phs)
+phs.GE1=rbind(phs,GE1)
+phs.GE1=phs.GE1[with(phs.GE1,order(taxa)),]
+
+
+cor.test(phs.compare$PHS, phs.compare$GE)
+ggplot(phs.GE1, aes(value,fill=type)) + geom_density(alpha=0.2)
+
+###
+
+TP_all_WDH20_BLUE_all$Pedigree
+table(TP_all_WDH20_BLUE_all$taxa)
+table(All_pheno_TPall$Entry,useNA="ifany")
+#View(All_pheno_TPall$Family[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)])
+hist(TP_all_WDH20_BLUE_all$GIscale_5D)
+table(TP_all_WDH20_BLUE_all$GIscale_5D)
+TP_all_WDH20_BLUE_all$Pedigree=All_pheno_TPall$Family[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+
+TP_all_WDH20_BLUE_all$Check=All_pheno_TPall$Check[match(TP_all_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+table(TP_all_WDH20_BLUE_all$Pedigree)
+TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$Pedigree=="KWS Scala",]$Pedigree<-"Scala"
+# All_pheno_TPall$Entry
+# TP1_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP1_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# TP2_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP2_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# 
+# TP3_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP3_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# TP4_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP4_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# 
+# TP5_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP5_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
+# 
+# TP_WDH20_BLUE_all.F<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
+table(TP_WDH20_BLUE_all$Pedigree)
+```
+box plots
+```{r}
+TP_all_melt=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c("GE"))
+table(TP_all_melt$Pedigree)
+#wdh1melt=rbind(melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
+              # melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = #c("GIscale")))
+#wdh1melt=wdh1melt[-c(which(is.na(wdh1melt$TP))),]
+
+#wdh2melt$dataset="wdh2"; wdh1melt$dataset="wdh1"; 
+#wdhmelt=rbind(wdh2melt, wdh1melt)
+# levels(wdhmelt$variable)= c("Germination energy", "Germination index")
+
+TP_WDH20_BLUE_all[is.na(TP_WDH20_BLUE_all$Pedigree),]
+
+
+library(stringr)
+ 
+#TP_all_melt_GE=TP_all_melt_GE[!TP_all_melt_GE$TP=="5",]
+library(gridExtra)
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+  "lw,lh,flt,flx"
+Sub_legend<-function(c,trait,lw,lh,flt,flx){
+View(TP_all_WDH20_BLUE_all)
+TP_all_melt=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c(trait))
+TP_all_melt$TP=sapply(str_split(TP_all_melt$TP,"P",2),`[`,2)
+TP_all_melt=as.data.frame(TP_all_melt)
+
+df=TP_all_melt[TP_all_melt$Check=="C"| TP_all_melt$Pedigree==c,]
+df$Family=df$Pedigree
+df[df$Check=="C" &df$Pedigree==c,]$Family=paste0(c)
+#df[df$Check=="C",]$Family=paste0(c)
+df[df$Check=="B",]$Family="Exp Lines"
+df[df$Check=="B",]$Check="DH lines"
+df[df$Check=="C",]$Check="Parent Checks"
+
+q1.T<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
+    ggtitle(paste0(trait," ",c))+
+    
+  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
+
+    
+  scale_fill_manual()+
+  
+  geom_line(size=0.8) +
+  
+ #change legend title font size
+  theme_bw()+ 
+  theme(plot.title = element_text(hjust = 0.5),axis.title.x=element_blank(),axis.title.y=element_blank(),legend.key.height= unit(lh, 'cm'),legend.key.width= unit(lw, 'cm'),legend.title = element_text(size=flt),legend.text = element_text(size=flx),plot.background = element_rect(fill = "white"))
+
+legend=get_legend(q1.T)
+return(legend)
+}
+legend<-Sub_legend('Flavia','GIscale',0.3,0.6,9,8)
+
+plot(legend)
+TP_all_WDH20_BLUE_all
+
+
+
+
+```
+#we will be doing some random subsetting here for selection of the 60 lines we will be malting, we will need the folllowing criteria, equal representation of families, distribution from low medium and high within in each TP(TP2 probably), some representation of facultative, and the lines selected should pass a general agronomic test. From quick analysis of winter 21, we should exclude high frost damage and high heading date lines
+```{r}
+
+high_yield<-names(table(Field_WDH20_BLUE_all[Field_WDH20_BLUE_all$Seed_weight>90,]$taxa))
+high_yield
+hist(Field_WDH21_BLUE_part$HD)
+hist(Field_WDH21_BLUE_part$frost_damage)
+hist(Field_WDH20_BLUE_all$HD)
+library(dplyr)
+obj<-Field_WDH21_BLUE_part%>%filter(HD < quantile(Field_WDH21_BLUE_part$HD, 0.90))
+obj[obj$HD>6,]
+obj<-obj%>%filter(frost_damage < quantile(obj$frost_damage, 0.90))
+
+hist(Field_WDH21_BLUE_part$frost_damage)
+hist(obj$frost_damage)
+
+hist(obj$HD)
+#group_by(Type) %>% 
+
+
+#df1 %>%filter(between(Count, quantile(Count, 0.1), quantile(Count, 0.9)))
+
+hist(Field_WDH20_BLUE_all$Seed_weight)
+
+#vec20<-which(Field_WDH20_BLUE_all$taxa%in%TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",]$taxa)
+Sub20=Field_WDH20_BLUE_all[vec20,]
+Sub20=Sub20[Sub20$Seed_weight>-30,]
+View(Sub20)
+View(Sub20)
+hist(Sub$HD)
+
+```
