@@ -160,13 +160,32 @@ TP_all_WDH20_BLUE_all
 #we will be doing some random subsetting here for selection of the 60 lines we will be malting, we will need the folllowing criteria, equal representation of families, distribution from low medium and high within in each TP(TP2 probably), some representation of facultative, and the lines selected should pass a general agronomic test. From quick analysis of winter 21, we should exclude high frost damage and high heading date lines
 ```{r}
 
-vec<-which(Field_WDH21_BLUE_part$taxa%in%TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",]$taxa)
-Sub=Field_WDH21_BLUE_part[vec,]
+high_yield<-names(table(Field_WDH20_BLUE_all[Field_WDH20_BLUE_all$Seed_weight>90,]$taxa))
+high_yield
+hist(Field_WDH21_BLUE_part$HD)
+hist(Field_WDH21_BLUE_part$frost_damage)
+hist(Field_WDH20_BLUE_all$HD)
+library(dplyr)
+obj<-Field_WDH21_BLUE_part%>%filter(HD < quantile(Field_WDH21_BLUE_part$HD, 0.90))
+obj[obj$HD>6,]
+obj<-obj%>%filter(frost_damage < quantile(obj$frost_damage, 0.90))
 
-vec<-which(Field_WDH20_BLUE_all$taxa%in%TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",]$taxa)
-Sub1=Field_WDH20_BLUE_all[vec,]
-Sub1
-Sub1
+hist(Field_WDH21_BLUE_part$frost_damage)
+hist(obj$frost_damage)
+
+hist(obj$HD)
+#group_by(Type) %>% 
+
+
+#df1 %>%filter(between(Count, quantile(Count, 0.1), quantile(Count, 0.9)))
+
+hist(Field_WDH20_BLUE_all$Seed_weight)
+
+#vec20<-which(Field_WDH20_BLUE_all$taxa%in%TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",]$taxa)
+Sub20=Field_WDH20_BLUE_all[vec20,]
+Sub20=Sub20[Sub20$Seed_weight>-30,]
+View(Sub20)
+View(Sub20)
 hist(Sub$HD)
 
 ```
