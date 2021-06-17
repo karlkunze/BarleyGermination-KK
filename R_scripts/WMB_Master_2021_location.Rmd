@@ -343,12 +343,14 @@ Dormancy21.McGowan$Sample<-"No"
 
 Dormancy21.McGowan[Dormancy21.McGowan$Entry%in%Select60_2021,]$Sample="Yes"
 Dormancy21.McGowan[Dormancy21.McGowan$Entry%in%Additional60_McGowan$Entry,]$Sample<-"Yes"
-write.csv(Additional60_McGowan,"2021_prep/"
+write.csv(Additional60_McGowan,"2021_prep/Additional_60_McGowan.csv")
 
-
+Dormancy21.Ketola=as.data.frame(Dormancy21.Ketola)
+Dormancy21.McGowan=as.data.frame(Dormancy21.McGowan)
 library(xlsx)
-write.xlsx(dataframe1, file="filename.xlsx", sheetName="sheet1", row.names=FALSE)
-write.xlsx(dataframe2, file="filename.xlsx", sheetName="sheet2", append=TRUE, row.names=FALSE)
+write.xlsx(Dormancy21.Ketola, file="2021_prep/WMB21_Master_dormancy_0.xlsx", sheetName="Ketola", row.names=FALSE)
+write.xlsx(Dormancy21.McGowan, file="2021_prep/WMB21_Master_dormancy_0.xlsx", sheetName="McGowan", append=TRUE, row.names=FALSE)
+getwd()
 ##############
 
 
