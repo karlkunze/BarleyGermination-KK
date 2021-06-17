@@ -195,24 +195,24 @@ Sub20$Order<-0
 Sub20.TP2=Sub20[Sub20$TP=="TP2",]
 Sub20=Sub20%>% arrange(Pedigree,TP,GIscale)
 
+nrow(Sub20[Sub20$Pedigree=="Flavia"&Sub20$TP=="TP3",])
+Sub20[Sub20$Pedigree=="Flavia"&Sub20$TP=="TP3"&Sub20$Check=="B",]$Order<-c(1:71)
+Sub20[Sub20$Pedigree=="Scala"&Sub20$TP=="TP3"&Sub20$Check=="B",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="Scala"&Sub20$TP=="TP3"&Sub20$Check=="B",])
 
-Sub20[Sub20$Pedigree=="Flavia"&Sub20$TP=="TP3",]$Order<-1:72
-Sub20[Sub20$Pedigree=="Scala"&Sub20$TP=="TP3",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="Scala"&Sub20$TP=="TP3",])
-
-Sub20[Sub20$Pedigree=="SY Tepee"&Sub20$TP=="TP3",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="SY Tepee"&Sub20$TP=="TP3",])
-Sub20[Sub20$Pedigree=="Wintmalt"&Sub20$TP=="TP3",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="Wintmalt"&Sub20$TP=="TP3",])
+Sub20[Sub20$Pedigree=="SY Tepee"&Sub20$TP=="TP3"&Sub20$Check=="B",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="SY Tepee"&Sub20$TP=="TP3"&Sub20$Check=="B",])
+Sub20[Sub20$Pedigree=="Wintmalt"&Sub20$TP=="TP3"&Sub20$Check=="B",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="Wintmalt"&Sub20$TP=="TP3"&Sub20$Check=="B",])
 
 table(Sub20$Pedigree)
-vecF<-as.character(c(1,3,5,7,9,31,33,35,37,39,63,65,67,70,71))
+vecF<-as.character(c(2,3,7,8,10,12,31,33,35,37,39,66,68,70,72,74))
 Sub20[Sub20$Pedigree=="Flavia"&Sub20$Order%in%vecF,]$List="Select"
 Sub20
-vecK<-as.character(c(1,3,5,7,9,47,49,50,51,53,91,93,95,98,99))
+vecK<-as.character(c(2,4,6,8,10,47,49,50,51,53,91,93,95,97,99))
 Sub20[Sub20$Pedigree=="Scala"&Sub20$Order%in%vecK,]$List="Select"
 121/2
-vecT<-as.character(c(1,3,5,7,9,56,58,60,62,64,113,115,117,120,121))
+vecT<-as.character(c(2,3,6,9,10,57,59,61,63,82,113,115,117,120,121))
 Sub20[Sub20$Pedigree=="SY Tepee"&Sub20$Order%in%vecT,]$List="Select"
 90/2
-vecW<-as.character(c(1,3,5,7,9,41,43,45,47,49,82,84,86,89,90))
+vecW<-as.character(c(2,4,6,8,10,39,41,43,45,47,82,84,86,89,90))
 Sub20[Sub20$Pedigree=="Wintmalt"&Sub20$Order%in%vecW,]$List="Select"
 listSelect<-Sub20[Sub20$List=="Select",]$taxa
 Sub20[which(Sub20$taxa%in%listSelect),]$List<-"Select"
@@ -223,6 +223,8 @@ table(Sub20$Check)
 ```{r}
 #we will assign the subset df to this object "df2
 df2<-Sub20
+Select60_2021=unique(Sub20[Sub20$List=="Select",]$taxa)
+
 table(df2$List)/4
 SubL<-function(c,trait,scale_value,x,y){
 size.x=x
@@ -236,7 +238,7 @@ df$Family=df$Pedigree
 df[df$Check=="C"&df$Pedigree=="Flavia",]$Family=paste0(c," Check")
 df[df$Check=="B",]$Family="Experimental Lines"
 df[df$Check=="B"&df$List=="Select",]$Family="Z_select"
-
+df[df$Check=="C",]$List="Check"
 
 
 
@@ -244,7 +246,7 @@ df[df$Check=="B"&df$List=="Select",]$Family="Z_select"
 q<-ggplot(data=df, aes(x=TP, y=value,group=taxa,color=List)) +
     ggtitle(paste0("Family ",c))+
     
-  scale_color_manual(values=c("gray","red"))+
+  scale_color_manual(values=c("#ADD8E6","gray","red"))+
 
  scale_fill_manual()+
 
@@ -259,14 +261,18 @@ return(q)
 
 
 #Scala
-q3
+
 q1=SubL('Flavia','GIscale',ylim(-7.5,1),0,10)
+q1
 q2=SubL('Scala','GIscale',ylim(-7.5,1),0,0)
+q2
 q3=SubL('SY Tepee','GIscale',ylim(-7.5,1),10,10)
 q4=SubL('Wintmalt','GIscale',ylim(-7.5,1),10,0)
 blankPlot <- ggplot()+geom_blank(aes(1,1)) + 
   cowplot::theme_nothing()
-q1
+q4
+q2
+q3
 #grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
 legend<-grid.arrange(legend)
 legend
@@ -275,6 +281,7 @@ figureT<-grid.arrange(q1,q2,q3,q4,
 anno<-annotate_figure(figureT,top = text_grob("GI Scale", size = 8), bottom = text_grob("Time Point", size = 8))
 anno
 plot(legend)
+
 q1=Sub('Flavia','GE',ylim(-1,0.05),0,8)
 q2=Sub('Scala','GE',ylim(-1,0.05),0,0)
 q3=Sub('SY Tepee','GE',ylim(-1,0.05),8,8)
@@ -307,8 +314,68 @@ figureT<-grid.arrange(q1, q2,legend,q3,q4,blankPlot,
 anno<-annotate_figure(figureT,top = text_grob("5 Day GI Scale BLUEs", face = "bold", size = 14), bottom = text_grob("Time Point", size = 12))
 
 anno
+getwd()
+write.csv(Select60_2021,"2021_prep/2021_60_line_malt_quality_samples.csv")
+Sub21.random=Sub20[!Sub20$taxa%in%Select60_2021,]
+Sub21.random=Sub21.random[!Sub21.random$taxa%in%high_yield,]
+Sub21.random=Sub21.random[Sub21.random$Check=="B",]
+sub21.list=unique(Sub21.random$taxa)
 
+
+set.seed(50)
+Additional60_McGowan=as.data.frame(sample(sub21.list,34))
+vec1<-as.data.frame(high_yield)
+names(vec1)<-"Entry"
+names(Additional60_McGowan)<-"Entry"
+Additional60_McGowan=rbind(Additional60_McGowan,vec1)
+all_pheno=unique(All_pheno_TPall[All_pheno_TPall$Entry%in%Additional60_McGowan$Entry,])
+
+                                   
+Dormancy21.Ketola=read_excel("C:/Users/Karl/Dropbox/Cornell Small Grains Breeding/2021/Winter Grains21/Screening&Master21/WMB21_Dormancy/WMB21_Master_dormancy.xlsx",sheet="Ketola")
+Dormancy21.Ketola$Malt_sample<-"No"
+Dormancy21.Ketola[Dormancy21.Ketola$Entry%in%Select60_2021,]$Malt_sample="Yes"
+
+Dormancy21.McGowan=read_excel("C:/Users/Karl/Dropbox/Cornell Small Grains Breeding/2021/Winter Grains21/Screening&Master21/WMB21_Dormancy/WMB21_Master_dormancy.xlsx",sheet="McGowan")
+Dormancy21.McGowan$Malt_sample<-"No"
+Select60_2021
+Dormancy21.McGowan[Dormancy21.McGowan$Entry%in%Select60_2021,]$Malt_sample="Yes"
+Dormancy21.McGowan$Sample<-"No"
+
+Dormancy21.McGowan[Dormancy21.McGowan$Entry%in%Select60_2021,]$Sample="Yes"
+Dormancy21.McGowan[Dormancy21.McGowan$Entry%in%Additional60_McGowan$Entry,]$Sample<-"Yes"
+write.csv(Additional60_McGowan,"2021_prep/"
+
+
+library(xlsx)
+write.xlsx(dataframe1, file="filename.xlsx", sheetName="sheet1", row.names=FALSE)
+write.xlsx(dataframe2, file="filename.xlsx", sheetName="sheet2", append=TRUE, row.names=FALSE)
 ##############
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+```{r}
 
 
 grid.arrange(legend)
