@@ -3,7 +3,8 @@ title: "Line selection for second location"
 author: "Karl Kunze"
 date: "6/15/2021"
 output: html_document
-This is a document for making 60(120) line selection for 2021 field season for the second location
+editor_options: 
+  chunk_output_type: console
 ---
 ```{r}
 library(readr); library(readxl)
@@ -29,7 +30,7 @@ TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="DH130910",]$taxa="Check 3-DH1
 TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="SY Tepee",]$taxa="Check 4-SY Tepee"
 TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Wintmalt",]$taxa="Check 5-Wintmalt"
 TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$taxa=="Charles",]$taxa="Check 6-Charles"
-table(TP_all_WDH20_BLUE_all)
+
 
 
 ####
@@ -86,7 +87,7 @@ TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$Pedigree=="KWS Scala",]$Pedigree<-"S
 # TP5_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP5_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
 # 
 # TP_WDH20_BLUE_all.F<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
-table(TP_WDH20_BLUE_all$Pedigree)
+
 ```
 box plots
 ```{r}
@@ -158,57 +159,92 @@ TP_all_WDH20_BLUE_all
 ```{r}
 
 high_yield<-names(table(Field_WDH20_BLUE_all[Field_WDH20_BLUE_all$Seed_weight>90,]$taxa))
-high_yield
+
 hist(Field_WDH21_BLUE_part$HD)
 hist(Field_WDH21_BLUE_part$frost_damage)
 hist(Field_WDH20_BLUE_all$HD)
 library(dplyr)
-obj<-Field_WDH21_BLUE_part%>%filter(HD < quantile(Field_WDH21_BLUE_part$HD, 0.90))
-obj[obj$HD>6,]
-obj<-obj%>%filter(frost_damage < quantile(obj$frost_damage, 0.90))
+obj<-Field_WDH21_BLUE_part%>%filter(frost_damage < quantile(Field_WDH21_BLUE_part$frost_damage, 0.90))
+
+obj<-obj[obj$HD<6.6,]
+
+
 
 hist(Field_WDH21_BLUE_part$frost_damage)
 hist(obj$frost_damage)
 
-hist(obj$HD)
+names<-unique(obj$taxa)
+obj[obj$HD>6,]
 #group_by(Type) %>% 
-
+names
 
 #df1 %>%filter(between(Count, quantile(Count, 0.1), quantile(Count, 0.9)))
 
 hist(Field_WDH20_BLUE_all$Seed_weight)
 
 #vec20<-which(Field_WDH20_BLUE_all$taxa%in%TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$TP=="TP1",]$taxa)
-Sub20=Field_WDH20_BLUE_all[vec20,]
-Sub20=Sub20[Sub20$Seed_weight>-30,]
-View(Sub20)
-View(Sub20)
-hist(Sub$HD)
+names#this is the subset from 2021 data
+high_yield#high yielding lines
 
+Sub20=TP_all_WDH20_BLUE_all[which(TP_all_WDH20_BLUE_all$taxa%in%names|TP_all_WDH20_BLUE_all$taxa%in%high_yield|TP_all_WDH20_BLUE_all$Check=="C"),]
+table(Sub20$Check)
+high_yield%in%Sub20$taxa
+Sub20$GIscale
+Sub20$List<-"not_selected"
+Sub20$Order<-0
+Sub20.TP2=Sub20[Sub20$TP=="TP2",]
+Sub20=Sub20%>% arrange(Pedigree,TP,GIscale)
+
+
+Sub20[Sub20$Pedigree=="Flavia"&Sub20$TP=="TP3",]$Order<-1:72
+Sub20[Sub20$Pedigree=="Scala"&Sub20$TP=="TP3",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="Scala"&Sub20$TP=="TP3",])
+
+Sub20[Sub20$Pedigree=="SY Tepee"&Sub20$TP=="TP3",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="SY Tepee"&Sub20$TP=="TP3",])
+Sub20[Sub20$Pedigree=="Wintmalt"&Sub20$TP=="TP3",]$Order<-1:nrow(Sub20[Sub20$Pedigree=="Wintmalt"&Sub20$TP=="TP3",])
+
+table(Sub20$Pedigree)
+vecF<-as.character(c(1,3,5,7,9,31,33,35,37,39,63,65,67,70,71))
+Sub20[Sub20$Pedigree=="Flavia"&Sub20$Order%in%vecF,]$List="Select"
+Sub20
+vecK<-as.character(c(1,3,5,7,9,47,49,50,51,53,91,93,95,98,99))
+Sub20[Sub20$Pedigree=="Scala"&Sub20$Order%in%vecK,]$List="Select"
+121/2
+vecT<-as.character(c(1,3,5,7,9,56,58,60,62,64,113,115,117,120,121))
+Sub20[Sub20$Pedigree=="SY Tepee"&Sub20$Order%in%vecT,]$List="Select"
+90/2
+vecW<-as.character(c(1,3,5,7,9,41,43,45,47,49,82,84,86,89,90))
+Sub20[Sub20$Pedigree=="Wintmalt"&Sub20$Order%in%vecW,]$List="Select"
+listSelect<-Sub20[Sub20$List=="Select",]$taxa
+Sub20[which(Sub20$taxa%in%listSelect),]$List<-"Select"
+table(Sub20$Check)
 ```
 
 
 ```{r}
-Sub<-function(c,trait,scale_value,x,y){
+#we will assign the subset df to this object "df2
+df2<-Sub20
+table(df2$List)/4
+SubL<-function(c,trait,scale_value,x,y){
 size.x=x
 size.y=y
-TP_all_melt=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c(trait))
+TP_all_melt=melt(df2, id.vars =c("taxa","TP","Pedigree","Check","List"), measure.vars = c(trait))
 TP_all_melt$TP=sapply(str_split(TP_all_melt$TP,"P",2),`[`,2)
 TP_all_melt=as.data.frame(TP_all_melt)
 
 df=TP_all_melt[TP_all_melt$Check=="C"| TP_all_melt$Pedigree==c,]
 df$Family=df$Pedigree
-df[df$Check=="C" &df$Pedigree==c,]$Family=paste0(c," Check")
+df[df$Check=="C"&df$Pedigree=="Flavia",]$Family=paste0(c," Check")
 df[df$Check=="B",]$Family="Experimental Lines"
+df[df$Check=="B"&df$List=="Select",]$Family="Z_select"
 
 
 
 
 
-q<-ggplot(data=df, aes(x=TP, y=value,group=taxa,linetype=Check,color=Family)) +
+q<-ggplot(data=df, aes(x=TP, y=value,group=taxa,color=List)) +
     ggtitle(paste0("Family ",c))+
     
-  scale_color_manual(values=c("#ee0000","#4c7c82","gray","magenta","orange","#87ceeb","#102969"))+
+  scale_color_manual(values=c("gray","red"))+
 
  scale_fill_manual()+
 
@@ -223,11 +259,11 @@ return(q)
 
 
 #Scala
-
-q1=Sub('Flavia','GIscale',ylim(-7.5,1),0,10)
-q2=Sub('Scala','GIscale',ylim(-7.5,1),0,0)
-q3=Sub('SY Tepee','GIscale',ylim(-7.5,1),10,10)
-q4=Sub('Wintmalt','GIscale',ylim(-7.5,1),10,0)
+q3
+q1=SubL('Flavia','GIscale',ylim(-7.5,1),0,10)
+q2=SubL('Scala','GIscale',ylim(-7.5,1),0,0)
+q3=SubL('SY Tepee','GIscale',ylim(-7.5,1),10,10)
+q4=SubL('Wintmalt','GIscale',ylim(-7.5,1),10,0)
 blankPlot <- ggplot()+geom_blank(aes(1,1)) + 
   cowplot::theme_nothing()
 q1
