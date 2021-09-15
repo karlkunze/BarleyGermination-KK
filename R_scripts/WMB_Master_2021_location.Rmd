@@ -87,12 +87,13 @@ TP_all_WDH20_BLUE_all[TP_all_WDH20_BLUE_all$Pedigree=="KWS Scala",]$Pedigree<-"S
 # TP5_WDH20_BLUE_all$Pedigree<-All_pheno_TPall$Family[match(TP5_WDH20_BLUE_all$taxa,All_pheno_TPall$Entry)]
 # 
 # TP_WDH20_BLUE_all.F<-rbind(TP1_WDH20_BLUE_all,TP2_WDH20_BLUE_all,TP3_WDH20_BLUE_all,TP4_WDH20_BLUE_all,TP5_WDH20_BLUE_all)
-
+save(TP_all_WDH20_BLUE_all,file="C:/Users/Karl/git/Cornell-WMB21-selections/data/phenotypes/2020/TP_all_WDH20_BLUE_all.Rdata")
 ```
 box plots
 ```{r}
 TP_all_melt=melt(TP_all_WDH20_BLUE_all, id.vars =c("taxa","TP","Pedigree","Check"), measure.vars = c("GE"))
 table(TP_all_melt$Pedigree)
+
 #wdh1melt=rbind(melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
               # melt(Cwdh, id.vars =c("Entry","Timepoint"), measure.vars = #c("GIscale")))
 #wdh1melt=wdh1melt[-c(which(is.na(wdh1melt$TP))),]
