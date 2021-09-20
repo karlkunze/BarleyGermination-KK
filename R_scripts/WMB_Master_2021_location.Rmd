@@ -225,40 +225,20 @@ table(Sub20$Check)
 #we will assign the subset df to this object "df2
 df2<-Sub20
 Select60_2021=unique(Sub20[Sub20$List=="Select",]$taxa)
-
+df2$List
+library(readxl)
+WMB21_Master_selections_top25 <- 
+#needed to check WMB22 regional selected lines  
+read_excel("C:/Users/Karl/git/Cornell-WMB21-selections/data/WMB21_Master_selections_top25.xlsx")
+list1<-c(WMB21_Master_selections_top25$Entry)
 table(df2$List)/4
-SubL<-function(c,trait,scale_value,x,y){
-size.x=x
-size.y=y
-TP_all_melt=melt(df2, id.vars =c("taxa","TP","Pedigree","Check","List"), measure.vars = c(trait))
-TP_all_melt$TP=sapply(str_split(TP_all_melt$TP,"P",2),`[`,2)
-TP_all_melt=as.data.frame(TP_all_melt)
+#df2[df2$taxa%in%list1,]$List="WMB21"
+df2$PM_date
+df2[df2$Pedigree=="Scala"&df2$model=="BLUE"&df2$TP=="TP3",c(1,4)]
+#need to remove this 
+"BS812-50"
+"BS712-70"
 
-df=TP_all_melt[TP_all_melt$Check=="C"| TP_all_melt$Pedigree==c,]
-df$Family=df$Pedigree
-df[df$Check=="C"&df$Pedigree=="Flavia",]$Family=paste0(c," Check")
-df[df$Check=="B",]$Family="Experimental Lines"
-df[df$Check=="B"&df$List=="Select",]$Family="Z_select"
-df[df$Check=="C",]$List="Check"
-
-
-
-
-q<-ggplot(data=df, aes(x=TP, y=value,group=taxa,color=List)) +
-    ggtitle(paste0("Family ",c))+
-    
-  scale_color_manual(values=c("#ADD8E6","gray","red"))+
-
- scale_fill_manual()+
-
-  
-  geom_line(size=0.8) +
-  theme_bw()+
-  
-  theme(plot.title = element_text(hjust = 0.5,size = 10),legend.position = "none",axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x =element_text(size=size.x),axis.text.y =element_text(size=size.y))+
-  scale_value
-return(q)
-}
 
 
 #Scala
@@ -274,6 +254,7 @@ blankPlot <- ggplot()+geom_blank(aes(1,1)) +
 q4
 q2
 q3
+q1
 #grid.arrange(q1,q2,legend,q3,q4,blankPlot,ncol=3,nrow=2)
 legend<-grid.arrange(legend)
 legend
