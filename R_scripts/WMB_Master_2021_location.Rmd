@@ -244,7 +244,8 @@ df2$PM_date
 #need to remove this 
 "BS812-50"
 "BS712-70"
-
+list1
+df2[df2$taxa%in%list1,]$List="WMB21"
 SubL<-function(c,trait,scale_value,x,y){
 size.x=x
 size.y=y
@@ -260,7 +261,7 @@ df[df$Check=="C",]$List="Check"
 q<-ggplot(data=df, aes(x=TP, y=value,group=taxa,color=List)) +
     ggtitle(paste0("Family ",c))+
     
-  scale_color_manual(values=c("#ADD8E6","gray","red"))+
+  scale_color_manual(values=c("#ADD8E6","gray","red","green"))+
  scale_fill_manual()+
   
   geom_line(size=0.8) +
