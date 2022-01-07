@@ -15,9 +15,12 @@ Update: This is for the wrong alignment, use the .gff file for correct alignment
 Correct Morex v2 2019 upload
 ```{r}
 library(stringr)
-setwd("C:/Users/Karl/git/BarleyGermination-KK")
-Morex2019<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",skip=1,header = FALSE)
+getwd()
+
+#setwd("C:/Users/Karl/git/BarleyGermination-KK")
+Morex2019<-read.delim("/home/karl/git/BarleyGermination-KK/data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",skip=1,header = FALSE)
 #should be the correct alignment
+Morex2019
 Morex2019=Morex2019[,c(1,2,4,7,9)]
 Morex2019$V1<-str_split_fixed(Morex2019$V1,"r" , 2)[,2]
 Morex2019$V9<-str_split_fixed(Morex2019$V9,"=" , 2)[,2]
@@ -27,6 +30,22 @@ colnames(Morex2019)<-c("Chrom","Type","pos","strand","Marker")
 #table(Morex2019$Chrom,useNA = "ifany")
 Morex2019<-Morex2019[with(Morex2019, order(Chrom, pos)),]
 #Alignment_list<-Morex2019[Morex2019$Marker%in%wdh_raw$`rs-`,]
+Morex2019
+```
+Morex V3, do not have strand values
+```{r}
+library(readxl)
+library(stringr)
+MorexV3 <- read_excel("data/Genotype_data/SNPPositions_50k_on_MorexV3.xlsx")
+colnames(MorexV3)<-c("Marker","Chrom","pos")
+
+MorexV3$Chrom<-sapply(str_split(MorexV3$Chrom,"r"),`[`,2)
+colnames(Morex2019)
+Morex2019
+MorexV3$Type<-"barley50kChip"
+MorexV3$strand<-NA
+MorexV3=MorexV3[,c(2,4,3,5,1)]
+MorexV3$version<-"V3"
 ```
 
 Winter DH 50K GENOTYPING PROCESSING
