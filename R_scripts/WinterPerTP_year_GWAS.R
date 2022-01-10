@@ -102,6 +102,28 @@ DHs2021 = rbind(read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_GGS_TP1
          taxa = ifelse(taxa == 'KWS_Scala','Scala',taxa), year = '2021')
 
 DHs2021 %>% filter(substr(taxa,1,2) !='BS') %>% select(taxa) %>% unique()
+#
+##
+
+#View(DHs2021)
+
+#PHS 
+DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xlsx') %>%
+  mutate(location = ifelse(PLOT>6999, 'Ketola','McGowan'), year = '2021') %>% 
+  # rbind(read_excel('WinterBarley/PhenotypeData/2020Harvest/2020WinterDH_PHS.xlsx')%>%
+  #         mutate(location = 'Ketola2020'), year = '2020')  #Not sure if this should be included as these were planed as facultatives. 
+  select(!Comment) %>% mutate(taxa = gsub(pattern = '-', replacement = '_',Entry),taxa = gsub(pattern = ' ', replacement = '_',taxa)) %>%
+  rename(score = `Sprout Score`) %>% 
+  separate(score, into =c('p0','p1','p2','p3','p4','p5'), sep = '') %>% select(!p0) %>% pivot_longer(cols = c(p1,p2,p3,p4,p5)) %>%
+  mutate(value = as.numeric(value)) %>%
+  group_by(taxa, location, Harv, year) %>% summarise(PHS = mean(value,na.rm = T))
+PHS.lmer = lmer(PHS ~ location +(1|location:Harv)+(1|taxa), DH_Sprout) 
+VarCorr(PHS.lmer)
+BLUPH2(PHS.lmer)
+DH.PHS = (ranef(PHS.lmer)$taxa + fixef(PHS.lmer)[1]) %>% as.data.frame() %>% rownames_to_column('taxa') %>% rename(PHS =`(Intercept)`)
+hist(DH.PHS[DH.PHS$PHS>1,])
+
+
 
 # 2020 GE and GI anova #####
 anova(lm(GI~ taxa +Location+rep, DHs2020 %>% filter(PM_date ==5))) #rep insignificant
@@ -164,7 +186,7 @@ DHs20202021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(tra
 
 DHs20202021 %>%pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% 
   ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+facet_grid(trait~year, scales = 'free')
-View(DHs20202021) 
+
 # Lets extract out 2020, 2021, and 2020/2021 values for GWA: Always including rep and location #####
 
 BlueBlupsH2_Location_rep_taxa <- function(d, groupvars) {
@@ -247,7 +269,8 @@ DHCombined = DHs2020 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Fami
 
 AllDHBluesPerYear = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
 save(AllDHBluesPerYear, file = 'data/Analysis/AllDHBluesPerYear.RData')
-
+save(AllDHBluesPerYear, file = 'C:/Users/kars8/git/Cornell-WMB21-selections/data/phenotypes/Germination/AllDHBluesGerminationPerYear.RData')
+View(AllDHBluesPerYear)
 
 
 # Plotting of 2020 vs 2021 to find outliers and removed contamination #####
@@ -271,8 +294,15 @@ DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
   filter(type == 'H2') %>% ggplot(aes(x = TP, y = value, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
   facet_wrap(vars(year), ncol = 1)+theme_bw()+labs(title= 'Broard sense heritability\nover time and datasets')
 
+
+
+obj<-rbind(DH2021Estimates, DH2020Estimates) %>%filter(type == 'BLUE')%>% mutate(headerFacet = 'Data source')%>%
+
+ group_by(TP,trait,year,Family) %>%
+ summarise_at(vars(value), list(mean = mean))
+obj
 #plots over time - reveals some issues with combining data from a time series perspective
-DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data source') %>%
+rbind(DH2021Estimates, DH2020Estimates) %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data source') %>%
   ggplot(aes(x = PM_date, y = value, group = taxa))+
   geom_line()+facet_nested(trait~headerFacet+year, scales = 'free')+
   geom_vline(xintercept = c(12,33,68), color = 'red')+
@@ -310,9 +340,10 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
 dev.off()
+png('plots/Presentation2022_01/BluesByFamilyQsd1_2020_2021.png', 1400, 800, res =120)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2021'))  %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
@@ -352,7 +383,7 @@ GWA_MLMM_fortidyR.perFamily = function(df, groupvars) {
     }, error = function(e){data.frame() } )
    return(Out)
 }
-GWA_MLM_fortidyR = function(df, groupvars) {
+#GWA_MLM_fortidyR = function(df, groupvars) {
   GWAS = GAPIT(Y = df %>% ungroup() %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD, GM=WinterGM,PCA.total = 2,
                Geno.View.output=F, model="MLM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
   Out = (GWAS$GWAS) %>% arrange(P.value)  %>%
@@ -362,7 +393,7 @@ GWA_MLM_fortidyR = function(df, groupvars) {
     arrange(P.value) %>% slice_head(n = 1000)
   return(Out)
 }
-GWA_MLM_fortidyR.perFamily = function(df, groupvars) {
+#GWA_MLM_fortidyR.perFamily = function(df, groupvars) {
   WinterGD_sub = WinterGD %>% filter(taxa %in% df$taxa)
   Out = tryCatch(
     {GWAS = suppressWarnings(GAPIT(Y = df %>% ungroup() %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD_sub, GM=WinterGM,PCA.total = 0,
@@ -402,7 +433,7 @@ WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  fi
 
 WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
 WinterPerTPGWAS %>% arrange(P.value) %>% view()
-
+save(WinterPerTPGWAS,file = "data/WinterPerTPGWAS.Rdata")
 WinterPerTPGWAS %>% ggplot(aes(ordinal, log10PVal, color = TP, shape = year))+geom_point()+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
   geom_vline(xintercept = 4780, color = 'red')+
@@ -414,14 +445,14 @@ WinterPerTPGWAS %>% ggplot(aes(ordinal, log10PVal, color = TP, shape = year))+ge
   facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
 
 # Per TP MLM 
-WinterPerTPGWAS.MLM = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>% 
-  filter(type == 'BLUE') %>% ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLM_fortidyR)
+#WinterPerTPGWAS.MLM = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>% 
+ # filter(type == 'BLUE') %>% ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLM_fortidyR)
 # Plot over time the MLM values as MLMM may swap from one loci to another
-WinterPerTPGWAS.MLM %>% filter(SNP %in% c('Qsd1','JHI-Hv50k-2016-311908','JHI-Hv50k-2016-276836')) %>%
-  mutate(label = paste0(SNP,'\n',Chromosome,':',`Position `)) %>%
-  ggplot(aes(TP, log10PVal, group = SNP, color = label))+geom_line()+
-  ylab('-log(p-value)')+xlab('TP')+ geom_hline(yintercept = -log10(5e-5), color = 'green')+
-  facet_grid(rows = vars(trait), cols = vars(year), scales = 'free_y')+theme_bw()
+#WinterPerTPGWAS.MLM %>% filter(SNP %in% c('Qsd1','JHI-Hv50k-2016-311908','JHI-Hv50k-2016-276836')) %>%
+ # mutate(label = paste0(SNP,'\n',Chromosome,':',`Position `)) %>%
+  #ggplot(aes(TP, log10PVal, group = SNP, color = label))+geom_line()+
+#  ylab('-log(p-value)')+xlab('TP')+ geom_hline(yintercept = -log10(5e-5), color = 'green')+
+ # facet_grid(rows = vars(trait), cols = vars(year), scales = 'free_y')+theme_bw()
 
 # per TP per Family with MLMM 
 WinterPerTPGWAS.PerFamily = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>% ungroup() %>%  Add_DH130910_familyStructure() %>%
@@ -435,19 +466,19 @@ WinterPerTPGWAS.PerFamily%>% filter(SNP %in% c('Qsd1','JHI-Hv50k-2016-311908','J
   facet_nested(year~Family+trait, scales = 'free_y')+theme_bw()
 
 # Per TP per family MLM 
-WinterPerTPGWAS.PerFamily.mlm = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined)%>% ungroup() %>% 
-  Add_DH130910_familyStructure() %>% filter(type == 'BLUE') %>% ungroup() %>% group_by(Family, year, TP, trait) %>%
-  group_modify(GWA_MLM_fortidyR.perFamily)
+#WinterPerTPGWAS.PerFamily.mlm = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined)%>% ungroup() %>% 
+ # Add_DH130910_familyStructure() %>% filter(type == 'BLUE') %>% ungroup() %>% group_by(Family, year, TP, trait) %>%
+  #group_modify(GWA_MLM_fortidyR.perFamily)
 
-WinterPerTPGWAS.PerFamily.mlm %>% filter(SNP %in% c('Qsd1','JHI-Hv50k-2016-311908','JHI-Hv50k-2016-276836','JHI-Hv50k-2016-308652')) %>%
-  mutate(label = paste0(SNP,'\n',Chromosome,':',`Position `)) %>% filter(year =='2021') %>%
-  ggplot(aes(TP, log10PVal, group = SNP, color = label))+geom_line()+
-  ylab('-log(p-value)')+xlab('TP')+ geom_hline(yintercept = -log10(5e-5), color = 'green')+
-  facet_nested_wrap(~Family+trait, nrow = 2, scales = 'free_y')+theme_bw()
+#WinterPerTPGWAS.PerFamily.mlm %>% filter(SNP %in% c('Qsd1','JHI-Hv50k-2016-311908','JHI-Hv50k-2016-276836','JHI-Hv50k-2016-308652')) %>%
+ # mutate(label = paste0(SNP,'\n',Chromosome,':',`Position `)) %>% filter(year =='2021') %>%
+  #ggplot(aes(TP, log10PVal, group = SNP, color = label))+geom_line()+
+#  ylab('-log(p-value)')+xlab('TP')+ geom_hline(yintercept = -log10(5e-5), color = 'green')+
+ # facet_nested_wrap(~Family+trait, nrow = 2, scales = 'free_y')+theme_bw()
 
-WinterPerTPGWAS.PerFamily.mlm %>% filter(Family == 'Flavia/DH130910') %>% arrange(P.value) %>% View()
-WinterPerTPGWAS.PerFamily.mlm %>% filter(Family == 'Scala/DH130910') %>% arrange(P.value) %>% View()
-WinterPerTPGWAS.PerFamily.mlm %>% arrange(P.value) %>% View()
+#WinterPerTPGWAS.PerFamily.mlm %>% filter(Family == 'Flavia/DH130910') %>% arrange(P.value) %>% View()
+#WinterPerTPGWAS.PerFamily.mlm %>% filter(Family == 'Scala/DH130910') %>% arrange(P.value) %>% View()
+#WinterPerTPGWAS.PerFamily.mlm %>% arrange(P.value) %>% View()
 
 
 Dprime_LD = function(SNPs) { #SNPs is a n rowed by 2 column dataframe with the 2 snps for LD calc
@@ -465,14 +496,14 @@ Dprime_LD = function(SNPs) { #SNPs is a n rowed by 2 column dataframe with the 2
   return(D_prime)
   }
 
-WinterPerTPGWAS.PerFamily.mlm %>% rbind(WinterPerTPGWAS.MLM%>% mutate(Family = 'Overall', .before = year)) %>%
-  mutate(ImportantSNPs = ifelse(SNP %in% c('Qsd1','JHI-Hv50k-2016-311497',
-                                           'JHI-Hv50k-2016-311574','JHI-Hv50k-2016-337656',
-                                           'JHI-Hv50k-2016-273541'), SNP, 'others'),
-         ImportantSNPs = factor(ImportantSNPs, levels =c('Qsd1','JHI-Hv50k-2016-311497','JHI-Hv50k-2016-311574', 'others') ))%>%
-  filter(SNP %in% c('Qsd1','JHI-Hv50k-2016-311497','JHI-Hv50k-2016-311574','JHI-Hv50k-2016-337656','JHI-Hv50k-2016-273541'))%>%
+#WinterPerTPGWAS.PerFamily.mlm %>% rbind(WinterPerTPGWAS.MLM%>% mutate(Family = 'Overall', .before = year)) %>%
+ # mutate(ImportantSNPs = ifelse(SNP %in% c('Qsd1','JHI-Hv50k-2016-311497',
+#                                           'JHI-Hv50k-2016-311574','JHI-Hv50k-2016-337656',
+ #                                          'JHI-Hv50k-2016-273541'), SNP, 'others'),
+  #       ImportantSNPs = factor(ImportantSNPs, levels =c('Qsd1','JHI-Hv50k-2016-311497','JHI-Hv50k-2016-311574', 'others') ))%>%
+ # filter(SNP %in% c('Qsd1','JHI-Hv50k-2016-311497','JHI-Hv50k-2016-311574','JHI-Hv50k-2016-337656','JHI-Hv50k-2016-273541'))%>%
   ggplot(aes(x = TP, y = log10PVal, group = SNP, color = SNP)) +
-  geom_line()+facet_nested(trait+year~Family, scales = 'free')+theme_bw()
+ # geom_line()+facet_nested(trait+year~Family, scales = 'free')+theme_bw()
 
 # Plots etc, not the most useful but we will see here #####
 
