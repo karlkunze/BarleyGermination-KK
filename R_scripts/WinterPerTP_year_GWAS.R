@@ -5,8 +5,9 @@ library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr);
 setwd(rprojroot::find_rstudio_root_file())
-load('WinterBarley/GenotypeData/WinterGD.RData')
-load('WinterBarley/GenotypeData/WinterGM.RData')
+
+load('data/Genotype_data/WinterGD_ter.RData')
+load('data/Genotype_data/WinterGM_ter.RData')
 WinterGM = WinterGM %>% arrange(Chromosome, Position)
 WinterGD = WinterGD %>%
   mutate(taxa = gsub(pattern = '-',replacement = '_',taxa),
@@ -50,12 +51,13 @@ BLUPH2 = function(trait.lm) {
   return(H2)
 }
 # Load and modify input data, calcuate the GI and GE for all assays ####
+
 setwd(rprojroot::find_rstudio_root_file())
-DHs2020 = rbind(read_excel("WinterBarley/PhenotypeData/2020Harvest/DHtp1_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP1',PM_date =5),
-            read_excel("WinterBarley/PhenotypeData/2020Harvest/DHtp2_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP2',PM_date =19),
-            read_excel("WinterBarley/PhenotypeData/2020Harvest/DHtp3_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP3',PM_date =47),
-            read_excel("WinterBarley/PhenotypeData/2020Harvest/DHtp4_all.xlsx",  guess_max = 1723)%>%mutate(TP = 'TP4',PM_date =96),
-            read_excel("WinterBarley/PhenotypeData/2020Harvest/DHtp5_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP5',PM_date =152)) %>%
+DHs2020 = rbind(read_excel("data/Phenotype_Data/2020Harvest/DHtp1_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP1',PM_date =5),
+            read_excel("data/Phenotype_Data/2020Harvest/DHtp2_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP2',PM_date =19),
+            read_excel("data/Phenotype_Data/2020Harvest/DHtp3_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP3',PM_date =47),
+            read_excel("data/Phenotype_Data/2020Harvest/DHtp4_all.xlsx",  guess_max = 1723)%>%mutate(TP = 'TP4',PM_date =96),
+            read_excel("data/Phenotype_Data/2020Harvest/DHtp5_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP5',PM_date =152)) %>%
   dplyr::mutate(GE =(Day1Germ+Day2Germ+Day3Germ)/(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ+KernelsLeft),
          GI = 10*GE*(Day1Germ+Day2Germ+Day3Germ)/(Day1Germ+2*Day2Germ+3*Day3Germ),
          GI = ifelse(is.nan(GI),0,GI),
@@ -76,14 +78,14 @@ DHs2020 = rbind(read_excel("WinterBarley/PhenotypeData/2020Harvest/DHtp1_all.xls
                                    'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910'))) %>%
   filter(Entry %nin% c('BBBdormSNLine', 'BBBdormSRLine'))
 
-DHs2021 = rbind(read_excel('2021Phenotyping/Data/DHs_GGS_TP1_PM5_full.xlsx') %>% mutate(notes = NA, TP = 'TP1'),
-                read_excel('2021Phenotyping/Data/DHs_PM_12_full.xlsx')%>% mutate(notes = NA,TP = 'TP1.5'),
-                read_excel('2021Phenotyping/Data/DHs_PM_19_GGS_TP2_full.xlsx') %>% mutate(notes = NA, TP = 'TP2'),
-                read_excel('2021Phenotyping/Data/DHs_PM_33_GGS_TP3_full.xlsx') %>% mutate(TP = 'TP2.5'),
-                read_excel('2021Phenotyping/Data/DHs_PM_47_GGS_TP4_full.xlsx') %>% mutate(TP = 'TP3'),
-                read_excel('2021Phenotyping/Data/DHs_PM_68_GGS_TP5_full.xlsx')%>% mutate(TP='TP3.5'),
-                read_excel('2021Phenotyping/Data/DHs_PM_96_full.xlsx') %>% mutate(TP = 'TP4'),
-                read_excel('2021Phenotyping/Data/DHs_PM_150_GGS_TP7_full.xlsx') %>% mutate(Pmdate = 152,notes = NA,TP = 'TP5')) %>%
+DHs2021 = rbind(read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_GGS_TP1_PM5_full.xlsx') %>% mutate(notes = NA, TP = 'TP1'),
+                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_12_full.xlsx')%>% mutate(notes = NA,TP = 'TP1.5'),
+                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_19_GGS_TP2_full.xlsx') %>% mutate(notes = NA, TP = 'TP2'),
+                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_33_GGS_TP3_full.xlsx') %>% mutate(TP = 'TP2.5'),
+                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_47_GGS_TP4_full.xlsx') %>% mutate(TP = 'TP3'),
+                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_68_GGS_TP5_full.xlsx')%>% mutate(TP='TP3.5'),
+                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_96_full.xlsx') %>% mutate(TP = 'TP4'),
+                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_150_GGS_TP7_full.xlsx') %>% mutate(Pmdate = 152,notes = NA,TP = 'TP5')) %>%
   filter(!is.na(Day2Germ)) %>% filter(AssayNumber != 10 & AssayNumber != 318 & AssayNumber != 190) %>% #These look to be contamination
   filter(Location == 'McGowan' | Location == 'Ketola') %>%
   dplyr::select(!c('seed_mass', 'GerminationAssay', 'MaltingQualitySampling')) %>%
@@ -162,7 +164,7 @@ DHs20202021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(tra
 
 DHs20202021 %>%pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% 
   ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+facet_grid(trait~year, scales = 'free')
-  
+View(DHs20202021) 
 # Lets extract out 2020, 2021, and 2020/2021 values for GWA: Always including rep and location #####
 
 BlueBlupsH2_Location_rep_taxa <- function(d, groupvars) {
@@ -244,7 +246,7 @@ DHCombined = DHs2020 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Fami
   group_by(TP,PM_date, trait) %>% group_modify(BlueBlupsH2_Year_rep_taxa)  %>% mutate(year = '2020/2021')
 
 AllDHBluesPerYear = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
-save(AllDHBluesPerYear, file = 'WinterBarley/Analysis/AllDHBluesPerYear.RData')
+save(AllDHBluesPerYear, file = 'data/Analysis/AllDHBluesPerYear.RData')
 
 
 
@@ -263,7 +265,7 @@ DH2020Estimates %>% join(DH2021Estimates  %>% select(!year)%>% rename(value2021 
 DH2020Estimates %>% join(DH2021Estimates  %>% select(!year)%>% rename(value2021 = value))  %>%
   filter(!is.na(value2021), type =='BLUE') %>% filter(type !='H2') %>% group_by(type, TP, trait) %>%
   summarise(correlation = cor(value, value2021)) 
-
+#could add phs data here
 # heritability plots and over time points #####
 DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
   filter(type == 'H2') %>% ggplot(aes(x = TP, y = value, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
@@ -289,17 +291,25 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free', space = 'free_x')
 dev.off()
-
-png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
+#2020
+png('plots/Presentation2022_01/BluesByFamilyQsd1_2020.png', 1400, 800, res =120)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
-  filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020'))  %>%
+  filter(!(year == '2020' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
 dev.off()
-
+png('plots/Presentation2022_01/BluesByFamilyQsd1_2021.png', 1400, 800, res =120)
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2021'))  %>%
+  filter(!(year == '2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+dev.off()
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
   filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2021'))  %>%
@@ -1814,8 +1824,12 @@ Trained.Model.GBLUP = mixed.solve(y = (Trait_dev_Sample %>% filter(taxa%in% Wint
                                   SE=FALSE)
 
 # PHS import and data processing. May need to run with ASREML.R #####
+phenotypes
+#C:\Users\kars8\git\Cornell-WMB21-selections\data\phenotypes\Germination\2021
+getwd()
+#33_o
 
-DH_Sprout = read_excel('2021Phenotyping/Data/DHs_PHS_2021.xlsx') %>%
+DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xlsx') %>%
   mutate(location = ifelse(PLOT>6999, 'Ketola','McGowan'), year = '2021') %>% 
   # rbind(read_excel('WinterBarley/PhenotypeData/2020Harvest/2020WinterDH_PHS.xlsx')%>%
   #         mutate(location = 'Ketola2020'), year = '2020')  #Not sure if this should be included as these were planed as facultatives. 
