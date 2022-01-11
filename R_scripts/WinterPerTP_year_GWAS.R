@@ -119,7 +119,7 @@ DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xl
   separate(score, into =c('p0','p1','p2','p3','p4','p5'), sep = '') %>% select(!p0) %>% pivot_longer(cols = c(p1,p2,p3,p4,p5)) %>%
   mutate(value = as.numeric(value)) %>%
   group_by(taxa, location, Harv, year,PLOT) %>% summarise(PHS = mean(value,na.rm = T))
-library(asreml)
+
 PHS.lmer = asreml(fixed=PHS ~ location,random=~location:Harv+taxa, data=DH_Sprout,res) 
 predict(PHS.lmer)
 library(dplyr)
@@ -130,16 +130,43 @@ table(DHs2021_PHS$taxa)
 checks=c("DH130910","Endeavor","Scala","BS908_25")
 checks
 DHs2021_PHS=DHs2021_PHS[!is.na(DHs2021_PHS$PM),]
-DHs2021_PHS=DHs2021_PHS[!DHs2021_PHS$taxa%in%checks,]
+#DHs2021_PHS=DHs2021_PHS[!DHs2021_PHS$taxa%in%checks,]
 
 test1<-as.data.frame(DHs2021_PHS[DHs2021_PHS$TP=="TP1",])
-test1[test1$GI<2&test1$PHS>5,]$taxa
-ggplot(data = test1, aes(x =GE, y =PHS )) + 
+test1$c="Test Entry"
+test1[test1$taxa=="Endeavor",]$c="Endeavor"
+test1[test1$taxa=="Scala",]$c="KWS Scala"
+test1[test1$taxa=="DH130910",]$c="DH130910(Lightning)"
+ggplot(data = test1, aes(x =GE, y =PHS,color=c)) + 
   ggtitle("Correlation of GE TP1 and PHS")+
   xlab("Germination Energy(TP 1)") + ylab("Pre-harvest-sprouting")+
-  geom_point(color='black') +
-  geom_smooth(method = "lm",show.legend = "TRUE")+theme_bw()
-
+ geom_point(show.legend = FALSE)+
+  
+ # geom_smooth(orientation = "x",method = "lm",se=TRUE)+
+  scale_color_manual(values = c("green","#E69F00","blue","black"))+
+  annotate("rect", xmin =0, xmax = 1, ymin = 0, ymax = 3,
+           alpha = .1,fill="green")+
+  annotate("rect", xmin =0, xmax = 1, ymin = 3, ymax = 5,
+           alpha = .1,fill="yellow")+
+  annotate("rect", xmin =0, xmax = 1, ymin = 5, ymax = 9.1,
+           alpha = .1,fill="red")+
+  theme_bw()
+#GI
+ggplot(data = test1, aes(x =GI, y =PHS,color=c)) + 
+  ggtitle("Correlation of GI for TP1 and PHS")+
+  xlab("Germination Index(TP 1)") + ylab("Pre-harvest-sprouting")+
+  geom_point(show.legend = FALSE)+
+  
+  # geom_smooth(orientation = "x",method = "lm",se=TRUE)+
+  scale_color_manual(values = c("green","#E69F00","blue","black"))+
+  annotate("rect", xmin =0, xmax = 8, ymin = 0, ymax = 3,
+           alpha = .1,fill="green")+
+  annotate("rect", xmin =0, xmax = 8, ymin = 3, ymax = 5,
+           alpha = .1,fill="yellow")+
+  annotate("rect", xmin =0, xmax = 8, ymin = 5, ymax = 9.1,
+           alpha = .1,fill="red")+
+  theme_bw()
+##
 cor(test1$GI,test1$PHS,use = "pairwise.complete.obs")
 cor(test1$GE,test1$PHS,use = "pairwise.complete.obs")
 cor(test1$Day2Germ,test1$PHS,use = "pairwise.complete.obs")
@@ -337,16 +364,28 @@ obj<-rbind(DH2021Estimates, DH2020Estimates) %>%filter(type == 'BLUE')%>% mutate
  summarise_at(vars(value), list(mean = mean))
 obj
 #plots over time - reveals some issues with combining data from a time series perspective
-rbind(DH2021Estimates, DH2020Estimates) %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data source') %>%
-  ggplot(aes(x = PM_date, y = value, group = taxa))+
-  geom_line()+facet_nested(trait~headerFacet+year, scales = 'free')+
-  geom_vline(xintercept = c(12,33,68), color = 'red')+
+c<-rbind(DH2021Estimates, DH2020Estimates) %>%  filter(type == 'BLUE')%>%join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% 
+  mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% mutate(headerFacet = 'Data source')
+  
+  
+rbind(DH2021Estimates, DH2020Estimates) %>%  filter(type == 'BLUE')%>%join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% 
+  mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% mutate(headerFacet = 'Year') %>%
+  ggplot(aes(x = PM_date, y = value,fill=Qsd1, group = taxa))+
+  
+  geom_line()+
+facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_vline(xintercept = c(12,33,68), color = 'red',linetype="longdash",alpha=0.5)+
+ # annotate("rect", xmin =0, xmax = 150, ymin = 0.5, ymax = 1,
+ # color="black")+
   labs(title = 'GE and GI BLUEs over time with differeing datasets')+theme_bw()
 
 DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+
   geom_vline(xintercept = c(12,33,68), color = 'red')
-
+dev.off()
 png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/Sup_BluesByFamilyQsd1AllYears.png', 2400, 1500, res =120)
+
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
   filter(Family %nin% c('Cha','End','DH130910')) %>% 
@@ -358,13 +397,15 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
 dev.off()
 #2020
 png('plots/Presentation2022_01/BluesByFamilyQsd1_2020.png', 1400, 800, res =120)
+AllDHBluesPerYear %>%  filter(type == 'BLUE') 
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020'))  %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2021'))  %>%
   filter(!(year == '2020' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+  geom_boxplot()+facet_nested(trait~year, scales = 'free')+
+  theme_bw()
 dev.off()
 png('plots/Presentation2022_01/BluesByFamilyQsd1_2021.png', 1400, 800, res =120)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
@@ -373,7 +414,16 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   filter(!(year == '2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+  geom_boxplot()+facet_nested(trait~year, scales = 'free')
+
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020'))  %>%
+  filter(!(year == '2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot(show.legend = NULL)+facet_nested(trait~year, scales = 'free')+theme_bw()
+
 dev.off()
 png('plots/Presentation2022_01/BluesByFamilyQsd1_2020_2021.png', 1400, 800, res =120)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
@@ -381,9 +431,10 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+  
+  geom_boxplot(show.legend = NULL)+facet_nested(trait~year, scales = 'free')+theme_bw()
 # what is the heritability if Qsd1 is accounted for in the model? 
-
+dev.off()
 DHs2020 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
   rbind(., DHs2021 %>% select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family)) %>% 
   mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>% 

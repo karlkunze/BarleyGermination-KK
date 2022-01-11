@@ -9,11 +9,11 @@ for (i in 2:8){
   WinterChrLines[i] = sum(chrTable[1:i])
 }
 
-
+detach(asreml)
 
 WinterPerTPGWAS %>% ggplot(aes(ordinal, log10PVal, color = TP, shape = year))+geom_point()+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
-  geom_vline(xintercept = 4780, color = 'red')+
+  geom_vline(xintercept = 4780, color = 'red',linetype='longdash')+
   annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
   geom_vline(xintercept = WinterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
