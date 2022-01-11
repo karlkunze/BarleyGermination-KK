@@ -108,6 +108,8 @@ DHs2021 %>% filter(substr(taxa,1,2) !='BS') %>% select(taxa) %>% unique()
 #View(DHs2021)
 
 #PHS 
+DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xlsx')
+#View(DH_Sprout)
 DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xlsx') %>%
   mutate(location = ifelse(PLOT>6999, 'Ketola','McGowan'), year = '2021') %>% 
   # rbind(read_excel('WinterBarley/PhenotypeData/2020Harvest/2020WinterDH_PHS.xlsx')%>%
@@ -116,13 +118,46 @@ DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xl
   rename(score = `Sprout Score`) %>% 
   separate(score, into =c('p0','p1','p2','p3','p4','p5'), sep = '') %>% select(!p0) %>% pivot_longer(cols = c(p1,p2,p3,p4,p5)) %>%
   mutate(value = as.numeric(value)) %>%
-  group_by(taxa, location, Harv, year) %>% summarise(PHS = mean(value,na.rm = T))
-PHS.lmer = lmer(PHS ~ location +(1|location:Harv)+(1|taxa), DH_Sprout) 
-VarCorr(PHS.lmer)
-BLUPH2(PHS.lmer)
-DH.PHS = (ranef(PHS.lmer)$taxa + fixef(PHS.lmer)[1]) %>% as.data.frame() %>% rownames_to_column('taxa') %>% rename(PHS =`(Intercept)`)
-hist(DH.PHS[DH.PHS$PHS>1,])
+  group_by(taxa, location, Harv, year,PLOT) %>% summarise(PHS = mean(value,na.rm = T))
+library(asreml)
+PHS.lmer = asreml(fixed=PHS ~ location,random=~location:Harv+taxa, data=DH_Sprout,res) 
+predict(PHS.lmer)
+library(dplyr)
+colnames(DH_Sprout)[5]<-"SourcePLOT"
+DHs2021$SourcePLOT<-as.numeric(DHs2021$SourcePLOT)
+DHs2021_PHS=full_join(DHs2021,DH_Sprout[,c("SourcePLOT","PHS")],by="SourcePLOT")
+table(DHs2021_PHS$taxa)
+checks=c("DH130910","Endeavor","Scala","BS908_25")
+checks
+DHs2021_PHS=DHs2021_PHS[!is.na(DHs2021_PHS$PM),]
+DHs2021_PHS=DHs2021_PHS[!DHs2021_PHS$taxa%in%checks,]
 
+test1<-as.data.frame(DHs2021_PHS[DHs2021_PHS$TP=="TP1",])
+test1[test1$GI<2&test1$PHS>5,]$taxa
+ggplot(data = test1, aes(x =GE, y =PHS )) + 
+  ggtitle("Correlation of GE TP1 and PHS")+
+  xlab("Germination Energy(TP 1)") + ylab("Pre-harvest-sprouting")+
+  geom_point(color='black') +
+  geom_smooth(method = "lm",show.legend = "TRUE")+theme_bw()
+
+cor(test1$GI,test1$PHS,use = "pairwise.complete.obs")
+cor(test1$GE,test1$PHS,use = "pairwise.complete.obs")
+cor(test1$Day2Germ,test1$PHS,use = "pairwise.complete.obs")
+
+
+test2<-as.data.frame(DHs2021_PHS[DHs2021_PHS$TP=="TP2",])
+cor(test2$GI,test2$PHS,use = "pairwise.complete.obs")
+cor(test2$GE,test2$PHS,use = "pairwise.complete.obs")
+test3<-as.data.frame(DHs2021_PHS[DHs2021_PHS$TP=="TP3",])
+cor(test3$GI,test3$PHS,use = "pairwise.complete.obs")
+cor(test3$GE,test3$PHS,use = "pairwise.complete.obs")
+test4<-as.data.frame(DHs2021_PHS[DHs2021_PHS$TP=="TP4",])
+cor(test4$GI,test4$PHS,use = "pairwise.complete.obs")
+cor(test4$GE,test4$PHS,use = "pairwise.complete.obs")
+
+DH.PHS = (ranef(PHS.lmer)$taxa + fixef(PHS.lmer)[1]) %>% as.data.frame() %>% rownames_to_column('taxa') %>% rename(PHS =`(Intercept)`)
+length(table(DH.PHS[DH.PHS$PHS<1,]$PHS))
+View(DH.PHS)
 
 
 # 2020 GE and GI anova #####
