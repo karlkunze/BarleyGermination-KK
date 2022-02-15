@@ -133,14 +133,14 @@ DH_2020_field_traits<-DH_2020_field_traits%>%mutate(Year="2020",Family = mapvalu
 Timepoint
 ```{r}
 View(DHs2021)
-DHs2021 = rbind(read_excel('data/Phenotypes/2021/DHs_GGS_TP1_PM5_full.xlsx') %>% mutate(notes = NA, TP = 'TP1'),
-                read_excel('data/Phenotypes/2021/DHs_PM_12_full.xlsx')%>% mutate(notes = NA,TP = 'TP1.5'),
-                read_excel('data/Phenotypes/2021/DHs_PM_19_GGS_TP2_full.xlsx') %>% mutate(notes = NA, TP = 'TP2'),
-                read_excel('data/Phenotypes/2021/DHs_PM_33_GGS_TP3_full.xlsx') %>% mutate(TP = 'TP2.5'),
-                read_excel('data/Phenotypes/2021/DHs_PM_47_GGS_TP4_full.xlsx') %>% mutate(TP = 'TP3'),
-                read_excel('data/Phenotypes/2021/DHs_PM_68_GGS_TP5_full.xlsx')%>% mutate(TP='TP3.5'),
-                read_excel('data/Phenotypes/2021/DHs_PM_96_full.xlsx') %>% mutate(TP = 'TP4'),
-                read_excel('data/Phenotypes/2021/DHs_PM_150_GGS_TP7_full.xlsx') %>% mutate(Pmdate = 152,notes = NA,TP = 'TP5')) %>%
+DHs2021 = rbind(read_excel('data/Phenotype_Data/2021/DHs_GGS_TP1_PM5_full.xlsx') %>% mutate(notes = NA, TP = 'TP1'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_12_full.xlsx')%>% mutate(notes = NA,TP = 'TP1.5'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_19_GGS_TP2_full.xlsx') %>% mutate(notes = NA, TP = 'TP2'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_33_GGS_TP3_full.xlsx') %>% mutate(TP = 'TP2.5'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_47_GGS_TP4_full.xlsx') %>% mutate(TP = 'TP3'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_68_GGS_TP5_full.xlsx')%>% mutate(TP='TP3.5'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_96_full.xlsx') %>% mutate(TP = 'TP4'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_150_GGS_TP7_full.xlsx') %>% mutate(Pmdate = 152,notes = NA,TP = 'TP5')) %>%
   filter(!is.na(Day2Germ)) %>% filter(AssayNumber != 10 & AssayNumber != 318 & AssayNumber != 190) %>% #These look to be contamination
   filter(Location == 'McGowan' | Location == 'Ketola') %>%
   dplyr::select(!c('seed_mass', 'GerminationAssay', 'MaltingQualitySampling')) %>%
@@ -162,11 +162,14 @@ DHs2021
 ```
 Field Phenotypes 2021
 ```{r}
-getwd("data/")
+getwd()
+load("data/Phenotype_Data/2021/field/WBMaster21_all.Rdata")
+colnames(WBMaster21)
+detach("package:plyr", unload=TRUE)
+WBMaster21=WBMaster21%>%rename(test_wt="Test Wt",SourcePLOT=PLOT21,grain_name="GRAIN NAME",ws_percent=ws,PowderyMildew="PoweryMildew")%>%select(Entry,SourcePLOT,Location,Year,Check,Row,Column,kgha,ws_percent,frost_damage,HD_date,TP_date,Maturity_date,Ht,Lodging,phs,Scald,SB,PowderyMildew)
+library(plyr)
+WBMaster21=WBMaster21%>%mutate(taxa=gsub(" ","_",Entry))%>%select(-Entry)
 
-```
-
-```{r}
 All_pheno_TPall=merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location","Year"),all =TRUE)
 
 colnames(All_pheno_TPall[,-c(32)])
