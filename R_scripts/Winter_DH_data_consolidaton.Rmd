@@ -94,41 +94,47 @@ DH_2020_PHS$phs=five_avg(df=DH_2020_PHS,pheno='sprout_score',new_pheno='phs')
 #field data
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
+detach("package:plyr", unload=TRUE)
+
+DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)%>%filter(!Entry=="Check 7-Erie")%>%select(Entry,PLOT,mass,Facultative_Greenhouse,Facultative_Spring_planted,wh_percent,Scald,HD,Ht,PM)%>%rename(fac_GH=Facultative_Greenhouse,fac_field=Facultative_Spring_planted,ws_percent=wh_percent,scald=Scald)%>%mutate(scald=as.numeric(scald),HD=as.numeric(HD),Ht=as.numeric(Ht),PM=as.numeric(PM))%>%mutate(fac_field=replace(fac_field,str_detect(fac_field,"W"),"Winter"),fac_field=na_if(fac_field,"Missing"))
+library(plyr)
+#this the map function for Greenhouse scored facultative
+DH_2020_field=DH_2020_field%>%mutate(fac_GH=mapvalues(fac_GH,from=c("F","H","H?","H1","MP","N","N?","W"),to=c("Fac","Fac","Winter","Winter","Winter","Winter","Winter","Winter")))%>%mutate(taxa =  mapvalues(Entry, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-DH130911","Check 4-SY Tepee","Check 4-Sy Tepee","Check 5-Wintmalt","Check 6-Charles"),
+                to = c('Flavia', 'Scala','DH130910','DH130910','SY_Tepee',"SY_Tepee",'Wintmalt','Charles')),
+ 
+         taxa = gsub(pattern = ' ', replacement = '_',taxa))%>%select(-Entry)
+
+julian_days=function(df, cutoff){
+  may=31+29+31+30
+  june=may+31
+  #july=june+30
+  
+  s=which(df$HD<cutoff)
+  a=which(df$HD>cutoff)
+  df$HD[a]=df$HD[a]+may
+  df$HD[s]=df$HD[s]+june
+  df$HD
+  
+}
+DH_2020_field$HD<-julian_days(DH_2020_field,26)
+
+colnames(DH_2020_field)[!colnames(DH_2020_field)%in%colnames(DH_2020_PHS)]
+colnames(DH_2020_PHS)[!colnames(DH_2020_PHS)%in%colnames(DH_2020_field)]
+#ensure that PLOT then taxa column names match, and no others do
+DH_2020_field_traits=full_join(DH_2020_field,DH_2020_PHS,by=c("PLOT","taxa"))
+DH_2020_field_traits$Year<-"2020"
 ```
 add field phenotype data & PHS data
 ```{r}
 #moved to beginning of file
-
-which(DH_2020_Snyder$Entry=="Check 4-SY Tepee")
 #4 103 203 303 403 503
 #DH_2020_Snyder[c(4,103,203,303,403,503),]$Entry<-"Check 4-SY Tepee"
 
 
-DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)
+
 
 ##issue with Ketola and Snyder of DH130910 naming
-DH_2020_field<-merge(DH_2020_field,DH_2020_PHS,by=c("PLOT","Entry"),all = TRUE)
-colnames(DH_2020_field)
-DH_2020_field$Year<-"2020"
-colnames(DH_2021_Inc)
-colnames(DH_2021_Inc)[c(3,11,21)]<-c("PLOT","wh_percent","PM")
-Pedigree=DH_2020_field[,c("Entry","Pedigree","Facultative_Spring_planted")]
-library(plyr)
-DH_2021_Inc$Pedigree=mapvalues(DH_2021_Inc$Entry,from=Pedigree$Entry,Pedigree$Pedigree)
-DH_2021_Inc$Facultative_Spring_planted=mapvalues(DH_2021_Inc$Entry,from=Pedigree$Entry,Pedigree$Facultative_Spring_planted)
-DH_2020_field=rbind.fill(DH_2020_field,DH_2021_Inc)
 
-```
-
-```{r}
-str(DH_2020_field)
-DH_2020_field[is.na(DH_2020_field$Pedigree),]
-
-colnames(DH_2020_field)
-table(DH_2020_field$Pedigree)
-#change naming of DH130910/Wintmalt to Wintmalt/DH130910, makes for easier plotting
-DH_2020_field[DH_2020_field$Pedigree=="DH130910/Wintmalt",]$Pedigree<-"Wintmalt/DH130910"
-library(tidyverse)
 
 ```
 Use names below
