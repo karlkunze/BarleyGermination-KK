@@ -29,36 +29,33 @@ TP4<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp4_all_combined_F.csv",stri
 #Timepoint 5 
 TP5<-as.data.frame(read.csv("data/Phenotypes/2020/TP5_all.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,str_detect(PLOT,"SN-"),12600:12604),PLOT=replace(PLOT,str_detect(PLOT,"SR-"),12605:12609),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP5",PM_date=152)
 #rbind the different timepoints, arrange by plot, rep, timepoint, replace location names and add the GE/GI calculations. Year is already included
+rm(TP2020)
 TP2020=rbind(TP1_half,TP2,TP3,TP4,TP5)%>%arrange(PLOT,replication,TP)%>%
     mutate(Location=replace(Location,str_detect(Location,"Ketola"),values="Ketola2020"),Location=replace(Location,str_detect(Location,"Snyder"),"Snyder2020"))%>%
     mutate(GE =(Day1Germ+Day2Germ+Day3Germ)/(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ+kernels_remaining),
          GI = 10*GE*(Day1Germ+Day2Germ+Day3Germ)/(Day1Germ+2*Day2Germ+3*Day3Germ),
          GI = ifelse(is.nan(GI),0,GI),
          GE5 = (Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ)/(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ+kernels_remaining),
-         GI5 = 10*GE5*(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ)/(Day1Germ+Day2Germ*2+Day3Germ*3+Day4Germ*4+Day5Germ*5))
-str(TP2020$Entry)
-TP2020%>%mutate(Check=ifelse(!grepl("BS",Entry), 1, 0),
-     #           taxa = mapvalues(Entry, from = c('Check 1','Check 2','Check 3','Check 4','Check 5','Check 6'),to = c('Flavia', 'Scala','DH130910','SY_Tepee','Wintmalt','Charles')),
-                taxa =  mapvalues(Entry, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-SY Tepee","Check 4-SY Tepee","Check 5-Wintmalt","Check 6-Charles"),
-                to = c('Flavia', 'Scala','DH130910','DH130910','SY_Tepee','Wintmalt','Charles')),
+         GI5 = 10*GE5*(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ)/(Day1Germ+Day2Germ*2+Day3Germ*3+Day4Germ*4+Day5Germ*5))%>%
+ mutate(Check=ifelse(!grepl("BS",Entry), 1, 0),
+              taxa0 = mapvalues(Entry, from = c('Check 1','Check 2','Check 3','Check 4','Check 5','Check 6'),to = c('Flavia', 'Scala','DH130910','SY_Tepee','Wintmalt','Charles')),
+                taxa =  mapvalues(taxa0, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-SY Tepee","Check 4-SY Tepee","Check 5-Wintmalt","Check 6-Charles"),
+                to = c('Flavia', 'Scala','DH130910','SY_Tepee','SY_Tepee','Wintmalt','Charles')),
          taxa = gsub(pattern = '-',replacement = '_',taxa),
          taxa = gsub(pattern = ' ', replacement = '_',taxa),
          Family = mapvalues(substr(taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win','KWS'), 
                             to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
-                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910')))
+                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910')))%>%select(-taxa0)
                 
-table(TP2020$Entry)
-TP2020[TP2020$Entry=="Check 3-SY Tepee",]$TP
-View(TP4)
+colnames(TP2020)
+
 #field data
+library(readxl)
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
 DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
 
 #Incomplete 2021 data
-DH_2021_Ketola<-as.data.frame(read_excel("data/Winter_DH/2021/Field_data/WMBMaster21_Incomplete_20210624_kk.xlsx",sheet = "WMB_Field_7001"))
-DH_2021_McGowan<-as.data.frame(read_excel("data/Winter_DH/2021/Field_data/WMBMaster21_Incomplete_20210624_kk.xlsx",sheet = "WMB_Field_6001"))
-DH_2021_Inc=rbind(DH_2021_Ketola,DH_2021_McGowan)
 
 ##
 #intial germination process steps
