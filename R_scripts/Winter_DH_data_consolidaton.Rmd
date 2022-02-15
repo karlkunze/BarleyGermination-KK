@@ -15,19 +15,33 @@ path<-"C:/Users/Karl/git/BarleyGermination-KK"
 setwd(path)
 getwd()
 
+rm(list = ls(all = TRUE))
+library(stringr);library(plyr);library(dplyr)
 
-library(dplyr);library(stringr);library(plyr)
+if("dplyr" %in% (.packages())){
+          detach("package:dplyr", unload=TRUE) 
+          detach("package:plyr", unload=TRUE) 
+} 
+library(plyr)
+library(dplyr)
+if("dplyr" %in% (.packages())){
+          #detach("package:dplyr", unload=TRUE) 
+          detach("package:plyr", unload=TRUE) 
+} 
+
+
 #Timeponts for 2020
 #time point 1, remember that we only did half of the population
-TP1_half<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp1_full_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT=replace(PLOT,PLOT=="SN",12600:12604),PLOT=replace(PLOT,PLOT=="SR",12605:12609),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP1",PM_date=5)
+
+TP1_half<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp1_full_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT=replace(PLOT,PLOT=="SN",13001),PLOT=replace(PLOT,PLOT=="SR",13002),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP1",PM_date=5)
 #Time point 2
-TP2<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp2_all_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,PLOT=="SN",12600:12604),PLOT=replace(PLOT,PLOT=="SR",12605:12609),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP2",PM_date=19)
+TP2<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp2_all_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,PLOT=="SN",13001),PLOT=replace(PLOT,PLOT=="SR",13002),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP2",PM_date=19)
 #Timepoint 3
-TP3<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp3_all_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,PLOT=="SN",12600:12604),PLOT=replace(PLOT,PLOT=="SR",12605:12609),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP3",PM_date=47)
+TP3<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp3_all_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,PLOT=="SN",13001),PLOT=replace(PLOT,PLOT=="SR",13002),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP3",PM_date=47)
 #Timepoint 4
-TP4<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp4_all_combined_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,str_detect(PLOT,"SN-"),12600:12604),PLOT=replace(PLOT,str_detect(PLOT,"SR-"),12605:12609),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP4",PM_date=96)
+TP4<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp4_all_combined_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,str_detect(PLOT,"SN-"),13001),PLOT=replace(PLOT,str_detect(PLOT,"SR-"),13002),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP4",PM_date=96)
 #Timepoint 5 
-TP5<-as.data.frame(read.csv("data/Phenotypes/2020/TP5_all.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,str_detect(PLOT,"SN-"),12600:12604),PLOT=replace(PLOT,str_detect(PLOT,"SR-"),12605:12609),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP5",PM_date=152)
+TP5<-as.data.frame(read.csv("data/Phenotypes/2020/TP5_all.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,str_detect(PLOT,"SN-"),13001),PLOT=replace(PLOT,str_detect(PLOT,"SR-"),13002),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP5",PM_date=152)
 #rbind the different timepoints, arrange by plot, rep, timepoint, replace location names and add the GE/GI calculations. Year is already included
 rm(TP2020)
 TP2020=rbind(TP1_half,TP2,TP3,TP4,TP5)%>%arrange(PLOT,replication,TP)%>%
@@ -49,135 +63,42 @@ TP2020=rbind(TP1_half,TP2,TP3,TP4,TP5)%>%arrange(PLOT,replication,TP)%>%
                 
 colnames(TP2020)
 
-#field data
 library(readxl)
+#phs data
+
+
+detach("package:plyr", unload=TRUE)
+DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))%>%rename(sprout_score=Sprout.Score)%>%select(Entry,PLOT,sprout_score)%>%mutate(sprout_score=as.character(sprout_score),sprout_score=replace(sprout_score,sprout_score=="0","00000"))%>%drop_na()%>%arrange(PLOT)
+
+library(plyr)
+DH_2020_PHS=DH_2020_PHS%>%mutate(taxa =  mapvalues(Entry, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-DH130911","Check 4-SY Tepee","Check 5-Wintmalt","Check 6-Charles"),
+                to = c('Flavia', 'Scala','DH130910','DH130910','SY_Tepee','Wintmalt','Charles')),
+ 
+         taxa = gsub(pattern = ' ', replacement = '_',taxa))%>%select(-Entry)
+
+five_avg=function(df,pheno,new_pheno,missing_phenos=F){
+  df[[pheno]]=as.numeric(df[[pheno]])
+  df <- cbind(df, "ID" = outer(df[[pheno]], 10^c(4:0), function(a, b) a %/% b %% 10))
+  if(missing_phenos==T){
+    df$ID.1[which(df$note=="*")]=NA
+  }
+  df$new_pheno=apply(df[,c((ncol(df)-4):ncol(df))],1,function(x) mean(x, na.rm=T))
+  df$new_pheno=as.numeric(df$new_pheno)
+  # df$var=as.numeric(apply(df[,c((ncol(df)-4):ncol(df))], 1,var))
+  #df$sd=as.numeric(apply(df[,c((ncol(df)-5):(ncol(df)-1))], 1,function(x) sd(x, na.rm=T)))
+  #df=df[,c(1:(ncol(df)-9),(ncol(df)-2),(ncol(df)-1), ncol(df))]
+
+}
+DH_2020_PHS$phs=five_avg(df=DH_2020_PHS,pheno='sprout_score',new_pheno='phs')
+
+#field data
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
-DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))
-
-#Incomplete 2021 data
-
-##
-#intial germination process steps
-colnames(TP5)
-TP5<-TP5[,-c(2,16)]
-colnames(TP5)
-colnames(TP4)
-colnames(TP1_half)[19]<-"UserDay3"
-table(TP5$Location)
-TP5[TP5$Location=="Ketola",]$Location="Ketola 5"
-
-
-##
-
-
-
-which(TP4$Entry=="Check 3-SY Tepee")
-
-#if this is present correct it
-TP4[c(1717,1718),]$Entry<-"Check 4-SY Tepee"
-
-
-
-##
-str(TP1_half)
-
-str(TP2)
-str(TP3)
-str(TP4)
-str(TP5)
-###
-library(tibble)
-library(dplyr)
-
-
-
-
-###
-#check models
-# TP3KK<-TP3[TP3$replication=="2",][,c(2,8:13)]
-# TP3TR<-TP3[TP3$replication=="1",][,c(2,8:13)]
-# TP4KK<-TP4[TP4$replication=="2",][,c(2,8:13)]
-# TP4TR<-TP4[TP4$replication=="1",][,c(2,8:13)]
-# 
-# TP5KK<-TP5[TP5$replication=="2",][,c(2,8:13)]
-# TP5TR<-TP5[TP5$replication=="1",][,c(2,8:13)]
-# TP3[,c(2,8:13)]
-# str(TP3KK)
-# str(TP3TR)
-# cor(TP3TR$Day1Germ,TP3KK$Day1Germ,use = "complete.obs")
-# cor(TP3TR$Day2Germ,TP3KK$Day2Germ,use = "complete.obs")
-# cor(TP3TR$Day3Germ,TP3KK$Day3Germ,use = "complete.obs")
-# cor(TP3TR$Day4Germ,TP3KK$Day4Germ,use = "complete.obs")
-# cor(TP3TR$Day5Germ,TP3KK$Day5Germ,use = "complete.obs")
-# cor(TP5TR$Day5Germ,TP5KK$Day3Germ,use = "complete.obs")
-# 
-# TP3KKmean <- colMeans(TP3KK[,2:7], na.rm=TRUE)
-# TP3TRmean <- colMeans(TP3TR[,2:7],na.rm=TRUE)
-# 
-# TP4KKmean <- colMeans(TP4KK[,2:7], na.rm=TRUE)
-# TP4TRmean <- colMeans(TP4TR[,2:7],na.rm=TRUE)
-# 
-# cor(TP4TR$Day1Germ,TP4KK$Day1Germ,use = "complete.obs")
-# cor(TP4TR$Day2Germ,TP4KK$Day2Germ,use = "complete.obs")
-# cor(TP4TR$Day3Germ,TP4KK$Day3Germ,use = "complete.obs")
-# cor(TP4TR$Day4Germ,TP4KK$Day4Germ,use = "complete.obs")
-# cor(TP4TR$Day5Germ,TP4KK$Day5Germ,use = "complete.obs")
-# 
-# corday3<-merge(TP3[TP3$UserDay5=="KK",][,c(2,8:13)],TP3[TP3$UserDay5=="TR",][,c(2,8:13)],by="Entry")
-
-#need to complete pedigree info
-
-
-
-
-colnames(TP5)[1]<-"ï.."
-TPall<-rbind(TP1_half,TP2,TP3,TP4,TP5)
-table(TPall$Location)
-colnames(TP1_half)
-colnames(TP2)
-colnames(TP3)
-colnames(TP4)
-colnames(TP5)
-table(TPall$Entry)
-#need to remove a1023 a1024,etc... PLOTS at Snyder location
-table(TPall$PLOT)
-
-TPall$PLOT<-gsub("a","",(TPall$PLOT))
-table(TPall$PLOT)
-TPall[TPall$PLOT==11303,]
-TPall[TPall$Entry=="BBBdormSNLine",]$PLOT<-13001
-TPall[TPall$Entry=="BBBdormSRLine",]$PLOT<-13002
-#table(TPall$PLOT)
-TPall$PLOT<-as.numeric(TPall$PLOT)
-#I'm giving SN and SR lines arbitrary plot numbers to remove characters in the plot column. Plot numbers should sort them to end of the dataframe
-TPall<-TPall[with(TPall, order(PLOT, replication)),]
-
-table(TPall$Entry)
-
-```
-
-```{r}
-
 ```
 add field phenotype data & PHS data
 ```{r}
 #moved to beginning of file
-DH_2020_PHS<-DH_2020_PHS[!is.na(DH_2020_PHS$Sprout.Score),]
 
-DH_2020_PHS$Sprout.Score<-as.character(DH_2020_PHS$Sprout.Score)
-DH_2020_PHS[DH_2020_PHS$Sprout.Score=="0",]$Sprout.Score<-"00000"
-
-table(DH_2020_PHS$Sprout.Score)
-str(DH_2020_PHS$Sprout.Score)
-
-str(DH_2020_Snyder$HD)
-
-
-
-which(DH_2020_PHS$Entry=="Check 3-DH130911")
-#change
-DH_2020_PHS[12,]$Entry<-"Check 3-DH130910"
 which(DH_2020_Snyder$Entry=="Check 4-SY Tepee")
 #4 103 203 303 403 503
 #DH_2020_Snyder[c(4,103,203,303,403,503),]$Entry<-"Check 4-SY Tepee"
