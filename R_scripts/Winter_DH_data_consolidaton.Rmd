@@ -16,7 +16,7 @@ setwd(path)
 getwd()
 
 
-library(dplyr)
+library(dplyr);library(stringr);library(plyr)
 #Timeponts for 2020
 #time point 1, remember that we only did half of the population
 TP1_half<-as.data.frame(read.csv("data/Phenotypes/2020/DHtp1_full_F.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT=replace(PLOT,PLOT=="SN",12600:12604),PLOT=replace(PLOT,PLOT=="SR",12605:12609),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP1",PM_date=5)
@@ -35,10 +35,11 @@ TP2020=rbind(TP1_half,TP2,TP3,TP4,TP5)%>%arrange(PLOT,replication,TP)%>%
          GI = 10*GE*(Day1Germ+Day2Germ+Day3Germ)/(Day1Germ+2*Day2Germ+3*Day3Germ),
          GI = ifelse(is.nan(GI),0,GI),
          GE5 = (Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ)/(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ+kernels_remaining),
-         GI5 = 10*GE5*(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ)/(Day1Germ+Day2Germ*2+Day3Germ*3+Day4Germ*4+Day5Germ*5))%>%
-mutate(Check=ifelse(!grepl("BS",Entry), 1, 0),
-                taxa = mapvalues(Entry, from = c('Check 1','Check 2','Check 3','Check 4','Check 5','Check 6'),to = c('Flavia', 'Scala','DH130910','SY_Tepee','Wintmalt','Charles')),
-                taxa =  mapvalues(taxa, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-SY Tepee","Check 4-SY Tepee","Check 5-Wintmalt","Check 6-Charles"),
+         GI5 = 10*GE5*(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ)/(Day1Germ+Day2Germ*2+Day3Germ*3+Day4Germ*4+Day5Germ*5))
+str(TP2020$Entry)
+TP2020%>%mutate(Check=ifelse(!grepl("BS",Entry), 1, 0),
+     #           taxa = mapvalues(Entry, from = c('Check 1','Check 2','Check 3','Check 4','Check 5','Check 6'),to = c('Flavia', 'Scala','DH130910','SY_Tepee','Wintmalt','Charles')),
+                taxa =  mapvalues(Entry, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-SY Tepee","Check 4-SY Tepee","Check 5-Wintmalt","Check 6-Charles"),
                 to = c('Flavia', 'Scala','DH130910','DH130910','SY_Tepee','Wintmalt','Charles')),
          taxa = gsub(pattern = '-',replacement = '_',taxa),
          taxa = gsub(pattern = ' ', replacement = '_',taxa),
@@ -46,9 +47,9 @@ mutate(Check=ifelse(!grepl("BS",Entry), 1, 0),
                             to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
                                    'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910')))
                 
-
-
-
+table(TP2020$Entry)
+TP2020[TP2020$Entry=="Check 3-SY Tepee",]$TP
+View(TP4)
 #field data
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
