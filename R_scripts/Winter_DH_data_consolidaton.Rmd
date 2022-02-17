@@ -194,20 +194,5 @@ table(DH2020_2021$Location,DH2020_2021$Year)
 #save(All_pheno_TPall, file="data/Winter_DH/WMB DH 2020 all data for analysis.RData")
 save(DH2020_2021, file="data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 ```
-#data analysis of phenotypes
-```{r}
-library(lme4)
-#this will overwrite original TP files, with ones that have GE, GI and GIscale calculated
-# TP1<-TPall[TPall$Timepoint=="1",]
-# TP2<-TPall[TPall$Timepoint=="2",]
-# TP3<-TPall[TPall$Timepoint=="3",]
-# TP4<-TPall[TPall$Timepoint=="4",]
-# modelKK<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="2",])
-# modelTR<-lm(GE_5D~Entry+Location,TP4[TP4$replication=="1",])
-
-
-
-```
-
 
 
