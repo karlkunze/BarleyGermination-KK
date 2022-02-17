@@ -56,7 +56,7 @@ TP2020=rbind(TP1_half,TP2,TP3,TP4,TP5)%>%arrange(PLOT,replication,TP)%>%
          taxa = gsub(pattern = ' ', replacement = '_',taxa),
          Family = mapvalues(substr(taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win','KWS'), 
                             to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
-                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910')))%>%select(-taxa0)
+                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910')))%>%select(-taxa0)%>%mutate(Year=as.factor(Year))
                 
 colnames(TP2020)
 
@@ -94,7 +94,7 @@ DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx"
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
 detach("package:plyr", unload=TRUE)
 
-DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)%>%filter(!Entry=="Check 7-Erie")%>%select(Entry,PLOT,mass,Facultative_Greenhouse,Facultative_Spring_planted,wh_percent,Scald,HD,Ht,PM)%>%rename(fac_GH=Facultative_Greenhouse,fac_field=Facultative_Spring_planted,ws_percent=wh_percent,scald=Scald)%>%mutate(scald=as.numeric(scald),HD=as.numeric(HD),Ht=as.numeric(Ht),PM=as.numeric(PM))%>%mutate(fac_field=replace(fac_field,str_detect(fac_field,"W"),"Winter"),fac_field=na_if(fac_field,"Missing"))
+DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)%>%filter(!Entry=="Check 7-Erie")%>%select(Entry,PLOT,mass,Facultative_Greenhouse,Facultative_Spring_planted,wh_percent,Scald,HD,Ht,PM)%>%rename(fac_GH=Facultative_Greenhouse,fac_field=Facultative_Spring_planted,ws_percent=wh_percent,scald=Scald)%>%mutate(scald=as.numeric(scald),HD=as.numeric(HD),Ht=as.numeric(Ht),PM=as.numeric(PM),Year=as.factor(Year))%>%mutate(fac_field=replace(fac_field,str_detect(fac_field,"W"),"Winter"),fac_field=na_if(fac_field,"Missing"))
 library(plyr)
 #this the map function for Greenhouse scored facultative
 DH_2020_field=DH_2020_field%>%mutate(fac_GH=mapvalues(fac_GH,from=c("F","H","H?","H1","MP","N","N?","W"),to=c("Fac","Fac","Winter","Winter","Winter","Winter","Winter","Winter")))%>%mutate(taxa =  mapvalues(Entry, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-DH130911","Check 4-SY Tepee","Check 4-Sy Tepee","Check 5-Wintmalt","Check 6-Charles"),
@@ -123,6 +123,11 @@ DH_2020_field_traits=full_join(DH_2020_field,DH_2020_PHS,by=c("PLOT","taxa"))
 DH_2020_field_traits<-DH_2020_field_traits%>%mutate(Year="2020",Family = mapvalues(substr(taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win','KWS','Cha'), 
                             to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
                                    'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910','Charles')))
+colnames(TP2020)[colnames(TP2020)%in%names(DH_2020_field_traits)]
+colnames(DH_2020_field_traits)[colnames(DH_2020_field_traits)%in%names(TP2020)]
+colnames(TP2020)
+#Doing a left join with the germination traits here, only keeping the germination related lines
+All2020<-left_join(TP2020,DH_2020_field_traits,by=c("PLOT","taxa","Family","Year"))
 
 ```
 2021 data
@@ -172,10 +177,16 @@ colnames(DHs2021)[names(DHs2021)%in%names(WBMaster21)]
 table(DHs2021$SourcePLOT)
 All2021=left_join(DHs2021,WBMaster21,by=c("SourcePLOT","taxa","Check","Location","Year"))
 #All_pheno_TPall=merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location","Year"),all =TRUE)
-
-View(All2021)
-table(All2021$taxa,useNA = "ifany")
-getwd()
+#doing an rbind
+colnames(All2021)[!names(All2021)%in%names(All2020)]
+colnames(All2020)[!names(All2020)%in%names(All2021)]
+colnames(All2020)
+c20<-All2020
+detach("package:plyr", unload=TRUE)
+c21<-All2021
+c21
+c20%>%rename(SourcePLOT=PLOT,)
+All2020
 save(All_pheno_TPall, file="data/Winter_DH/WMB DH 2020 all data for analysis.RData")
 
 ```
