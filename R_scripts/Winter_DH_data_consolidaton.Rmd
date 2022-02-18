@@ -17,11 +17,11 @@ getwd()
 library(dplyr)
 rm(list = ls(all = TRUE))
 library(stringr);library(plyr);library(dplyr)
-
-#if("dplyr" %in% (.packages())){
-          detach("package:dplyr", unload=TRUE) 
-          detach("package:plyr", unload=TRUE) 
-#} 
+library(plyr)
+if("plyr" %in% (.packages())){
+         detach("package:dplyr", unload=TRUE) 
+         detach("package:plyr", unload=TRUE) 
+} 
 
 
 
@@ -39,8 +39,8 @@ TP4<-as.data.frame(read.csv("data/Phenotype_Data/2020/DHtp4_all_combined_F.csv",
 #Timepoint 5 
 TP5<-as.data.frame(read.csv("data/Phenotype_Data/2020/TP5_all.csv",stringsAsFactors = FALSE))%>%select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,str_detect(PLOT,"SN-"),13001),PLOT=replace(PLOT,str_detect(PLOT,"SR-"),13002),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP5",PM_date=152)
 #rbind the different timepoints, arrange by plot, rep, timepoint, replace location names and add the GE/GI calculations. Year is already included
-library(dplyr)
-library(plyr)
+
+
 TP2020=rbind(TP1_half,TP2,TP3,TP4,TP5)%>%arrange(PLOT,replication,TP)%>%
     mutate(Location=replace(Location,str_detect(Location,"Ketola"),values="Ketola2020"),Location=replace(Location,str_detect(Location,"Snyder"),"Snyder2020"))%>%
     mutate(GE =(Day1Germ+Day2Germ+Day3Germ)/(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ+kernels_remaining),
@@ -64,11 +64,11 @@ library(readxl)
 #phs data
 
 
-detach("package:plyr", unload=TRUE)
+#detach("package:plyr", unload=TRUE)
 
-DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))%>%rename(sprout_score=Sprout.Score)%>%select(Entry,PLOT,sprout_score)%>%mutate(sprout_score=as.character(sprout_score),sprout_score=replace(sprout_score,sprout_score=="0","00000"))%>%na.omit()%>%arrange(PLOT)
+DH_2020_PHS<-as.data.frame(read.csv("data/Winter_DH/WMB_DH_2020_Ketola_PHS.csv",stringsAsFactors = TRUE))%>%dplyr::rename(sprout_score=Sprout.Score)%>%select(Entry,PLOT,sprout_score)%>%mutate(sprout_score=as.character(sprout_score),sprout_score=replace(sprout_score,sprout_score=="0","00000"))%>%na.omit()%>%arrange(PLOT)
 
-library(plyr)
+
 DH_2020_PHS=DH_2020_PHS%>%mutate(taxa =  mapvalues(Entry, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-DH130911","Check 4-SY Tepee","Check 5-Wintmalt","Check 6-Charles"),
                 to = c('Flavia', 'Scala','DH130910','DH130910','SY_Tepee','Wintmalt','Charles')),
  
@@ -92,9 +92,9 @@ DH_2020_PHS$phs=five_avg(df=DH_2020_PHS,pheno='sprout_score',new_pheno='phs')
 #field data
 DH_2020_Snyder<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Snyder"))
 DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx",sheet = "Ketola"))
-detach("package:plyr", unload=TRUE)
+#detach("package:plyr", unload=TRUE) c#can add dplyr:: in front of function instead
 
-DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)%>%filter(!Entry=="Check 7-Erie")%>%select(Entry,PLOT,mass,Facultative_Greenhouse,Facultative_Spring_planted,wh_percent,Scald,HD,Ht,PM)%>%rename(fac_GH=Facultative_Greenhouse,fac_field=Facultative_Spring_planted,ws_percent=wh_percent,scald=Scald,Maturity_date=PM)%>%mutate(scald=as.numeric(scald),HD=as.numeric(HD),Ht=as.numeric(Ht),Maturity_date=as.numeric(Maturity_date),Year="year")%>%mutate(fac_field=replace(fac_field,str_detect(fac_field,"W"),"Winter"),fac_field=na_if(fac_field,"Missing"))
+DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)%>%filter(!Entry=="Check 7-Erie")%>%dplyr::select(Entry,PLOT,mass,Facultative_Greenhouse,Facultative_Spring_planted,wh_percent,Scald,HD,Ht,PM)%>%dplyr::rename(fac_GH=Facultative_Greenhouse,fac_field=Facultative_Spring_planted,ws_percent=wh_percent,scald=Scald,Maturity_date=PM)%>%mutate(scald=as.numeric(scald),HD=as.numeric(HD),Ht=as.numeric(Ht),Maturity_date=as.numeric(Maturity_date),Year="year")%>%mutate(fac_field=replace(fac_field,str_detect(fac_field,"W"),"Winter"),fac_field=na_if(fac_field,"Missing"))
 library(plyr)
 DH_2020_field$Entry
 #this the map function for Greenhouse scored facultative
@@ -129,7 +129,10 @@ colnames(DH_2020_field_traits)[colnames(DH_2020_field_traits)%in%names(TP2020)]
 colnames(TP2020)
 #Doing a left join with the germination traits here, only keeping the germination related lines
 All2020<-left_join(TP2020,DH_2020_field_traits,by=c("PLOT","taxa","Family","Year"))
-All2020=All2020%>%rename(SourcePLOT=PLOT,seed_mass=mass,HD_date=HD,AssayNumber=Sample_ID)%>%select(-sprout_score,-Entry)
+All2020=All2020%>%dplyr::rename(SourcePLOT=PLOT,seed_mass=mass,HD_date=HD,AssayNumber=Sample_ID)%>%select(-sprout_score,-Entry)
+#need to create a pivot longer df for field traits, 
+
+
 
 ```
 2021 data
@@ -170,9 +173,9 @@ Field Phenotypes 2021
 getwd()
 load("data/Phenotype_Data/2021/field/WBMaster21_all.Rdata")
 
-detach("package:plyr", unload=TRUE)
+#detach("package:plyr", unload=TRUE)
 WBMaster21=WBMaster21%>%rename(test_wt="Test Wt",SourcePLOT=PLOT21,grain_name="GRAIN NAME",ws_percent=ws,PowderyMildew="PoweryMildew")%>%select(Entry,SourcePLOT,Location,Year,Check,Row,Column,kgha,ws_percent,frost_damage,HD_date,TP_date,Maturity_date,Ht,Lodging,phs,Scald,SB,PowderyMildew)%>%
- mutate(HD_date=as.numeric(format(WBMaster21$HD_date, "%j")),TP_date=as.numeric(format(WBMaster21$TP_date,"%j")))%>%mutate(taxa=gsub("KWS Scala","Scala",Entry))%>%rename(TipPoint_date=TP_date)%>%select(-Entry)
+ mutate(HD_date=as.numeric(format(WBMaster21$HD_date, "%j")),TP_date=as.numeric(format(WBMaster21$TP_date,"%j")))%>%mutate(taxa=gsub("KWS Scala","Scala",Entry))%>%dplyr::rename(TipPoint_date=TP_date)%>%select(-Entry)
 
 colnames(WBMaster21)[names(WBMaster21)%in%names(DHs2021)]
 colnames(DHs2021)[names(DHs2021)%in%names(WBMaster21)]
@@ -181,17 +184,21 @@ table(DHs2021$SourcePLOT)
 All2021=left_join(DHs2021,WBMaster21,by=c("SourcePLOT","taxa","Check","Location","Year"))
 #All_pheno_TPall=merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location","Year"),all =TRUE)
 #doing an rbind
-All2021=All2021%>%rename(replication=rep,scald=Scald,spot_bloch=SB)%>%select(-PM)
+All2021=All2021%>%dplyr::rename(replication=rep,scald=Scald,spot_bloch=SB)%>%select(-PM)
 colnames(All2021)[!names(All2021)%in%names(All2020)]
 colnames(All2020)[names(All2020)%in%names(All2021)]
 
 #detach("package:plyr", unload=TRUE)
-library(plyr)
+#library(plyr)
 DH2020_2021=rbind.fill(All2020,All2021)%>%arrange(Year,SourcePLOT)
-dim(All2020)
-dim(All2021)
-table(DH2020_2021$Location,DH2020_2021$Year)
+
+DH2020_2021=DH2020_2021%>%mutate(replication=as.factor(replication),Year=as.factor(Year),PM_date=as.factor(PM_date))
 #save(All_pheno_TPall, file="data/Winter_DH/WMB DH 2020 all data for analysis.RData")
+#will need to create a pivot wider for correlations to field data
+colnames(DH2020_2021)
+library(tidyr)
+
+
 save(DH2020_2021, file="data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 ```
 
