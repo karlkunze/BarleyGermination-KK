@@ -98,7 +98,7 @@ DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx"
 DH_2020_Snyder$Entry
 DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)%>%dplyr::filter(!Entry=="Check 7-Erie")%>%dplyr::select(Entry,PLOT,mass,Facultative_Greenhouse,Facultative_Spring_planted,wh_percent,Scald,HD,Ht,PM)%>%dplyr::rename(fac_GH=Facultative_Greenhouse,fac_field=Facultative_Spring_planted,ws_percent=wh_percent,scald=Scald,Maturity_date=PM)%>%mutate(scald=as.numeric(scald),HD=as.numeric(HD),Ht=as.numeric(Ht),Maturity_date=as.numeric(Maturity_date),Year="year")%>%mutate(fac_field=replace(fac_field,str_detect(fac_field,"W"),"Winter"),fac_field=na_if(fac_field,"Missing"))
 library(plyr)
-View(DH_2020_field)
+
 DH_2020_field$Entry
 #this the map function for Greenhouse scored facultative
 DH_2020_field=DH_2020_field%>%mutate(fac_GH=mapvalues(fac_GH,from=c("F","H","H?","H1","MP","N","N?","W"),to=c("Fac","Fac","Winter","Winter","Winter","Winter","Winter","Winter")))%>%mutate(taxa =  mapvalues(Entry, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-DH130911","Check 4-SY Tepee","Check 4-Sy Tepee","Check 5-Wintmalt","Check 6-Charles"),
@@ -125,7 +125,7 @@ colnames(DH_2020_PHS)[!colnames(DH_2020_PHS)%in%colnames(DH_2020_field)]
 #ensure that PLOT then taxa column names match, and no others do
 library(plyr)
 DH_2020_field_traits=dplyr::full_join(DH_2020_field,DH_2020_PHS,by=c("PLOT","taxa"))
-View(DH_2020_field_traits)
+
 DH_2020_field_traits<-DH_2020_field_traits%>%mutate(Year="2020",Family = mapvalues(substr(taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win','KWS','Cha'), 
                             to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
                                    'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910','Charles')))
@@ -212,8 +212,10 @@ library(tidyr)
 TP_data=DH2020_2021%>%select(taxa,SourcePLOT,Location,Family,Year,replication,PM_date,GE,GI,GE5,GI5,Day1Germ)%>% select(-replication)%>%pivot_wider(names_from = c(PM_date), values_from = -names(.)[c(1:6)],values_fill=NA,values_fn =mean)
 
 traits<-c(DH2020_field_trait_names,WBMaster21_trait_names)
+traits
+traits=traits[-c(1,2,7,12,30,31)]
 field_data=DH2020_2021%>%select(traits)%>%distinct()
-DH2020_2021_wide<-full_join(field_data,TP_data,by=c("SourcePLOT","taxa","Family","Location","Year"))%>%
+DH2020_2021_wide<-full_join(field_data,TP_data,by=c("SourcePLOT","taxa","Family","Location","Year"))
 
 save(DH2020_2021, file="data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 save(DH2020_2021_wide, file="data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
