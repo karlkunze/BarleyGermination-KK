@@ -5,14 +5,26 @@
 library(here)
 library(lme4)
 library(reshape2)
-getwd()
-library(here)
-load(here("WMB DH 2020 all data for analysis.RData"))
-WDH20_pheno<-All_pheno_TPall
+load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
+load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 
-table(WDH20_pheno$Entry)
-All_pheno_TPall$GIscale
-All_pheno_TPall$GIscale_5D
+load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))#old file
+#linear model analysis for germination traits
+library(dplyr)
+#correl
+cor(DH2020_2021_wide$scald,DH2020_2021_wide$GE5_12)
+
+#DH 2020
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==19)))
+#Location significant
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==47)))
+#Location significant
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==96)))
+#replication significant
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
+#all significant
+
 #View(cbind(All_pheno_TPall$Plus_PM,All_pheno_TPall$Entry,All_pheno_TPall$GIscale,All_pheno_TPall$GIscale_5D))
 str(WDH20_pheno)
 #comments about the data table
