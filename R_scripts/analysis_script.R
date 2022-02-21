@@ -15,8 +15,7 @@ load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 #linear model analysis for germination traits
 
 #correl
-DH2020_2021$Check<-as.factor(DH2020_2021$Check)
-table(DH2020_2021$spot_bloch)
+
 #DH 2020 GI
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==19)))
@@ -42,8 +41,7 @@ anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=
 anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
 #field analysis 2020
 DH2020_2021$Maturity_date<-DH2020_2021$Maturity_date+76
-colnames(DH2020_2021)
-DH2020_2021$fac_field
+
 anova(lm(GI~ taxa +Location+Maturity_date, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))#Location significant
 
 #Does it make sense that Maturity date is still significant even though we controlled for it?
@@ -241,30 +239,39 @@ DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep
 DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>% dplyr::select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family) %>% pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
   group_by(TP,PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()
 #Both
-DHCombined =  DH2020_2021 %>% dplyr::select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family) %>% 
+DHCombined = DH2020_2021%>%filter(year=="2020")%>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
+  rbind(., DH2020_2021%>%filter(year=="2021") %>% select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family)) %>% 
   mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
   group_by(TP,PM_date, trait) %>% group_modify(BlueBlupsH2_Year_rep_taxa)  %>% mutate(year = '2020/2021')
+View(DHCombined)
 #correlations
 DH2020Estimates %>% join(DH2021Estimates  %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
   filter(!is.na(value2021), type =='BLUE') %>% filter(type !='H2') %>% group_by(type, TP, trait) %>%
   summarise(correlation = cor(value, value2021))
+AllDHBluesPerYear0 = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
+load("")
 #Heritabilities over both timepoints, both are high
-DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
+#DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
   filter(type == 'H2') %>% ggplot(aes(x = TP, y = value, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
   facet_wrap(vars(year), ncol = 1)+theme_bw()+labs(title= 'Broard sense heritability\nover time and datasets')
 
 #other ideas to expand here, perhaps calculate narrow sense heritability, since we have the genotype info
 #adding genotype data
-AllDHBluesPerYear = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
+AllDHBluesPerYear0 = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>%mutate(PM_date=as.double(PM_date),year=as.character(year))%>%ungroup()
+load("/home/karl/git/TimeSeriesGermination/WinterBarley/Analysis/AllDHBluesPerYear.RData")
+dplyr::all_equal(AllDHBluesPerYear,AllDHBluesPerYear0)
+AllDHBluesPerYear$taxa
+AllDHBluesPerYear0[AllDHBluesPerYear0$taxa%in%AllDHBluesPerYear$taxa,]
 #winterGD and WinterGM
 load('data/Genotype_data/myGM20_LDprune.Rdata')
 load('data/Genotype_data/myGD20_LDprune.Rdata')
 WinterGM=myGM20_prune;WinterGD=myGD20_prune
 rm(myGM20_prune);rm(myGD20_prune)
 WinterGM = WinterGM %>% arrange(Chromosome, Position)
+#my taxa IDs have "-" instead of an underscore which I prefer
+#taxa = gsub(pattern = '-',replacement = '_',taxa)
 WinterGD = WinterGD %>%
-  mutate(taxa = gsub(pattern = '-',replacement = '_',taxa),
-         taxa = gsub(pattern = ' ', replacement = '_',taxa),
+  mutate(taxa = gsub(pattern = ' ', replacement = '_',taxa),
          taxa1 = taxa) %>% remove_rownames()%>% 
   column_to_rownames('taxa1')
 sum(WinterGM$SNP == colnames(WinterGD[,-1]))
@@ -306,7 +313,7 @@ DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE
 DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+
   geom_vline(xintercept = c(12,33,68), color = 'red')
 
-png('plots/Time_series/Sup_BluesByFamilyQsd1AllYears.png', 2400, 1500, res =120)
+#png('plots/Time_series/Sup_BluesByFamilyQsd1AllYears.png', 2400, 1500, res =120)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
   filter(Family %nin% c('Cha','End','DH130910')) %>% 
@@ -318,7 +325,7 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
 dev.off()
 
 #png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
-AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+AllDHBluesPerYear0 %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
   filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
@@ -327,7 +334,7 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
 dev.off()
 
-AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+AllDHBluesPerYear0 %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
   filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
@@ -413,6 +420,7 @@ for (i in 2:8){
   WinterChrLines[i] = sum(chrTable[1:i])
 }
 #Per time point for MLMM
+##takes some time
 WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
   ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
 
@@ -422,7 +430,7 @@ View(DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 
 WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
 WinterPerTPGWAS %>% arrange(P.value) %>% view()
 
-WinterPerTPGWAS %>% ggplot(aes(ordinal, log10PVal, color = TP, shape = year))+geom_point()+
+WinterPerTPGWAS %>% filter(P.value<5e-6)%>%ggplot(aes(ordinal, log10PVal, color = TP, shape = year))+geom_point()+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
   geom_vline(xintercept = 4780, color = 'red')+
   annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
@@ -432,7 +440,78 @@ WinterPerTPGWAS %>% ggplot(aes(ordinal, log10PVal, color = TP, shape = year))+ge
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
   facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
 #I will worry about the other models for a different time
+data %>% group_by(factor1, factor2) 
+Sig_hitsW<-WinterPerTPGWAS%>%filter(P.value<5e-6)%>%group_by(SNP,Chromosome,Position)%>%dplyr::summarize(count=n(),.groups="keep")%>%
+  arrange(Chromosome,Position)
+#look at LD of these significant markers
+WinterGD[,c(1,3,4)]
+ld_heatmap=function(df){
 
+  ld <- as.matrix(round(df,0))
+  
+  if(c(-1,3,4) %in% ld){
+    ld[which(ld==3)]=2
+    ld[which(ld==4)]=2
+    ld[which(ld== -1)]=0
+  }
+  
+  LD <- LD.Measures(donnees=ld,  na.presence=F)
+  #LD$loc1=as.character(LD$loc1); LD$loc2=as.character(LD$loc2)
+  r2 <- matrix(0, nrow=ncol(df), ncol=ncol(df))
+  r2[lower.tri(r2, diag=FALSE)] <- LD$r2
+  r2 <- t(r2)
+  r2
+  r2 <- as.data.frame(round(r2, 5))
+  diag(r2) <- 1
+  r2[lower.tri(r2)] = NA
+
+  rownames(r2)=colnames(df); colnames(r2)=rownames(r2)
+  r_2=melt(as.matrix(r2), na.rm=T)
+  
+  graphic = ggplot(r_2, aes(Var2, Var1, fill = value))+
+    geom_tile(color = "white")+
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                         midpoint = 0.5, limit = c(0,1), space = "Lab", name="r2") +
+    theme_classic() +    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
+  #return(print("The R2 is ",list(r_2)))
+  return(graphic)
+}
+#Chromosome 1
+Sig_hitsW%>%filter(Chromosome==1)
+grep("JHI-Hv50k-2016-8002", colnames(WinterGD))
+
+Sig_hitsW%>%filter(Chromosome==2)
+grep("JHI-Hv50k-2016-59425",colnames(WinterGD))
+grep("JHI-Hv50k-2016-101167",colnames(WinterGD))
+
+ld_heatmap(WinterGD[,c(865:867,1790:1791)])
+#no ld there
+#Chromsome 4
+Sig_hitsW%>%filter(Chromosome==4)
+grep("JHI-Hv50k-2016-228126",colnames(WinterGD))
+
+Sig_hitsW%>%filter(Chromosome==4)
+grep("JHI-Hv50k-2016-273301",colnames(WinterGD))
+grep("JHI-Hv50k-2016-273434",colnames(WinterGD))
+grep("JHI-Hv50k-2016-276836",colnames(WinterGD))
+ld_heatmap(WinterGD[,c(4570,4571,4583:4588)])
+#those markers are in high ld
+Sig_hitsW%>%filter(Chromosome==4)
+grep("JHI-Hv50k-2016-276836",colnames(WinterGD))
+grep("JHI-Hv50k-2016-276707",colnames(WinterGD))
+ld_heatmap(WinterGD[,c(4583,4588)])
+grep("JHI-Hv50k-2016-276688",colnames(WinterGD))
+grep("JHI-Hv50k-2016-276604",colnames(WinterGD))
+
+#all but the first marker on Chr 4 are in high LD
+Sig_hitsW%>%filter(Chromosome==5)
+
+grep("Qsd1",colnames(WinterGD))
+grep("JHI-Hv50k-2016-308652",colnames(WinterGD))
+grep("JHI-Hv50k-2016-308712",colnames(WinterGD))
+grep("JHI-Hv50k-2016-308899",colnames(WinterGD))
+
+write.csv(Sig_hitsW,"data/GWA_results/Significant_hits.csv")
 ######
 WDH20_pheno$Plus_PM<-as.factor(WDH20_pheno$Plus_PM)
 WDH20_pheno$PM<-as.factor(WDH20_pheno$PM)
