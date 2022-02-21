@@ -440,9 +440,10 @@ WinterPerTPGWAS %>% filter(P.value<5e-6)%>%ggplot(aes(ordinal, log10PVal, color 
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
   facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
 #I will worry about the other models for a different time
-data %>% group_by(factor1, factor2) 
+#data %>% group_by(factor1, factor2) 
 Sig_hitsW<-WinterPerTPGWAS%>%filter(P.value<5e-6)%>%group_by(SNP,Chromosome,Position)%>%dplyr::summarize(count=n(),.groups="keep")%>%
   arrange(Chromosome,Position)
+table(Sig_hitsW$Chromosome)
 #look at LD of these significant markers
 WinterGD[,c(1,3,4)]
 ld_heatmap=function(df){
@@ -461,15 +462,16 @@ ld_heatmap=function(df){
   r2[lower.tri(r2, diag=FALSE)] <- LD$r2
   r2 <- t(r2)
   r2
-  r2 <- as.data.frame(round(r2, 5))
+  r2 <- as.data.frame(round(r2, 4))
   diag(r2) <- 1
   r2[lower.tri(r2)] = NA
 
   rownames(r2)=colnames(df); colnames(r2)=rownames(r2)
   r_2=melt(as.matrix(r2), na.rm=T)
   
-  graphic = ggplot(r_2, aes(Var2, Var1, fill = value))+
+  graphic = ggplot(r_2, aes(Var2, Var1, fill = value,label = value))+
     geom_tile(color = "white")+
+    geom_text(color = "black",size=3)+
     scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
                          midpoint = 0.5, limit = c(0,1), space = "Lab", name="r2") +
     theme_classic() +    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
@@ -478,14 +480,17 @@ ld_heatmap=function(df){
 }
 #Chromosome 1
 Sig_hitsW%>%filter(Chromosome==1)
-grep("JHI-Hv50k-2016-8002", colnames(WinterGD))
+grep("JHI-Hv50k-2016-8002", colnames(WinterGD))#2
 
 Sig_hitsW%>%filter(Chromosome==2)
-grep("JHI-Hv50k-2016-59425",colnames(WinterGD))
-grep("JHI-Hv50k-2016-101167",colnames(WinterGD))
+grep("JHI-Hv50k-2016-59425",colnames(WinterGD))#2
 
-ld_heatmap(WinterGD[,c(865:867,1790:1791)])
+grep("JHI-Hv50k-2016-101167",colnames(WinterGD))#3
 #no ld there
+Sig_hitsW%>%filter(Chromosome==3)
+
+grep("JHI-Hv50k-2016-165725",colnames(WinterGD))#2
+
 #Chromsome 4
 Sig_hitsW%>%filter(Chromosome==4)
 grep("JHI-Hv50k-2016-228126",colnames(WinterGD))
@@ -493,23 +498,41 @@ grep("JHI-Hv50k-2016-228126",colnames(WinterGD))
 Sig_hitsW%>%filter(Chromosome==4)
 grep("JHI-Hv50k-2016-273301",colnames(WinterGD))
 grep("JHI-Hv50k-2016-273434",colnames(WinterGD))
-grep("JHI-Hv50k-2016-276836",colnames(WinterGD))
-ld_heatmap(WinterGD[,c(4570,4571,4583:4588)])
-#those markers are in high ld
-Sig_hitsW%>%filter(Chromosome==4)
+grep("JHI-Hv50k-2016-276836",colnames(WinterGD))#24
 grep("JHI-Hv50k-2016-276836",colnames(WinterGD))
 grep("JHI-Hv50k-2016-276707",colnames(WinterGD))
-ld_heatmap(WinterGD[,c(4583,4588)])
 grep("JHI-Hv50k-2016-276688",colnames(WinterGD))
 grep("JHI-Hv50k-2016-276604",colnames(WinterGD))
+ld_heatmap(WinterGD[,c(4570,4571,4583:4588)])
 
+grep("JHI-Hv50k-2016-276836",colnames(WinterGD))
 #all but the first marker on Chr 4 are in high LD
-Sig_hitsW%>%filter(Chromosome==5)
+Sig_hitsW%>%filter(Chromosome==4)
 
-grep("Qsd1",colnames(WinterGD))
-grep("JHI-Hv50k-2016-308652",colnames(WinterGD))
-grep("JHI-Hv50k-2016-308712",colnames(WinterGD))
-grep("JHI-Hv50k-2016-308899",colnames(WinterGD))
+grep("Qsd1",colnames(WinterGD))#31
+grep("JHI-Hv50k-2016-308652",colnames(WinterGD))#13
+ld_heatmap(WinterGD[,c(5149,5150)])
+#high LD
+grep("JHI-Hv50k-2016-308712",colnames(WinterGD))#1<-this could be a genotyping error
+ld_heatmap(WinterGD[,c(5149,5151:5155)])
+#looks like there could be an independent LD block here
+#0.4348
+grep("JHI-Hv50k-2016-308899",colnames(WinterGD))#1
+grep("JHI-Hv50k-2016-309905",colnames(WinterGD))#1
+ld_heatmap(WinterGD[,c(5168,5219)])#0.4617
+grep("JHI-Hv50k-2016-311700",colnames(WinterGD))#4
+grep("JHI-Hv50k-2016-311908",colnames(WinterGD))#2
+grep("JHI-Hv50k-2016-312060",colnames(WinterGD))#2
+ld_heatmap(WinterGD[,c(5296,5305,5311)])#high LD here
+#This LD block I believe is real
+grep("JHI-Hv50k-2016-336814",colnames(WinterGD))#1
+grep("JHI-Hv50k-2016-337656",colnames(WinterGD))#1
+ld_heatmap(WinterGD[,c(5843,5866)])#low LD here
+Sig_hitsW%>%filter(Chromosome==7)
+grep("JHI-Hv50k-2016-507370",colnames(WinterGD))#2
+sig<-c("JHI-Hv50k-2016-8002","JHI-Hv50k-2016-59425","JHI-Hv50k-2016-101167","JHI-Hv50k-2016-165725",
+  "JHI-Hv50k-2016-228126","JHI-Hv50k-2016-276836","Qsd1","JHI-Hv50k-2016-311700","JHI-Hv50k-2016-337656","JHI-Hv50k-2016-507370")
+WinterPerTPGWAS[WinterPerTPGWAS$SNP%in%sig,]%>%select(SNP,Chromosome,Position,year,TP,trait)%>%ungroup()%>%unique
 
 write.csv(Sig_hitsW,"data/GWA_results/Significant_hits.csv")
 ######
