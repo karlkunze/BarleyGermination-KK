@@ -532,9 +532,10 @@ Sig_hitsW%>%filter(Chromosome==7)
 grep("JHI-Hv50k-2016-507370",colnames(WinterGD))#2
 sig<-c("JHI-Hv50k-2016-8002","JHI-Hv50k-2016-59425","JHI-Hv50k-2016-101167","JHI-Hv50k-2016-165725",
   "JHI-Hv50k-2016-228126","JHI-Hv50k-2016-276836","Qsd1","JHI-Hv50k-2016-311700","JHI-Hv50k-2016-337656","JHI-Hv50k-2016-507370")
-WinterPerTPGWAS[WinterPerTPGWAS$SNP%in%sig,]%>%select(SNP,Chromosome,Position,year,TP,trait)%>%ungroup()%>%unique
+c<-WinterPerTPGWAS[WinterPerTPGWAS$SNP%in%sig,]%>%select(SNP,Chromosome,Position,year,TP,trait)%>%ungroup()%>%pivot_wider(names_from = c(trait,year,TP), values_from = -names(.)[c(1:3)])
+View(c)
 
-write.csv(Sig_hitsW,"data/GWA_results/Significant_hits.csv")
+write.csv(c,"data/GWA_results/Significant_hits.csv")
 ######
 WDH20_pheno$Plus_PM<-as.factor(WDH20_pheno$Plus_PM)
 WDH20_pheno$PM<-as.factor(WDH20_pheno$PM)
