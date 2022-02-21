@@ -3,15 +3,15 @@
 
 
 library(here)
-library(lme4)
-library(reshape2)
+
+
 library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 
-load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))#old file
+#load("data/Winter_DH/WMB DH 2020 all data for analysis.RData")#old file
 #linear model analysis for germination traits
 
 #correl
@@ -347,6 +347,94 @@ DHs2020 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
   group_by(TP,PM_date, trait, Family) %>% join(WinterGD[,c('taxa', 'Qsd1')]) %>% filter(Qsd1 != 1) %>%
   group_modify(~{data.frame(H2 = BLUPH2(lmer(value~Location+rep+ Qsd1+(1|taxa),data = .x)))}) %>% ungroup() %>% select(TP,trait,Family,H2) %>%
   pivot_wider(values_from = H2, names_from = c(TP,trait))
+library(GAPIT3)
+DF_OperationsV3 = function(df){
+  df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
+                                           rank = c(1:length(df$SNP))) %>% arrange(Chromosome, as.numeric(Position)) %>%
+    mutate(log10PVal = -log10(P.value),ordinal = c(1:length(df$SNP)))
+  return(df)
+}
+#I am assuming this is to help make manhattan plots
+
+GWA_MLMM_fortidyR = function(df, groupvars) {
+  GWAS = GAPIT(Y = df %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD, GM=WinterGM,PCA.total = 2,
+               Geno.View.output=F, model="MLMM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
+  Out = DF_OperationsV3(GWAS$GWAS) %>% arrange(P.value) %>% slice_head(n=1000)
+  return(Out)
+}
+#GWA MLMM per timepoint,
+#GWA_MLMM_fortidyR.perFamily = function(df, groupvars) {
+  WinterGD_sub = WinterGD %>% filter(taxa %in% df$taxa)
+  Out = tryCatch(
+    {GWAS = suppressWarnings(GAPIT(Y = df %>%ungroup() %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD_sub, GM=WinterGM,PCA.total = 0,
+                                   Geno.View.output=F, model="MLMM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05))
+    DF_OperationsV3(GWAS$GWAS) %>%
+      arrange(P.value) %>% slice_head(n = 100)
+    }, error = function(e){data.frame() } )
+  return(Out)
+}
+#per family, I'm not going to worry about this one for now
+GWA_MLM_fortidyR = function(df, groupvars) {
+  GWAS = GAPIT(Y = df %>% ungroup() %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD, GM=WinterGM,PCA.total = 2,
+               Geno.View.output=F, model="MLM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
+  Out = (GWAS$GWAS) %>% arrange(P.value)  %>%
+    mutate(logPercentileQQplot = -log10(c(1:length(GWAS$GWAS$SNP))/length(GWAS$GWAS$SNP)),
+           rank = c(1:length(GWAS$GWAS$SNP))) %>% arrange(Chromosome, 'Position') %>%
+    mutate(log10PVal = -log10(P.value), ordinal = c(1:length(GWAS$GWAS$SNP)))%>% 
+    arrange(P.value) %>% slice_head(n = 1000)
+  return(Out)
+}
+#not going to worry about this one either for germination traits at least
+#GWA_MLM_fortidyR.perFamily = function(df, groupvars) {
+  WinterGD_sub = WinterGD %>% filter(taxa %in% df$taxa)
+  Out = tryCatch(
+    {GWAS = suppressWarnings(GAPIT(Y = df %>% ungroup() %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD_sub, GM=WinterGM,PCA.total = 0,
+                                   Geno.View.output=F, model="MLM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05))
+    (GWAS$GWAS) %>% arrange(P.value)  %>%
+      mutate(logPercentileQQplot = -log10(c(1:length(GWAS$GWAS$SNP))/length(GWAS$GWAS$SNP)),
+             rank = c(1:length(GWAS$GWAS$SNP))) %>%  arrange(Chromosome, 'Position') %>%
+      mutate(log10PVal = -log10(P.value), ordinal = c(1:length(GWAS$GWAS$SNP)))%>% 
+      arrange(P.value) %>% filter(P.value < 0.01)
+    }, error = function(e){data.frame() } )
+  return(Out)
+}
+Add_DH130910_familyStructure = function(df3, groupvar){
+  DH130910_rows = df3 %>% filter(taxa == 'DH130910') %>% select(!Family)
+  df3= df3 %>% filter(taxa != 'DH130910') %>%
+    rbind(DH130910_rows %>% mutate(Family='Flavia/DH130910'),
+          DH130910_rows %>% mutate(Family='SY_Tepee/DH130910'),
+          DH130910_rows %>% mutate(Family='Scala/DH130910'),
+          DH130910_rows %>% mutate(Family='Wintmalt/DH130910')
+    ) %>%
+    filter(Family %in% c('Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910'))
+  return(df3)
+}
+
+chrTable = c(785, 1534, 1187,  760, 1348,  823, 1334,16 )
+chrLabel = c(1:7, 'UN')
+winterOrdinalBreaks = c(chrTable[1]/2)
+WinterChrLines = c(785)
+for (i in 2:8){
+  winterOrdinalBreaks[i] = sum(chrTable[1:i-1])+chrTable[i]/2
+  WinterChrLines[i] = sum(chrTable[1:i])
+}
+#Per time point for MLMM
+WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
+  ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
+
+WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
+WinterPerTPGWAS %>% arrange(P.value) %>% view()
+
+WinterPerTPGWAS %>% ggplot(aes(ordinal, log10PVal, color = TP, shape = year))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
+  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+#I will worry about the other models for a different time
 
 ######
 WDH20_pheno$Plus_PM<-as.factor(WDH20_pheno$Plus_PM)
