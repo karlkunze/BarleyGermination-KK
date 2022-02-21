@@ -1,8 +1,8 @@
 
 #Workflow:Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
+#New workflow Winter_DH_data_consolidation.Rmd->analysis_script.R
 
 
-library(here)
 
 
 library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
