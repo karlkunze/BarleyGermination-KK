@@ -5,16 +5,19 @@
 library(here)
 library(lme4)
 library(reshape2)
+library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
+library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
+library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 
 load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))#old file
 #linear model analysis for germination traits
-library(dplyr)
-#correl
-cor(DH2020_2021_wide$scald,DH2020_2021_wide$GE5_12)
 
-#DH 2020
+#correl
+DH2020_2021$Check<-as.factor(DH2020_2021$Check)
+table(DH2020_2021$spot_bloch)
+#DH 2020 GI
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==19)))
 #Location significant
@@ -24,19 +27,328 @@ anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=
 #replication significant
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
 #all significant
+#DH 2020 GE
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))
+#Location
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==19)))
+#Location significant
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==47)))
+#Location significant and rep
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==96)))
+#location and rep significant
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
+#field analysis 2020
 
-#View(cbind(All_pheno_TPall$Plus_PM,All_pheno_TPall$Entry,All_pheno_TPall$GIscale,All_pheno_TPall$GIscale_5D))
-str(WDH20_pheno)
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
+#field analysis 2020
+DH2020_2021$Maturity_date<-DH2020_2021$Maturity_date+76
+colnames(DH2020_2021)
+DH2020_2021$fac_field
+anova(lm(GI~ taxa +Location+Maturity_date, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))#Location significant
+
+#Does it make sense that Maturity date is still significant even though we controlled for it?
+anova(lm(GI~ taxa +Location+replication+Maturity_date, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==19)))
+
+#Location significant, winter survival significant
+anova(lm(GI~ taxa +Location+replication+Maturity_date, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==47)))
+
+#Location significant and rep
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==96)))
+#location and rep significant, scald significant for GE, not GI
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
+anova(lm(Day1Germ~ taxa +Maturity_date:Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
+#field analysis 2020
+#Summation, we need to consider Maturity date in the model, it affects GE at all timepoints and GI for timepoints 1, 2 and 3
+#scald affected GE for timepoint 4
+##############2021 
+#2021 GI
+table(DH2020_2021$PM_date,DH2020_2021$Year)#add 12, 33, 68
+DH2020_2021$spot_bloch
+#scald associated with GI at timepoint 3.5 or so
+#scald associated with GE at timepoint 19,33, and 47
+anova(lm(GE~ taxa +Maturity_date:Location+scald, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==19)))
+#Location
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==12)))
+#Location
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==19)))
+#Location
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==33)))
+#Location significant
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==47)))
+#neither significant
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==68)))
+#Location significant
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==96)))
+#rep and location significant
+anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==152)))
+#all significant
+#DH 2021 GE
+
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==5)))
+#Location
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==12)))
+#Location
+
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==19)))
+#neither
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==33)))
+#rep slightly
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==47)))
+#rep sign
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==68)))
+#Location and rep
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==96)))
+#location
+anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==152)))
+anova(lm(GI~ taxa +Location+replication+spot_bloch,DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==96)))
+library(plyr)
+DH2020_2021$spot_bloch
+lm(GI~taxa + scald,DH2020_2021%>%filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==12))
+
+#2020 and 2021 together
+
+table(DH2020_2021$PM_date,DH2020_2021$Year)
+anova(lm(GI~ taxa +Year+Year %in% Location+replication+ws_percent+Maturity_date:Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==5)))
+#Year significant
+
+#rep not significant
+anova(lm(GI~ taxa +replication+Year+Maturity_date%in%Year+Maturity_date, DH2020_2021%>% filter(DH2020_2021$PM_date ==19)))
+#Year and year in location significant
+anova(lm(GI~ taxa +Year%in%Location+replication+Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==47)))
+#Location and year significant
+anova(lm(GI~ taxa +Year%in%Location+replication+Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==96)))
+#replication, year significant
+anova(lm(GI~ taxa +Location%in%Year+replication+Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==152)))
+#all significant
+
+#GE for both years
+anova(lm(GE~ taxa +Year+Year %in% Location+replication, DH2020_2021%>% filter(DH2020_2021$PM_date ==5)))
+#Year significant, Year in locatiobn slightly
+anova(lm(GE~ taxa +Year%in%Location+replication+Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==19)))
+#Year and year in location significant
+anova(lm(GE~ taxa +Year%in%Location+replication+Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==47)))
+#Year significant, Year:Location slightly
+anova(lm(GI~ taxa +Year%in%Location+replication+Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==96)))
+#replication, year significant, Location slightly
+anova(lm(GI~ taxa +Location%in%Year+replication+Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==152)))
+#all significant
+#We should include rep, location within Year, and Year as effects for models
+
+
+DH2020_2021$TP
+library(ggplot2)
+library(tidyr)
+library(ggh4x)
+library(patchwork)
+DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(trait =='GE') %>%
+  ggplot(aes(x = value, fill = TP))+geom_density()+facet_nested(TP ~trait+Year, scales = 'free')+
+ theme_bw()+guides(fill = "none")+
+  DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(trait =='GI') %>%
+  ggplot(aes(x = value, fill = TP))+geom_density()+facet_nested(TP ~trait+Year, scales = 'free')+
+  theme_bw()+ guides(fill = "none")
+  plot_layout(ncol = 2)
+
 #comments about the data table
 #each entry is replicated 8 times to cover 4 TPs for each replication
 #This means that phenotype data for each entry is replicated that many times
 #This shouldn't be a problem if comparing phenotype data within a timepoint,
 # but when comparing between ensure that total number of observations are correct
 
+#other notes from the data with field
+#scald seems to have a significant effect in the models, this could mean that either scald resistance/susceptibility
+  #affects germination OR that the resis/sucespt loci is closely associated with AlaAT
+  
 #####
+  
+DH2020_2021=DH2020_2021%>%dplyr::rename(rep=replication,year=Year)
+DH2020_2021=DH2020_2021 %>%filter(!Location=="Spring")
+BLUPH2 = function(trait.lm) {
+  ses<- se.ranef(trait.lm)$'taxa' #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
+  v_BLUP<- ses^2
+  sigma2_g=VarCorr(trait.lm, comp="Variance")$'taxa'[1]
+  Reliability<- 1- v_BLUP/ (2*sigma2_g)  #where sigma2_g is the genetic variance estimated
+  H2<- round(mean(Reliability),3)
+  return(H2)
+}
+
+BlueBlupsH2_Location_rep_taxa <- function(d, groupvars) {
+
+    trait.lmer <- lmer(formula = value ~(1|taxa)+Location+rep, 
+                       data = d)
+    #in the future we should add maturity date and possibly scald here
+      lineEf = (ranef(trait.lmer)$taxa + fixef(trait.lmer)[1])%>% as.data.frame() %>%rownames_to_column('taxa') %>% 
+    dplyr::mutate(type = 'BLUP') %>% dplyr::rename(value = '(Intercept)')
+      
+    trait.lm = broom::tidy(lm(value~ taxa+Location+rep, data=d))
+    #in the future we should add maturity date and possibly scald here
+    first_taxa = d %>% arrange(taxa) %>% slice_head( n = 1) %>% dplyr::select(taxa) %>% as.character()
+    Intercept = trait.lm %>% filter(term == '(Intercept)') %>% dplyr::select(estimate) %>% as.numeric()
+    lineBLUE = trait.lm %>% filter(substr(term,1,4)=='taxa') %>% 
+      add_row(term = paste0('taxa',first_taxa),
+              estimate = 0) %>% mutate(BLUE = estimate + Intercept) %>%
+      transmute(taxa = gsub(pattern = 'taxa',replacement = '',x = term),
+                value = BLUE, type = 'BLUE')
+    H2 = BLUPH2(trait.lmer)
+    return(rbind(lineEf, lineBLUE) %>% add_row(value = H2, type = 'H2') %>% arrange(type, taxa) %>%
+             join(d %>% dplyr::select(taxa, Family) %>% unique()))
+  }
+  
+d2 = DH2020_2021 %>%dplyr::select(taxa, rep, Location, TP, GE,GI,PM_date,year) %>% 
+    mutate(year = factor(year, levels = c('2021','2020'))) %>%
+    pivot_longer(cols = c(GE, GI), names_to = 'trait') %>% filter(TP == 'TP2', trait == 'GE')
+  
+BlueBlupsH2_Year_rep_taxa <- function(d2, groupvars) {
+    if (length(unique(d2$year))==2) {
+      trait.lmer <- lmer(formula = value ~(1|taxa)+Location + rep, data = d2)
+      # fixef(trait.lmer)[2]/need to think about this more. 
+      
+      Cept = (fixef(trait.lmer)[1]*4+sum(fixef(trait.lmer)[2:4]))/4
+      lineEf = (ranef(trait.lmer)$taxa + Cept) %>% as.data.frame() %>% rownames_to_column('taxa') %>% 
+        mutate(type = 'BLUP') %>% dplyr::rename(value = '(Intercept)')
+      
+      trait.lm = broom::tidy(lm(value~ taxa+Location+ rep, data=d2))
+      first_taxa = d2 %>% arrange(taxa) %>% slice_head( n = 1) %>% dplyr::select(taxa) %>% as.character()
+      Intercept_list = trait.lm %>% filter(term == '(Intercept)'|substr(term,1,8)=='Location')
+      Intercept = (Intercept_list$estimate[1]*4+sum(Intercept_list$estimate[2:4]))/4
+      
+      lineBLUE = trait.lm %>% filter(substr(term,1,4)=='taxa') %>% 
+        add_row(term = paste0('taxa',first_taxa),
+                estimate = 0) %>% mutate(BLUE = estimate + Intercept) %>%
+        transmute(taxa = gsub(pattern = 'taxa',replacement = '',x = term),
+                  value = BLUE, type = 'BLUE')
+      H2 = BLUPH2(trait.lmer)
+      return(rbind(lineEf, lineBLUE) %>% add_row(value = H2, type = 'H2')%>% join(d2 %>% dplyr::select(taxa, Family)%>% unique()))
+    }
+    else {
+      trait.lmer <- lmer(formula = value ~(1|taxa)+Location+rep, 
+                         data = d2)
+      lineEf = (ranef(trait.lmer)$taxa + fixef(trait.lmer)[1]) %>% as.data.frame() %>% rownames_to_column('taxa') %>% 
+        mutate(type = 'BLUP') %>% dplyr::rename(value = '(Intercept)')
+      trait.lm = broom::tidy(lm(value~ taxa+Location+rep, data=d2))
+      
+      first_taxa = d2 %>% arrange(taxa) %>% slice_head( n = 1) %>% dplyr::select(taxa) %>% as.character()
+      Intercept = trait.lm %>% filter(term == '(Intercept)') %>% dplyr::select(estimate) %>% as.numeric()
+      lineBLUE = trait.lm %>% filter(substr(term,1,4)=='taxa') %>% 
+        add_row(term = paste0('taxa',first_taxa),
+                estimate = 0) %>% mutate(BLUE = estimate + Intercept) %>%
+        transmute(taxa = gsub(pattern = 'taxa',replacement = '',x = term),
+                  value = BLUE,type = 'BLUE')
+      H2 = BLUPH2(trait.lmer)
+      return(rbind(lineEf, lineBLUE) %>% add_row(value = H2, type = 'H2') %>% arrange(type, taxa) %>%
+               join(d2 %>% dplyr::select(taxa, Family) %>% unique()))
+    }
+  }
+library(lme4)
+
+DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP, GE, GI, PM_date,year,Family) %>% 
+    pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
+    group_by(TP, PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()
+DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>% dplyr::select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family) %>% pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
+  group_by(TP,PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()
+#Both
+DHCombined =  DH2020_2021 %>% dplyr::select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family) %>% 
+  mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
+  group_by(TP,PM_date, trait) %>% group_modify(BlueBlupsH2_Year_rep_taxa)  %>% mutate(year = '2020/2021')
+#correlations
+DH2020Estimates %>% join(DH2021Estimates  %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
+  filter(!is.na(value2021), type =='BLUE') %>% filter(type !='H2') %>% group_by(type, TP, trait) %>%
+  summarise(correlation = cor(value, value2021))
+#Heritabilities over both timepoints, both are high
+DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
+  filter(type == 'H2') %>% ggplot(aes(x = TP, y = value, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
+  facet_wrap(vars(year), ncol = 1)+theme_bw()+labs(title= 'Broard sense heritability\nover time and datasets')
+
+#other ideas to expand here, perhaps calculate narrow sense heritability, since we have the genotype info
+#adding genotype data
+AllDHBluesPerYear = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
+#winterGD and WinterGM
+load('data/Genotype_data/myGM20_LDprune.Rdata')
+load('data/Genotype_data/myGD20_LDprune.Rdata')
+WinterGM=myGM20_prune;WinterGD=myGD20_prune
+rm(myGM20_prune);rm(myGD20_prune)
+WinterGM = WinterGM %>% arrange(Chromosome, Position)
+WinterGD = WinterGD %>%
+  mutate(taxa = gsub(pattern = '-',replacement = '_',taxa),
+         taxa = gsub(pattern = ' ', replacement = '_',taxa),
+         taxa1 = taxa) %>% remove_rownames()%>% 
+  column_to_rownames('taxa1')
+sum(WinterGM$SNP == colnames(WinterGD[,-1]))
+# Make sure things are in the right order
+# Sum should = 8384
+dim(WinterGD)
+table(substr(WinterGD$taxa,1,5))
+WinterRelationship = rrBLUP::A.mat(WinterGD[,-1]-1, impute.method = 'EM', return.imputed = F)
+WinterPCA = eigen(WinterRelationship)
+WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
+data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
+winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
+  mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY ','Sca','Win'), 
+                            to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
+                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910')),
+         taxa = WinterGD$taxa,
+         shapes = ifelse(taxa %in% c('DH130910', 'Flavia','SY_Tepee','Wintmalt','Scala'), taxa, 'Lines'),
+         size = ifelse(taxa %in% c('DH130910', 'Flavia','SY_Tepee','Wintmalt','Scala'), 3, 2))
+
+winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point()+
+  winterlinePCAvalues%>% ggplot(aes(x = X1, y = X3,color = family)) + geom_point()+
+  winterlinePCAvalues%>% ggplot(aes(x = X2, y = X3,color = family)) + geom_point()
+
+winterlinePCAvalues %>% filter(family != 'Cha') %>%
+  ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(size = "none")+
+  xlab('PC1')+ylab('PC2')
 
 
+setwd(rprojroot::find_rstudio_root_file())
 
+
+#Travis' Time series perspective
+DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data source') %>%
+  ggplot(aes(x = PM_date, y = value, group = taxa))+
+  geom_line()+facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_vline(xintercept = c(12,33,68), color = 'red')+
+  labs(title = 'GE and GI BLUEs over time with differeing datasets')+theme_bw()
+
+DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+
+  geom_vline(xintercept = c(12,33,68), color = 'red')
+
+png('plots/Time_series/Sup_BluesByFamilyQsd1AllYears.png', 2400, 1500, res =120)
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% 
+  mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free', space = 'free_x')
+dev.off()
+
+png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
+  filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+dev.off()
+
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2021'))  %>%
+  filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+# what is the heritability if Qsd1 is accounted for in the model? 
+
+DHs2020 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
+  rbind(., DHs2021 %>% select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family)) %>% 
+  mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>% 
+  filter(Family %nin%  c('Cha','End','DH130910')) %>%
+  group_by(TP,PM_date, trait, Family) %>% join(WinterGD[,c('taxa', 'Qsd1')]) %>% filter(Qsd1 != 1) %>%
+  group_modify(~{data.frame(H2 = BLUPH2(lmer(value~Location+rep+ Qsd1+(1|taxa),data = .x)))}) %>% ungroup() %>% select(TP,trait,Family,H2) %>%
+  pivot_wider(values_from = H2, names_from = c(TP,trait))
+
+######
 WDH20_pheno$Plus_PM<-as.factor(WDH20_pheno$Plus_PM)
 WDH20_pheno$PM<-as.factor(WDH20_pheno$PM)
 WDHphs.lm=lm(phs~ Plus_PM + Entry, data=WDH20_pheno)
