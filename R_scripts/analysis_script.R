@@ -135,11 +135,6 @@ anova(lm(GI~ taxa +Location%in%Year+replication+Year, DH2020_2021%>% filter(DH20
 #We should include rep, location within Year, and Year as effects for models
 
 
-DH2020_2021$TP
-library(ggplot2)
-library(tidyr)
-library(ggh4x)
-library(patchwork)
 DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(trait =='GE') %>%
   ggplot(aes(x = value, fill = TP))+geom_density()+facet_nested(TP ~trait+Year, scales = 'free')+
  theme_bw()+guides(fill = "none")+
@@ -157,7 +152,7 @@ DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(tra
 #other notes from the data with field
 #scald seems to have a significant effect in the models, this could mean that either scald resistance/susceptibility
   #affects germination OR that the resis/sucespt loci is closely associated with AlaAT
-  
+#Need to look into the maturity date problem more  
 #####
   
 DH2020_2021=DH2020_2021%>%dplyr::rename(rep=replication,year=Year)
@@ -282,7 +277,7 @@ WinterPCA = eigen(WinterRelationship)
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
 data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
 winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
-  mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY ','Sca','Win'), 
+  mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win'), 
                             to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
                                    'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910')),
          taxa = WinterGD$taxa,
@@ -322,7 +317,7 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free', space = 'free_x')
 dev.off()
 
-png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
+#png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
   filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
@@ -339,12 +334,11 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
 # what is the heritability if Qsd1 is accounted for in the model? 
-
-DHs2020 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
-  rbind(., DHs2021 %>% select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family)) %>% 
-  mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>% 
+DH2020_2021$Family
+DH2020_2021 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
+  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>% 
   filter(Family %nin%  c('Cha','End','DH130910')) %>%
-  group_by(TP,PM_date, trait, Family) %>% join(WinterGD[,c('taxa', 'Qsd1')]) %>% filter(Qsd1 != 1) %>%
+ group_by(TP,PM_date, trait, Family) %>% join(WinterGD[,c('taxa', 'Qsd1')]) %>% filter(Qsd1 != 1)%>%
   group_modify(~{data.frame(H2 = BLUPH2(lmer(value~Location+rep+ Qsd1+(1|taxa),data = .x)))}) %>% ungroup() %>% select(TP,trait,Family,H2) %>%
   pivot_wider(values_from = H2, names_from = c(TP,trait))
 library(GAPIT3)
@@ -421,6 +415,9 @@ for (i in 2:8){
 #Per time point for MLMM
 WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
   ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
+
+View(DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
+  ungroup() %>% group_by(year, TP, trait))
 
 WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
 WinterPerTPGWAS %>% arrange(P.value) %>% view()
