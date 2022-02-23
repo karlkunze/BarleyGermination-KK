@@ -184,6 +184,14 @@ load("data/Phenotype_Data/2021/field/WBMaster21_all.Rdata")
 WBMaster21=WBMaster21%>%dplyr::rename(test_wt="Test Wt",SourcePLOT=PLOT21,grain_name="GRAIN NAME",ws_percent=ws,PowderyMildew="PoweryMildew")%>%dplyr::select(Entry,SourcePLOT,Location,Year,Check,Row,Column,kgha,ws_percent,frost_damage,HD_date,TP_date,Maturity_date,Ht,Lodging,phs,Scald,SB,PowderyMildew)%>%
  mutate(HD_date=as.numeric(format(WBMaster21$HD_date, "%j")),TP_date=as.numeric(format(WBMaster21$TP_date,"%j")))%>%mutate(taxa=gsub("KWS Scala","Scala",Entry))%>%dplyr::rename(TipPoint_date=TP_date)%>%dplyr::select(-Entry)
 
+phs=WBMaster21%>%select(taxa,phs)%>%group_by(taxa)%>%summarize(mean = mean(phs))%>%ungroup()
+str(phs)
+table(phs$mean>2)
+412/434
+table(phs$mean>=2&phs$mean<4)
+20/434
+table(phs$mean>4)
+8/434
 colnames(WBMaster21)[names(WBMaster21)%in%names(DHs2021)]
 colnames(DHs2021)[names(DHs2021)%in%names(WBMaster21)]
 #doing a merge, will be performing a left join merge with the Germ traits first. For this study we're not interested in lines that were not assayed for germination and/or malting quality
