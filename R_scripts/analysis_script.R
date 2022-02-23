@@ -236,25 +236,30 @@ BlueBlupsH2_Year_rep_taxa <- function(d2, groupvars) {
   }
 library(lme4)
 library(corrr)
+#phs section
 phs<-DH2020_2021%>%select(taxa,year,Location,SourcePLOT,phs)%>%unique
 table(phs$yea,phs$Location)
 480*2
 DH2020_2021%>%group_by(year,TP)%>%dplyr::summarize(correlate(GI, phs,use="pairwise.complete.obs"))
 DH2020_2021%>%group_by(year,TP)%>%as.matrix() 
 
+###
 
 DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI, PM_date,year,Family) %>% 
     pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
-    group_by(TP, PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()
+    group_by(TP, PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()%>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))
+table(DH2020Estimates$Family)
+table(DH2020_2021$taxa)
 DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>% dplyr::select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family) %>% pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
-  group_by(TP,PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()
-DH2020Estimates$PM_date
+  group_by(TP,PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()%>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))
+table(DH2020Estimates$Family)
 #Both
-DHCombined = DH2020_2021%>%filter(year=="2020")%>% select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>%
-  rbind(., DH2020_2021%>%filter(year=="2021") %>% select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family)) %>% 
+DHCombined = DH2020_2021%>%filter(year=="2020")%>% select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))%>%
+  rbind(., DH2020_2021%>%filter(year=="2021") %>% select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family) %>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))) %>% 
   mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
   group_by(TP,PM_date, trait) %>%
   group_modify(BlueBlupsH2_Year_rep_taxa)  %>% mutate(year = '2020/2021')
+table(DHCombined$Family)
 #View(DHCombined)
 #View(DHCombined)
 #correlations
@@ -262,7 +267,7 @@ DHCombined = DH2020_2021%>%filter(year=="2020")%>% select(taxa, rep, Location,TP
 DH2020Estimates %>% join(DH2021Estimates  %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
   filter(!is.na(value2021), type =='BLUE') %>% filter(type !='H2') %>% group_by(type, TP, trait) %>%
   summarise(correlation = cor(value, value2021))
-AllDHBluesPerYear0 = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
+AllDHBluesPerYear = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
 #load("")
 #Heritabilities over both timepoints, both are high
 DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
@@ -273,7 +278,7 @@ DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
 #adding genotype data
 AllDHBluesPerYear= rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>%mutate(PM_date=as.double(PM_date),year=as.character(year))%>%ungroup()
 #load("/home/karl/git/TimeSeriesGermination/WinterBarley/Analysis/AllDHBluesPerYear.RData")
-dplyr::all_equal(AllDHBluesPerYear,AllDHBluesPerYear0)
+dplyr::all_equal(AllDHBluesPerYear,AllDHBluesPerYear)
 AllDHBluesPerYear$taxa
 AllDHBluesPerYear0[AllDHBluesPerYear0$taxa%in%AllDHBluesPerYear$taxa,]
 #winterGD and WinterGM
@@ -287,7 +292,12 @@ WinterGM = WinterGM %>% arrange(Chromosome, Position)
 WinterGD = WinterGD %>%
   mutate(taxa = gsub(pattern = ' ', replacement = '_',taxa),
          taxa1 = taxa) %>% remove_rownames()%>% 
-  column_to_rownames('taxa1')
+  column_to_rownames('taxa1')%>%mutate(Qsd1=replace(Qsd1,Qsd1==1,2))%>%
+summarise(taxa = "Endeavor",Qsd1 = 2)%>%bind_rows(WinterGD, .)
+WinterGD[WinterGD$taxa=="Endeavor",]$Qsd1
+
+
+
 sum(WinterGM$SNP == colnames(WinterGD[,-1]))
 # Make sure things are in the right order
 # Sum should = 8384
@@ -298,9 +308,9 @@ WinterPCA = eigen(WinterRelationship)
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
 data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
 winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
-  mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win'), 
+  mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win',"End","Cha","Che"), 
                             to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
-                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910')),
+                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910',"Check","Check","Check")),
          taxa = WinterGD$taxa,
          shapes = ifelse(taxa %in% c('DH130910', 'Flavia','SY_Tepee','Wintmalt','Scala'), taxa, 'Lines'),
          size = ifelse(taxa %in% c('DH130910', 'Flavia','SY_Tepee','Wintmalt','Scala'), 3, 2))
@@ -309,7 +319,7 @@ winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point
   winterlinePCAvalues%>% ggplot(aes(x = X1, y = X3,color = family)) + geom_point()+
   winterlinePCAvalues%>% ggplot(aes(x = X2, y = X3,color = family)) + geom_point()
 
-winterlinePCAvalues %>% filter(family != 'Cha') %>%
+winterlinePCAvalues %>% filter(family !=c('Check')) %>%
   ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(size = "none")+
   xlab('PC1')+ylab('PC2')
 
@@ -326,42 +336,48 @@ DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE
 
 DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+
   geom_vline(xintercept = c(12,33,68), color = 'red')
+#filter(Family %nin% c('DH130910'))%>%
 
 #png('plots/Time_series/Sup_BluesByFamilyQsd1AllYears.png', 2400, 1500, res =120)
+table(AllDHBluesPerYear$Family)
+table(AllDHBluesPerYear$Family)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
-  filter(Family %nin% c('Cha','End','DH130910')) %>% 
-  mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(!(trait =='GE' &value>1.05)) %>%
+  join(WinterGD[,c('taxa','Qsd1')],type = "left")%>%filter(year=="2020") %>% 
+  filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
+   
+  mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%filter(Family %nin% c('DH130910'))%>%
+filter(!(trait =='GE' &value>1.05)) %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free', space = 'free_x')
 dev.off()
 
 #png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
-AllDHBluesPerYear0 %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
+  filter(Family %nin% c('DH130910')) %>% filter(year %in% c('2021'))  %>%
+ # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+#2021
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(AlaT[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('DH130910')) %>% filter(year %in% c('2021'))  %>%
+  filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+#2020/2021
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(AlaT[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
 dev.off()
 
-AllDHBluesPerYear0 %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2021'))  %>%
-  filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
-  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
-# what is the heritability if Qsd1 is accounted for in the model? 
-DH2020_2021$Family
-DH2020_2021 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
-  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>% 
-  filter(Family %nin%  c('Cha','End','DH130910')) %>%
- group_by(TP,PM_date, trait, Family) %>% join(WinterGD[,c('taxa', 'Qsd1')]) %>% filter(Qsd1 != 1)%>%
-  group_modify(~{data.frame(H2 = BLUPH2(lmer(value~Location+rep+ Qsd1+(1|taxa),data = .x)))}) %>% ungroup() %>% select(TP,trait,Family,H2) %>%
-  pivot_wider(values_from = H2, names_from = c(TP,trait))
 library(GAPIT3)
 DF_OperationsV3 = function(df){
   df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
@@ -565,17 +581,10 @@ WDH20_pheno$Plus_PM<-as.factor(WDH20_pheno$Plus_PM)
 WDH20_pheno$PM<-as.factor(WDH20_pheno$PM)
 WDHphs.lm=lm(phs~ Plus_PM + Entry, data=WDH20_pheno)
 anova(WDHphs.lm) #all factors signif
-######### Tinme series analysi
-GETP22020= FoldCVGPv2(df = DH2020Estimates %>% filter(TP=='TP2', trait == 'GE',type =='BLUE'),myGD = WinterGD, numfolds = 10,datasplit = .5,trait_name ='GE' )
-df<-DH2020Estimates %>% filter(TP=='TP2', trait == 'GE',type =='BLUE')
-df
-myGD<-WinterGD
-numfolds<-10
-datasplit<-0.5
-trait_name<-'GE'
+######### Tinme series analysis
 FoldCVGPv2 = function(df, myGD=WinterGD, numfolds,datasplit, trait_name){
   
-# Phenotype is full vector of phenotypes
+  # Phenotype is full vector of phenotypes
   # myGD is a n taxa x N markers dataframe with -1,0,1 coding and no 'taxa' column in it
   # numfolds is the number of folds to cv (ie 5 for five-fold cv)
   # datasplit is the percentage as a decimal for the training/testing split.
@@ -624,6 +633,63 @@ FoldCVGPv2 = function(df, myGD=WinterGD, numfolds,datasplit, trait_name){
   print(end_time-start_time)
   return(TrueandPredicted)
 }
+
+FoldCVGPv2 = function(df, myGD=WinterGD, numfolds,datasplit, trait_name){
+  
+  # Phenotype is full vector of phenotypes
+  # myGD is a n taxa x N markers dataframe with -1,0,1 coding and no 'taxa' column in it
+  # numfolds is the number of folds to cv (ie 5 for five-fold cv)
+  # datasplit is the percentage as a decimal for the training/testing split.
+  
+  df = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+  myGD = myGD %>% filter(taxa %in% df$taxa) %>% arrange(taxa)
+  dim(df)
+  dim(myGD)
+  if(!length(unique(df$taxa))==sum(df$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  
+  TrueandPredicted = data.frame()
+  Phenotype = as.vector(df$value)
+  num_entries = length(Phenotype)
+  Training_size = round(datasplit*num_entries,0)
+  start_time <- Sys.time() 
+  set.seed(1)
+  
+  myGD = myGD[,-1]-1
+  for (i in 1:numfolds){
+    
+    trainingSet = sort(sample(1:num_entries,Training_size))
+    testingSet = setdiff(1:num_entries,trainingSet)
+    
+    y_train = Phenotype[trainingSet] 
+    y_test = Phenotype[testingSet]
+    
+    marker_train = myGD[trainingSet,]
+    marker_test = myGD[testingSet,]
+    
+    trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+    
+    PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+    print(cor(y_test,PredictedPheno))
+    
+    TrueandPredicted = rbind(TrueandPredicted, 
+                             data.frame(TruePheno = y_test,
+                                        PredPheno = PredictedPheno,
+                                        taxa = df$taxa[testingSet],
+                                        fold = i,
+                                        trait = trait_name,
+                                        correlation = cor(y_test,PredictedPheno)))
+  }
+  end_time <- Sys.time()
+  print(end_time-start_time)
+  return(TrueandPredicted)
+}
+
+
+GETP22020= FoldCVGPv2(df = DH2020Estimates %>% filter(TP=='TP2', trait == 'GE',type =='BLUE'),myGD = WinterGD, numfolds = 10,datasplit = .5,trait_name ='GE' )
+
+
 
 GETP22020= FoldCVGPv2(df = DH2020Estimates %>% filter(TP=='TP2', trait == 'GE',type =='BLUE'),myGD = WinterGD, numfolds = 10,datasplit = .5,trait_name ='GE' )
 # We are going to use our DH2020Estimates to fit time series. We need to GP the first TP of GE and GI values on the 
@@ -679,13 +745,15 @@ detach("package:reshape2", unload=TRUE)
 detach("package:dplyr", unload=TRUE)
 library(plyr)
 table(DH2020Estimates$PM_date)
-G2020.TSF.GE = DH2020Estimates%>% ungroup() %>% rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
-  filter(type == 'BLUE', trait =='GE') %>%
+DH2020Estimates$trait
+
+G2020.TSF.GE = DH2020Estimates%>% dplyr::ungroup() %>% rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
+  dplyr::filter(type == "BLUE", trait =="GE") %>%
   join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
   mutate(PM_date = PM_date-5,  year = '2020')
-table(G2020.TSF.GI$PM_date)
-G2020.TSF.GI = DH2020Estimates%>% ungroup() %>%rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
-  filter(type == 'BLUE', trait =='GI') %>%
+
+G2020.TSF.GI = DH2020Estimates%>% dplyr::ungroup() %>%rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
+  dplyr::filter(type == 'BLUE', trait =='GI') %>%
   join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
   mutate(PM_date = PM_date-5,  year = '2020')
 str(G2020.TSF.GI$PM_date)
@@ -704,6 +772,7 @@ GE_logFits_trycatch = function(df, groupvars){
   )
   return(Out)
 }
+library(dplyr)
 G2020.TSF.GE %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
 G2020.TSF.GI %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
 View(G2020.TSF.GE)
@@ -717,7 +786,7 @@ TaxaToFilter2020GE = DHGE.logfits %>% filter(year == '2020') %>%
   filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
 DHGE.logfits %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
 # figure out what to set filters on for the 2021 and combined 2020/2021 data.sets
-DH.GElogfitGWA.mlm = DHGE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
+#DH.GElogfitGWA.mlm = DHGE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
   rename(value = estimate) %>%
   group_by(year,term) %>% group_modify(GWA_MLM_fortidyR)
 
@@ -749,7 +818,7 @@ GI_logfits_trycatch = function(df, groupvars) {
     }
   )
 }
-
+G2020.TSF.GI$PM_date
 DHGIlogfits = G2020.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2020') %>%
   # rbind(G2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2021'),
   #        G2020_2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
@@ -761,12 +830,13 @@ taxaToFilter2020GI = DHGIlogfits %>% filter(year=='2020') %>%
            term == 'Lower' & estimate < 0 |
            term == 'TimeTo5.0' & estimate > 250)
 
-DH.GIlogfitGWA.mlm = DHGIlogfits %>% filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
-  # Add filtering steps here
-  group_by(year,term) %>% rename(value = estimate) %>%
-  group_modify(GWA_MLM_fortidyR)
-DH.GIlogfitGWA.mlm %>% group_by(term) %>% slice_head(n=10) %>% View()
+# DH.GIlogfitGWA.mlm = DHGIlogfits %>% filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>% rename(value = estimate) %>%
+#   group_modify(GWA_MLM_fortidyR)
+# DH.GIlogfitGWA.mlm %>% group_by(term) %>% slice_head(n=10) %>% View()
 
+#GWAS model again
 DH.GIlogfitGWA.mlmm = DHGIlogfits %>% 
   filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
   # Add filtering steps here
@@ -776,9 +846,23 @@ DH.GIlogfitGWA.mlmm = DHGIlogfits %>%
 DHGI.logestimates = DHGIlogfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
   group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
 
-DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
-
+#DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
+DHGI.logestimates
 DH.GIlogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+write.csv(DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%filter(P.value<5e-5),file = "data/GWA_results/Signif_hits_time.csv")
+DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) + ggtitle("GWA for Logistic Time Models 2020")+
+#  facet_grid(rows = vars(trait), scales = 'free_y')+
+ theme_bw()
+
+
 
 # FPCA on the 2020 data. ######
 source('SpringBarley/Analysis/All_taxa/FPCA/Functions/FPCA_function.R')
