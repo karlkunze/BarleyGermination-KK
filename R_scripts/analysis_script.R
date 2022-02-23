@@ -14,7 +14,7 @@ load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 #load("data/Winter_DH/WMB DH 2020 all data for analysis.RData")#old file
 #linear model analysis for germination traits
 
-#correl
+
 
 #DH 2020 GI
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))
@@ -235,34 +235,44 @@ BlueBlupsH2_Year_rep_taxa <- function(d2, groupvars) {
     }
   }
 library(lme4)
+library(corrr)
+phs<-DH2020_2021%>%select(taxa,year,Location,SourcePLOT,phs)%>%unique
+table(phs$yea,phs$Location)
+480*2
+DH2020_2021%>%group_by(year,TP)%>%dplyr::summarize(correlate(GI, phs,use="pairwise.complete.obs"))
+DH2020_2021%>%group_by(year,TP)%>%as.matrix() 
 
-DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP, GE, GI, PM_date,year,Family) %>% 
+
+DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI, PM_date,year,Family) %>% 
     pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
     group_by(TP, PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()
-DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>% dplyr::select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family) %>% pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
+DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>% dplyr::select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family) %>% pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
   group_by(TP,PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()
 DH2020Estimates$PM_date
 #Both
-DHCombined = DH2020_2021%>%filter(year=="2020")%>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
-  rbind(., DH2020_2021%>%filter(year=="2021") %>% select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family)) %>% 
+DHCombined = DH2020_2021%>%filter(year=="2020")%>% select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>%
+  rbind(., DH2020_2021%>%filter(year=="2021") %>% select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family)) %>% 
   mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
-  group_by(TP,PM_date, trait) %>% group_modify(BlueBlupsH2_Year_rep_taxa)  %>% mutate(year = '2020/2021')
+  group_by(TP,PM_date, trait) %>%
+  group_modify(BlueBlupsH2_Year_rep_taxa)  %>% mutate(year = '2020/2021')
+#View(DHCombined)
 #View(DHCombined)
 #correlations
+
 DH2020Estimates %>% join(DH2021Estimates  %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
   filter(!is.na(value2021), type =='BLUE') %>% filter(type !='H2') %>% group_by(type, TP, trait) %>%
   summarise(correlation = cor(value, value2021))
 AllDHBluesPerYear0 = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
-load("")
+#load("")
 #Heritabilities over both timepoints, both are high
-#DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
+DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
   filter(type == 'H2') %>% ggplot(aes(x = TP, y = value, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
   facet_wrap(vars(year), ncol = 1)+theme_bw()+labs(title= 'Broard sense heritability\nover time and datasets')
 
 #other ideas to expand here, perhaps calculate narrow sense heritability, since we have the genotype info
 #adding genotype data
-AllDHBluesPerYear0 = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>%mutate(PM_date=as.double(PM_date),year=as.character(year))%>%ungroup()
-load("/home/karl/git/TimeSeriesGermination/WinterBarley/Analysis/AllDHBluesPerYear.RData")
+AllDHBluesPerYear= rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>%mutate(PM_date=as.double(PM_date),year=as.character(year))%>%ungroup()
+#load("/home/karl/git/TimeSeriesGermination/WinterBarley/Analysis/AllDHBluesPerYear.RData")
 dplyr::all_equal(AllDHBluesPerYear,AllDHBluesPerYear0)
 AllDHBluesPerYear$taxa
 AllDHBluesPerYear0[AllDHBluesPerYear0$taxa%in%AllDHBluesPerYear$taxa,]
