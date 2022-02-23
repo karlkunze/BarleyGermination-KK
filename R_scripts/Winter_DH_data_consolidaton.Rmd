@@ -183,14 +183,27 @@ load("data/Phenotype_Data/2021/field/WBMaster21_all.Rdata")
 #detach("package:plyr", unload=TRUE)
 WBMaster21=WBMaster21%>%dplyr::rename(test_wt="Test Wt",SourcePLOT=PLOT21,grain_name="GRAIN NAME",ws_percent=ws,PowderyMildew="PoweryMildew")%>%dplyr::select(Entry,SourcePLOT,Location,Year,Check,Row,Column,kgha,ws_percent,frost_damage,HD_date,TP_date,Maturity_date,Ht,Lodging,phs,Scald,SB,PowderyMildew)%>%
  mutate(HD_date=as.numeric(format(WBMaster21$HD_date, "%j")),TP_date=as.numeric(format(WBMaster21$TP_date,"%j")))%>%mutate(taxa=gsub("KWS Scala","Scala",Entry))%>%dplyr::rename(TipPoint_date=TP_date)%>%dplyr::select(-Entry)
+str(WBMaster2)
+WBMaster21$Check<-as.factor(WBMaster21$Check)
+summary(lm(phs~taxa+Location+Location:Check,data=WBMaster21))$coefficients
+summary(lm(phs~taxa+Location+Location:Check,data=WBMaster21))$coefficients[1,1]
 
+table1<-summary(lm(phs~taxa+Location+Location:Check,data=WBMaster21))$coefficients[,1]
+table1=as.data.frame(table1+summary(lm(phs~taxa+Location+Location:Check,data=WBMaster21))$coefficients[1,1])
+View(table1)
+colnames(table1)<-c("effect","taxa")
+table1$taxa<-rownames(table1)
+table1[table1$effect>4,]
 phs=WBMaster21%>%select(taxa,phs)%>%group_by(taxa)%>%summarize(mean = mean(phs))%>%ungroup()
 str(phs)
+
+
+table(table1>2)
 table(phs$mean>2)
-412/434
-table(phs$mean>=2&phs$mean<4)
-20/434
-table(phs$mean>4)
+418/434
+table(table1>=2&table1<4)
+16/434
+table(table1>=4)
 8/434
 colnames(WBMaster21)[names(WBMaster21)%in%names(DHs2021)]
 colnames(DHs2021)[names(DHs2021)%in%names(WBMaster21)]
