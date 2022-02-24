@@ -291,8 +291,9 @@ WinterGM = WinterGM %>% arrange(Chromosome, Position)
 WinterGD = WinterGD %>%
   mutate(taxa = gsub(pattern = ' ', replacement = '_',taxa),
          taxa1 = taxa) %>% remove_rownames()%>% 
-  column_to_rownames('taxa1')%>%
-summarise(taxa = "Endeavor",Qsd1 = 2)%>%bind_rows(WinterGD, .)%>%mutate(Qsd1=replace(Qsd1,Qsd1==1,2))
+  column_to_rownames('taxa1')
+
+#summarise(taxa = "Endeavor",Qsd1 = 2)%>%bind_rows(WinterGD, .)%>%mutate(Qsd1=replace(Qsd1,Qsd1==1,2))
 WinterGD[WinterGD$taxa=="Endeavor",]$Qsd1
 WinterGD[WinterGD$taxa=="Charles",]$Qsd1
 
@@ -338,8 +339,7 @@ DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date
 #filter(Family %nin% c('DH130910'))%>%
 
 #png('plots/Time_series/Sup_BluesByFamilyQsd1AllYears.png', 2400, 1500, res =120)
-table(AllDHBluesPerYear$Family)
-table(AllDHBluesPerYear$Family)
+
 
 
 #png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
@@ -700,6 +700,10 @@ GETP22020= FoldCVGPv2(df = DH2020Estimates %>% filter(TP=='TP2', trait == 'GE',t
 Taxacounts2020 = DH2020Estimates %>% filter(type == 'BLUE', trait == 'GE') %>% ungroup() %>% group_by(taxa) %>% 
   summarise(count = n()) %>% mutate(DataC = ifelse(count == 4,'Pred','Full')) %>%
   filter(taxa %in% WinterGD$taxa)
+Taxacounts2020 = DH2021Estimates %>% filter(type == 'BLUE', trait == 'GE') %>% ungroup() %>% group_by(taxa) %>% 
+  summarise(count = n()) %>% mutate(DataC = ifelse(count == 4,'Pred','Full')) %>%
+  filter(taxa %in% WinterGD$taxa)
+
 Taxacounts2020 
 #everything has either 4 or 5 observations the ones with 4 need GP applied on them to get TP1 values. ######
 GE_TP1_2020 = DH2020Estimates %>% filter(TP == 'TP1', trait == 'GE', type == 'BLUE') 
@@ -755,11 +759,26 @@ G2020.TSF.GE = DH2020Estimates%>% dplyr::ungroup() %>% rbind(GI_TP1_2020_predVal
   join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
   mutate(PM_date = PM_date-5,  year = '2020')
 
-G2020.TSF.GI = DH2020Estimates%>% dplyr::ungroup() %>%rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
-  dplyr::filter(type == 'BLUE', trait =='GI') %>%
-  join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
-  mutate(PM_date = PM_date-5,  year = '2020')
+
+
 str(G2020.TSF.GI$PM_date)
+#2021
+G2021.TSF.GE = DH2021Estimates%>% dplyr::ungroup() %>% 
+  dplyr::filter(type == "BLUE", trait =="GE") %>%
+  join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
+  mutate(PM_date = PM_date-5,  year = '2021')
+
+
+#combined
+DHCombined.TSF.GE = DHCombined%>% dplyr::ungroup() %>% 
+  dplyr::filter(type == "BLUE", trait =="GE") %>%
+  join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
+  mutate(PM_date = PM_date-5,  year = '2020/2021')
+
+
+
+
+
 GE_logFits_trycatch = function(df, groupvars){
   Out = tryCatch(
     {suppressWarnings(broom::tidy(drm(value~PM_date, data = df,
@@ -777,33 +796,105 @@ GE_logFits_trycatch = function(df, groupvars){
 }
 library(dplyr)
 G2020.TSF.GE %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
-G2020.TSF.GI %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
-View(G2020.TSF.GE)
-DHGE.logfits = G2020.TSF.GE %>% ungroup()  %>%
+#G2020.TSF.GI %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
+
+#2021
+G2021.TSF.GE %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count<8)
+#G2021.TSF.GI %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count<8)
+#2020/2021
+DHCombined.TSF.GE %>%group_by(taxa) %>% summarise(count = n()) %>% filter(count<5)
+
+#logfits 2020
+DH2020_GE.logfits = G2020.TSF.GE %>% ungroup()  %>%
   # rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
    #      G2020_2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
   arrange(taxa, TP) %>% group_by(year, taxa) %>% group_modify(GE_logFits_trycatch) %>% ungroup() 
 # There are a few that fail of course, but overall all looks really good. 
 
-TaxaToFilter2020GE = DHGE.logfits %>% filter(year == '2020') %>% 
+
+TaxaToFilter2020GE = DH2020_GE.logfits %>% filter(year == '2020') %>% 
   filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
-DHGE.logfits %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
+DH2020_GE.logfits %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
 # figure out what to set filters on for the 2021 and combined 2020/2021 data.sets
 #DH.GElogfitGWA.mlm = DHGE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
-  rename(value = estimate) %>%
-  group_by(year,term) %>% group_modify(GWA_MLM_fortidyR)
+# rename(value = estimate) %>%
+ # group_by(year,term) %>% group_modify(GWA_MLM_fortidyR)
 
-DH.GElogfitGWA.mlmm = DHGE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
+#2021 GE
+DH2021_GE.logfits = G2021.TSF.GE %>% ungroup()  %>%
+  # rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
+  #      G2020_2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>% group_modify(GE_logFits_trycatch) %>% ungroup() 
+# There are a few that fail of course, but overall all looks really good. 
+
+
+TaxaToFilter2021GE = DH2021_GE.logfits %>% filter(year == '2021') %>% 
+  filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
+DH2021_GE.logfits %>% filter(taxa %nin% TaxaToFilter2021GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
+###end 2021
+#Combined
+
+
+DHCombined_GE.logfits = DHCombined.TSF.GE %>% ungroup()  %>%
+  # rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
+  #      G2020_2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>% group_modify(GE_logFits_trycatch) %>% ungroup() 
+# There are a few that fail of course, but overall all looks really good. 
+
+TaxaToFilterCombinedGE = DHCombined_GE.logfits %>% filter(year == '2020/2021') %>% 
+  filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
+DHCombined_GE.logfits %>% filter(taxa %nin% TaxaToFilterCombinedGE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
+###end combined
+
+
+#####GWAS Logistics 2020 GWAS
+DH2020.GElogfitGWA.mlmm = DH2020_GE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
   rename(value = estimate) %>%
   group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
 
-DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
-DH.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+#DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+DH2020.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+#lets Plot the fitted 
+library(plyr)
+t = seq(1,150, by = 3)
+DH2020_GE.logestimates =  DH2020_GE.logfits  %>% dplyr::filter(term %in% c('Centering','Lower','Rate')) %>% dplyr::group_by(year,taxa) %>% 
+  dplyr::group_modify(~{data.frame(time = t,GE_est = .x$estimate[2]+(1-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[3])))))})
+DH2020_GE.logestimates %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
+
+#2021
+DH2021.GElogfitGWA.mlmm = DH2021_GE.logfits %>% filter(!(year=='2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
+  rename(value = estimate) %>%
+  group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+
+#DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+DH2021.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 #lets Plot the fitted 
 t = seq(1,150, by = 3)
-DHGE.logestimates = DHGE.logfits %>% filter(term %in% c('Centering','Lower','Rate')) %>% group_by(year,taxa) %>% 
+DH2021_GE.logestimates$GE_est
+DH2021_GE.logestimates =  DH2021_GE.logfits  %>% filter(term %in% c('Centering','Lower','Rate')) %>% group_by(year,taxa) %>% 
   group_modify(~{data.frame(time = t,GE_est = .x$estimate[2]+(1-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[3])))))})
-DHGE.logestimates %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
+DH2021_GE.logestimates %>% filter(taxa %nin% TaxaToFilter2021GE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
+
+
+#end 2021 GWAS GE
+#Combined GWAS logistics
+DHCombined.GElogfitGWA.mlmm = DHCombined_GE.logfits %>% filter(!(year=='2020/2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
+  rename(value = estimate) %>%
+  group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+
+#DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+DHCombined.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+#lets Plot the fitted 
+t = seq(1,150, by = 3)
+DHCombined_GE.logestimates =  DHCombined_GE.logfits  %>% filter(term %in% c('Centering','Lower','Rate')) %>% group_by(year,taxa) %>% 
+  group_modify(~{data.frame(time = t,GE_est = .x$estimate[2]+(1-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[3])))))})
+DHCombined_GE.logestimates  %>% filter(taxa %nin% TaxaToFilterCombined1GE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
+
+
+#end Combined GWAS GE
+
+
+
 
 # GI log fits #####
 G2020.TSF.GI = DH2020Estimates%>% ungroup() %>% rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
