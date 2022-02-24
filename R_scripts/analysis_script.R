@@ -344,13 +344,18 @@ table(AllDHBluesPerYear$Family)
 
 #png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
 #2020
+table(AllDHBluesPerYear$PM_date,AllDHBluesPerYear$year)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
   filter(Family %nin% c('DH130910')) %>% filter(year %in% c('2020'))  %>%
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
-  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+
+ 
+  geom_boxplot()+facet_nested(trait~Family, scales = 'free')+
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2020 Year"))+
+theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+
 #2021
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
@@ -358,7 +363,9 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+  geom_boxplot()+facet_nested(trait~Family, scales = 'free')+ 
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2021 Year"))+
+  theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
 #2020/2021
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(AlaT[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
@@ -366,7 +373,10 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~year+Family, scales = 'free')
+  geom_boxplot()+facet_nested(trait~Family, scales = 'free_y')+
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for Combined 2020/2021 Years"))+
+  theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+
 dev.off()
 
 library(GAPIT3)
@@ -470,11 +480,13 @@ test%>%ggplot(aes(ordinal, log10PVal, color = Time_Point, shape = year))+geom_po
                      breaks = winterOrdinalBreaks)+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
   facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
-#I will worry about the other models for a different time
+#I will worry about the other models for a d
+View(WinterPerTPGWAS%>%filter(P.value<5e-6)%>%group_by(SNP,Chromosome,Position))
 #data %>% group_by(factor1, factor2) 
 Sig_hitsW<-WinterPerTPGWAS%>%filter(P.value<5e-6)%>%group_by(SNP,Chromosome,Position)%>%dplyr::summarize(count=n(),.groups="keep")%>%
   arrange(Chromosome,Position)
 table(Sig_hitsW$Chromosome)
+nrow(Sig_hitsW)
 #look at LD of these significant markers
 WinterGD[,c(1,3,4)]
 ld_heatmap=function(df){
