@@ -3,11 +3,32 @@
 library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
-
+library(tidyr)
 load("data/GWA_results/WinterPerTPGWAS.Rdata")
 load("data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")
 
 load("data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")
+
+Add_DH130910_familyStructure = function(df3, groupvar){
+  DH130910_rows = df3 %>% filter(taxa == 'DH130910') %>% select(!Family)
+  df3= df3 %>% filter(taxa != 'DH130910') %>%
+    rbind(DH130910_rows %>% mutate(Family='Flavia/DH130910'),
+          DH130910_rows %>% mutate(Family='SY_Tepee/DH130910'),
+          DH130910_rows %>% mutate(Family='Scala/DH130910'),
+          DH130910_rows %>% mutate(Family='Wintmalt/DH130910')
+    ) %>%
+    filter(Family %in% c('Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910'))
+  return(df3)
+}
+
+chrTable = c(785, 1534, 1187,  760, 1348,  823, 1334,16 )
+chrLabel = c(1:7, 'UN')
+winterOrdinalBreaks = c(chrTable[1]/2)
+WinterChrLines = c(785)
+for (i in 2:8){
+  winterOrdinalBreaks[i] = sum(chrTable[1:i-1])+chrTable[i]/2
+  WinterChrLines[i] = sum(chrTable[1:i])
+}
 
 
 
@@ -16,9 +37,9 @@ load("data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")
 table(DHCombined$TP,DHCombined$PM_date)
 WinterPerTPGWAS
 
-
+library(dplyr)
 WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
-WinterPerTPGWAS %>% arrange(P.value) %>% view()
+WinterPerTPGWAS %>% arrange(P.value) %>% View()
 #(P.value<5e-6)
 test$PM_date
 table(WinterPerTPGWAS$TP)
