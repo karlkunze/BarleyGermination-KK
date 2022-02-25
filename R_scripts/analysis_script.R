@@ -258,7 +258,7 @@ DHCombined = DH2020_2021%>%filter(year=="2020")%>% select(taxa, rep, Location,TP
   mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
   group_by(TP,PM_date, trait) %>%
   group_modify(BlueBlupsH2_Year_rep_taxa)  %>% mutate(year = '2020/2021')
-
+str(DHCombined)
 #View(DHCombined)
 #View(DHCombined)
 #correlations
@@ -453,15 +453,21 @@ for (i in 2:8){
 }
 #Per time point for MLMM
 ##takes some time
+#SAVE THE RESULTS so that we dont have to run again
 print("MLMM GWA model ahead")
 
-WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
-  ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
+# WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
+#   ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
+# save(WinterPerTPGWAS,file="data/GWA_results/WinterPerTPGWAS.Rdata")
+
+
+  
+load("data/GWA_results/WinterPerTPGWAS.Rdata")#WinterPerTPGWAS
 
 View(DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
   ungroup() %>% group_by(year, TP, trait))
 table(DHCombined$TP,DHCombined$PM_date)
-
+WinterPerTPGWAS
 
 
 WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
@@ -469,19 +475,21 @@ WinterPerTPGWAS %>% arrange(P.value) %>% view()
 #(P.value<5e-6)
 test$PM_date
 table(WinterPerTPGWAS$TP)
-test<-WinterPerTPGWAS%>%mutate(PM_date=mapvalues(TP,from=c("TP1","TP1.5","TP2","TP2.5","TP3","TP3.5","TP4","TP5"),to=c(5,12,19,33,47,68,96,152)))%>%
-  mutate(Time_Point=paste0(TP,"(",PM_date,")"))
+WinterPerTPGWAS%>%mutate(PM_date=mapvalues(TP,from=c("TP1","TP1.5","TP2","TP2.5","TP3","TP3.5","TP4","TP5"),to=c(5,12,19,33,47,68,96,152)))%>%
+  mutate(Time_Point=paste0(TP,"(",PM_date,")"))%>%
 
-
-test%>%ggplot(aes(ordinal, log10PVal, color = Time_Point, shape = year))+geom_point()+
+ggplot(aes(ordinal, log10PVal, color = Time_Point, shape = year))+geom_point()+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
   geom_vline(xintercept = 4780, color = 'red')+
   annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
   geom_vline(xintercept = WinterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
+  ggtitle("Single Time Point GWA")+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
   facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+
+
 #I will worry about the other models for a d
 View(WinterPerTPGWAS%>%filter(P.value<5e-6)%>%group_by(SNP,Chromosome,Position))
 #data %>% group_by(factor1, factor2) 
@@ -582,10 +590,7 @@ c<-WinterPerTPGWAS[WinterPerTPGWAS$SNP%in%sig,]%>%select(SNP,Chromosome,Position
 View(c)
 write.csv(c,"data/GWA_results/Significant_hits.csv")
 ######
-WDH20_pheno$Plus_PM<-as.factor(WDH20_pheno$Plus_PM)
-WDH20_pheno$PM<-as.factor(WDH20_pheno$PM)
-WDHphs.lm=lm(phs~ Plus_PM + Entry, data=WDH20_pheno)
-anova(WDHphs.lm) #all factors signif
+
 ######### Tinme series analysis
 FoldCVGPv2 = function(df, myGD=WinterGD, numfolds,datasplit, trait_name){
   
@@ -757,8 +762,6 @@ detach("package:ggpubr", unload=TRUE)
 detach("package:reshape2", unload=TRUE)
 detach("package:dplyr", unload=TRUE)
 library(plyr)
-table(DH2020Estimates$PM_date)
-DH2020Estimates$trait
 
 G2020.TSF.GE = DH2020Estimates%>% dplyr::ungroup() %>% rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
   dplyr::filter(type == "BLUE", trait =="GE") %>%
@@ -854,10 +857,11 @@ DHCombined_GE.logfits %>% filter(taxa %nin% TaxaToFilterCombinedGE$taxa) %>% ggp
 ###end combined
 
 #####GWAS Logistics 2020 GWAS
-DH2020.GElogfitGWA.mlmm = DH2020_GE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
-  rename(value = estimate) %>%
-  group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
-
+# DH2020.GElogfitGWA.mlmm = DH2020_GE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
+#   rename(value = estimate) %>%
+#   group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+# save(DH2020.GElogfitGWA.mlmm,file="data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")#DH2020.GElogfitGWA.mlmm
+load("data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")#DH2020.GElogfitGWA.mlmm
 #DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 DH2020.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 
@@ -882,10 +886,11 @@ DH2020_GE.logestimates =  DH2020_GE.logfits  %>% dplyr::filter(term %in% c('Cent
 DH2020_GE.logestimates %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
 
 #2021
-DH2021.GElogfitGWA.mlmm = DH2021_GE.logfits %>% filter(!(year=='2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
-  rename(value = estimate) %>%
-  group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
-
+# DH2021.GElogfitGWA.mlmm = DH2021_GE.logfits %>% filter(!(year=='2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
+#   rename(value = estimate) %>%
+#   group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+# save(DH2021.GElogfitGWA.mlmm,file="data/GWA_results/DH2021.GElogfitGWA_mlmm.Rdata")
+load("data/GWA_results/DH2021.GElogfitGWA_mlmm.Rdata")#DH2021.GElogfitGWA.mlmm
 #DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 DH2021.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 
@@ -910,10 +915,13 @@ DH2021_GE.logestimates %>% filter(taxa %nin% TaxaToFilter2021GE$taxa) %>% ggplot
 
 #end 2021 GWAS GE
 #Combined GWAS logistics
-DHCombined.GElogfitGWA.mlmm = DHCombined_GE.logfits %>% filter(!(year=='2020/2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
-  rename(value = estimate) %>%
-  group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+# DHCombined.GElogfitGWA.mlmm = DHCombined_GE.logfits %>% filter(!(year=='2020/2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
+#   rename(value = estimate) %>%
+#   group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+#save(DHCombined.GElogfitGWA.mlmm,file="data/GWA_results/DHCombined.GElogfitGWA_mlmm.Rdata")
 
+
+load("data/GWA_results/DHCombined.GElogfitGWA_mlmm.Rdata")#DHCombined.GElogfitGWA.mlmm
 #DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 CombinedGE_GWA_hits=DHCombined.GElogfitGWA.mlmm %>% group_by(year, term)
 CombinedGE_GWA_hits%>%slice_head(n=5)%>%view()
@@ -968,7 +976,7 @@ DH2020_GIlogfits = G2020.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2020') %
   arrange(taxa, TP) %>% group_by(year, taxa) %>%
   group_modify(GI_logfits_trycatch) %>% ungroup() 
 
-taxaToFilter2020GI = DHGIlogfits %>% filter(year=='2020') %>% 
+taxaToFilter2020GI = DH2020_GIlogfits  %>% filter(year=='2020') %>% 
   filter(term == 'Centering' & estimate > 177 |
            term == 'Lower' & estimate < 0 |
            term == 'TimeTo5.0' & estimate > 250)
@@ -978,22 +986,26 @@ taxaToFilter2020GI = DHGIlogfits %>% filter(year=='2020') %>%
 #   group_by(year,term) %>% rename(value = estimate) %>%
 #   group_modify(GWA_MLM_fortidyR)
 # DH.GIlogfitGWA.mlm %>% group_by(term) %>% slice_head(n=10) %>% View()
-
 #GWAS model again
-DH2020_GIlogfitGWA.mlmm = DHGIlogfits %>% 
-  filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
-  # Add filtering steps here
-  group_by(year,term) %>%  rename(value = estimate) %>%
-  group_modify(GWA_MLMM_fortidyR)
+# 
+# DH2020_GIlogfitGWA.mlmm = DH2020_GIlogfits  %>% 
+#   filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>%  rename(value = estimate) %>%
+#   group_modify(GWA_MLMM_fortidyR)
+# save(DH2020_GIlogfitGWA.mlmm,file="data/GWA_results/DH2020_GIlogfitGWA_mlmm.Rdata")
 
-DHGI.logestimates = DHGIlogfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
+load("data/GWA_results/DH2020_GIlogfitGWA_mlmm.Rdata")#DH2020_GIlogfitGWA.mlmm
+
+
+DHGI2020.logestimates = DH2020_GIlogfits  %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
   group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
 
 #DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
-DHGI.logestimates
-DH.GIlogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 
-DH.GIlogfitGWA.mlmm %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+DH2020_GIlogfitGWA.mlmm  %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+DH2020_GIlogfitGWA.mlmm  %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
   geom_vline(xintercept = 4780, color = 'red')+
   annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
@@ -1005,7 +1017,7 @@ DH.GIlogfitGWA.mlmm %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point(
 
 
 #write.csv(DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%filter(P.value<5e-5),file = "data/GWA_results/Signif_hits_time.csv")
-DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+DH2020_GIlogfitGWA.mlmm  %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
   geom_vline(xintercept = 4780, color = 'red')+
   annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
@@ -1016,7 +1028,9 @@ DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, co
 #  facet_grid(rows = vars(trait), scales = 'free_y')+
  theme_bw()
 #end 2020 GI logit fit
-#2021 log fit
+
+
+#start 2021 log fit
 
 DH2021_GIlogfits = G2021.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2021') %>%
   # rbind(G2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2021'),
@@ -1036,45 +1050,99 @@ taxaToFilter2021GI = DH2021_GIlogfits  %>% filter(year=='2021') %>%
 # DH.GIlogfitGWA.mlm %>% group_by(term) %>% slice_head(n=10) %>% View()
 
 #GWAS model again
-DH2021_GIlogfitGWA.mlmm = DH2021_GIlogfits %>% 
-  filter(!(year == '2020' & taxa %in% taxaToFilter2021GI$taxa)) %>%
-  # Add filtering steps here
-  group_by(year,term) %>%  rename(value = estimate) %>%
-  group_modify(GWA_MLMM_fortidyR)
+# DH2021_GIlogfitGWA.mlmm = DH2021_GIlogfits %>% 
+#   filter(!(year == '2021' & taxa %in% taxaToFilter2021GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>%  rename(value = estimate) %>%
+#   group_modify(GWA_MLMM_fortidyR)
+# save(DH2021_GIlogfitGWA.mlmm ,file="data/GWA_results/DH2021_GIlogfitGWA_mlmm.Rdata")
 
-DHGI.logestimates = DHGIlogfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
+load("data/GWA_results/DH2021_GIlogfitGWA_mlmm.Rdata")#DH2021_GIlogfitGWA.mlmm
+
+DHGI2021.logestimates = DH2021_GIlogfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
   group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
 
 #DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
-DHGI.logestimates
-DH.GIlogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 
-DH.GIlogfitGWA.mlmm %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
-  geom_vline(xintercept = WinterChrLines, color = 'black')+
-  geom_vline(xintercept = 4780, color = 'red')+
-  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
-  geom_vline(xintercept = WinterChrLines)+
-  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
-                     breaks = winterOrdinalBreaks)+
-  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
-  facet_grid(scales = 'free_y')+theme_bw()
+DH2021_GIlogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+
 
 
 #write.csv(DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%filter(P.value<5e-5),file = "data/GWA_results/Signif_hits_time.csv")
-DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+DH2021_GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
   geom_vline(xintercept = 4780, color = 'red')+
   annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
   geom_vline(xintercept = WinterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
-  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) + ggtitle("GWA for Logistic Time Models 2020")+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) + ggtitle("GWA for Logistic Time Models 2021")+
   #  facet_grid(rows = vars(trait), scales = 'free_y')+
   theme_bw()
 
 
 
 #end 2021 log fit
+
+#start 2020/2021 combined
+
+DH20202021_GIlogfits = G20202021.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2020/2021') %>%
+  # rbind(G2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2021'),
+  #        G2020_2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>%
+  group_modify(GI_logfits_trycatch) %>% ungroup() 
+
+taxaToFilter20202021_GI = DH20202021_GIlogfits  %>% filter(year=='2020/2021') %>% 
+  filter(term == 'Centering' & estimate > 177 |
+           term == 'Lower' & estimate < 0 |
+           term == 'TimeTo5.0' & estimate > 250)
+
+# DH.GIlogfitGWA.mlm = DHGIlogfits %>% filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>% rename(value = estimate) %>%
+#   group_modify(GWA_MLM_fortidyR)
+# DH.GIlogfitGWA.mlm %>% group_by(term) %>% slice_head(n=10) %>% View()
+
+#GWAS model again
+# DH20202021_GIlogfitGWA.mlmm = DH20202021_GIlogfits %>% 
+#   filter(!(year == '2021' & taxa %in% taxaToFilter20202021_GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>%  rename(value = estimate) %>%
+#   group_modify(GWA_MLMM_fortidyR)
+# save(DH20202021_GIlogfitGWA.mlmm,file="data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")
+
+load("data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")#DH20202021_GIlogfitGWA.mlmm
+DHGI20202021.logestimates = DHGI202021logfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
+  group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
+
+#DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
+DHGI20202021.logestimates 
+
+DH20202021_GIlogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+
+
+
+#write.csv(DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%filter(P.value<5e-5),file = "data/GWA_results/Signif_hits_time.csv")
+DH20202021_GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ggtitle(label="GWA for Logistic Time Models 2020/2021")
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) + ggtitle("GWA for Logistic Time Models 2020")+
+  #  facet_grid(rows = vars(trait), scales = 'free_y')+
+  theme_bw()
+
+
+
+
+
+
+#end 2020/2021 combined
 
 
 # FPCA on the 2020 data. ######
