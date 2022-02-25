@@ -464,6 +464,7 @@ print("MLMM GWA model ahead")
   
 load("data/GWA_results/WinterPerTPGWAS.Rdata")#WinterPerTPGWAS
 
+#moved results to end of logistics, can load the data 
 View(DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
   ungroup() %>% group_by(year, TP, trait))
 table(DHCombined$TP,DHCombined$PM_date)
@@ -825,6 +826,8 @@ TaxaToFilter2020GE = DH2020_GE.logfits %>% filter(year == '2020') %>%
   filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
 DH2020_GE.logfits %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
 # figure out what to set filters on for the 2021 and combined 2020/2021 data.sets
+
+
 #DH.GElogfitGWA.mlm = DHGE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
 # rename(value = estimate) %>%
  # group_by(year,term) %>% group_modify(GWA_MLM_fortidyR)
@@ -1137,6 +1140,7 @@ DH20202021_GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10
   #  facet_grid(rows = vars(trait), scales = 'free_y')+
   theme_bw()
 
+#Going to get a table of all GWA markers together
 
 
 
