@@ -5,9 +5,14 @@ library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
 
 load("data/GWA_results/WinterPerTPGWAS.Rdata")
+load("data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")
+
+load("data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")
+
+
 
 #View(DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
-       ungroup() %>% group_by(year, TP, trait))
+   #    ungroup() %>% group_by(year, TP, trait))
 table(DHCombined$TP,DHCombined$PM_date)
 WinterPerTPGWAS
 
@@ -30,9 +35,8 @@ WinterPerTPGWAS%>%mutate(PM_date=mapvalues(TP,from=c("TP1","TP1.5","TP2","TP2.5"
   ggtitle("Single Time Point GWA")+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
   facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+#Logistics
 
-
-load("data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")
 DH2020.GElogfitGWA.mlmm %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
   geom_vline(xintercept = 4780, color = 'red')+
