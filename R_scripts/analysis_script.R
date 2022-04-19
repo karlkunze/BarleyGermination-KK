@@ -443,14 +443,7 @@ Add_DH130910_familyStructure = function(df3, groupvar){
   return(df3)
 }
 
-chrTable = c(785, 1534, 1187,  760, 1348,  823, 1334,16 )
-chrLabel = c(1:7, 'UN')
-winterOrdinalBreaks = c(chrTable[1]/2)
-WinterChrLines = c(785)
-for (i in 2:8){
-  winterOrdinalBreaks[i] = sum(chrTable[1:i-1])+chrTable[i]/2
-  WinterChrLines[i] = sum(chrTable[1:i])
-}
+
 #Per time point for MLMM
 ##takes some time
 #SAVE THE RESULTS so that we dont have to run again
