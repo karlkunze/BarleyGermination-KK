@@ -18,7 +18,7 @@ library(stringr)
 getwd()
 
 #setwd("C:/Users/Karl/git/BarleyGermination-KK")
-Morex2019<-read.delim("/home/karl/git/BarleyGermination-KK/data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",skip=1,header = FALSE)
+Morex2019<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",skip=1,header = FALSE)
 #should be the correct alignment
 Morex2019
 Morex2019=Morex2019[,c(1,2,4,7,9)]
@@ -163,8 +163,15 @@ str(wdh$BK_01)
 str(wdh)
 str(wdh)[1:5]
 class(wdh)
+dim(wdh)
 
-
+wdh_1<-wdh%>% mutate(Missing = sum(is.na(wdh)), 
+         Valid = sum(!is.na(wdh)), 
+         percentMissing = Missing/(Missing+Valid)) %>% 
+  #Filtering OUT variables with more than 20% missing.  
+  filter(percentMissing  > 0.5)
+dim(wdh)
+dim(wdh_1)
 wdh=as.data.frame(apply(wdh,1, function(x) { 
   x[which(x == 0)] = 0
   x[which(x == 0.5)] <- NA
@@ -247,8 +254,11 @@ wdh[1:10,1:3]
 save(wdh,file="C:/Users/Karl/git/Cornell-WMB21-selections/data/genotypes/wdh_genotypes.Rdata")
 str(wdh$year)
 rankMatrix(as.matrix(wdh),method = "qr.R")
-
+sapply(wdh, function(x) sum(is.na(x)))
+dim(wdh)
 A=A.mat(wdh-1, return.imputed = T,impute.method = "EM")$A
+apply(A)
+dim(A)
 wdh=as.data.frame(A.mat(wdh-1, return.imputed = T,impute.method = "EM")$imputed+1)
 wdh=round(wdh,0)
 
