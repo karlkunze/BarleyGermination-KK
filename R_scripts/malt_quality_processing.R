@@ -24,29 +24,22 @@ SWE_0128$ID<-paste0(SWE_0128$ID,"-TP1-1")
 
 
 SWE_0131<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 01-31-22 21CYGGS6060-6290.xlsx",
-                                  sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
-SWE<-function(t){
-  t<-SWE_0131
-  total<-as.data.frame(table(t$Date))[1,2]
-  total
-  t[t$PLOT=="Tradition Malt Check"&!is.na(t$PLOT),c("Entry")]<-"TMC"
-  total
-  
-  if (total==94) {
-    t[1:24,]$Set<-"Set 1"; t[25:48,]$Set<-"Set 2";t[49:72,]$Set<-"Set 3";t[73:96,]$Set<-"Set 4";t$Date<-t$Date[3]
-    t<-t%>%slice(1:96)
-    
-  } 
-  
-  else {
-    t[1:24,]$Set<-"Set 1"; t[25:48,]$Set<-"Set 2";t[49:72,]$Set<-"Set 3";t$Date<-t$Date[3];t<-t%>%slice(1:72)
-    t
-    
-  }
-  
-  t$Check<-"E";t[t$Entry%in%c("R","TMC"),]$Check<-"C";t$Check<-as.factor(t$Check)
-  t
-  #specific to split spring and winter
-  return(t)
-  
-}
+                                  sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=5,PLOT=4,Date=6,DP=7,AA=8)%>%select(1:8)%>%slice(1:72)
+total<-as.data.frame(table(SWE_0131$Date))[1,2]
+SWE_0131
+t<-SWE_0131
+t[1:24,]$Set<-"Set 1"; t[25:48,]$Set<-"Set 2";t[49:72,]$Set<-"Set 3";t$Date<-t$Date[3]
+t[t$PLOT=="Tradition Malt Check",]$Entry<-"TMC"
+t[t$PLOT=="R",]$Entry<-"R"
+t$Check<-"E";t[t$Entry%in%c("R","TMC"),]$Check<-"C";t$Check<-as.factor(t$Check)
+t[t$Set=="Set 1",]$Treatment<-"WinterTP1-1"
+t[t$Set=="Set 2",]$Treatment<-"WinterTP1-1"
+t[t$Set=="Set 3",]$Treatment<-"WinterTP1-2"
+
+t$ID<-as.numeric(paste0(format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
+t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
+t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
+SWE_0131<-t
+SWE_0131
+#
+
