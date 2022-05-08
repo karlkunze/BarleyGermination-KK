@@ -186,7 +186,7 @@ t[t$PLOT=="Rahr",]$Entry<-"R"
 t[t$PLOT=="TMC",]$Entry<-"TMC"
 t$Check<-"E";t[t$Entry%in%c("R","TMC"),]$Check<-"C";t$Check<-as.factor(t$Check)
 table(t$Treatment)
-View(t)
+#View(t)
 t<-t%>%arrange(Extract_number)
 t[1:2,]$Treatment<-"WinterTP2-1"
 t[3:6,]$Treatment<-"WinterTP1-4"
@@ -252,7 +252,7 @@ t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
 t[t$Entry=="R",]$Treatment<-"Rahr"
 SWE_0215<-t
 SWE_0215
-##2 17
+##2 17 2022
 
 SWE_0217<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-17-22 21CYGGW7035-7377.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=3,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
@@ -268,7 +268,7 @@ t[t$PLOT=="Rahr",]$Entry<-"R"
 t[t$PLOT=="TMC",]$Entry<-"TMC"
 t$Check<-"E";t[t$Entry%in%c("R","TMC"),]$Check<-"C";t$Check<-as.factor(t$Check)
 table(t$Treatment)
-View(t)
+#View(t)
 t<-t%>%arrange(Extract_number)
 t[1:18,]$Treatment<-"WinterTP2-3"
 t[19:24,]$Treatment<-"WinterTP2-4"
@@ -359,7 +359,7 @@ table(t$Treatment)
 #0228_iii
 #View(t)
 t<-t%>%arrange(Extract_number)
-View(t)
+#View(t)
 t[t$Entry=="R",]$Treatment<-"WinterTP2-3"
 
 
@@ -372,9 +372,11 @@ View(SWE_0302)
 library(tidyverse)
 SWE=plyr::rbind.fill(SWE_0128,SWE_0131,SWE_0201,SWE_0202,SWE_0203,SWE_0204,SWE_0207,SWE_0210,SWE_0211,SWE_0215,SWE_0217,SWE_0218,
                  SWE_0228,SWE_0302)
+SWE[SWE$Entry%in%c("Tradition Malt Check"),]$Entry<-"TMC"
 SWE$order_column<-1:nrow(SWE)
 y<-SWE%>%filter(!Treatment=="Rahr")%>%arrange(Treatment,Date,Extract_number)
-y$unique_order<-1:nrow(y)
-y
-SWE[SWE$Entry%in%c("Tradition Malt Check"),]$Entry<-"TMC"
+y$unique_MQ_ID<-1:nrow(y)+3000;y<-y%>%select(Treatment,Date,Extract_number,PLOT,Entry,order_column,unique_MQ_ID,ID)%>%select(ID,unique_MQ_ID)
+
+SWE<-SWE%>%left_join(y,by=c("ID"))#%>%arrange(unique_MQ_ID)
+View(SWE)
 
