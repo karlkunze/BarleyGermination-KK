@@ -49,16 +49,19 @@ cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 CM_0128<-cm
 # Congress mash 1-31
 
-CM_0128<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 01-28-22 21CYGGS1208-endTP2Springas.xlsx",
-                                 sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:9)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9)%>%select(1:9)%>%
-  drop_na(Date)
+CM_0131<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 01-31-22 21CYGGS6136-6440as.xlsx",
+                                 sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:9)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=5,PLOT=4,Date=6,ME=7,BG=8,FAN=9)%>%select(1:9)%>%
+drop_na(Date)
+w<-CM_0131
+w$Date<-as.Date("2022-01-31")
 Date1<-w$Date[3]
-w<-CM_0128[c(56,58:72),]
+CM_0131
+
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
-w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC-1"
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-c("TMC-1","TMC-2","TMC-3","TMC-4","TMC-5","TMC-6","TMC-7")
 
-SP_0128<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 01-28-22 21CYGGS1208-endTP2Springas.xlsx",
+SP_0131<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 01-28-22 21CYGGS1208-endTP2Springas.xlsx",
                                  sheet = "SP3",detectDates = TRUE))%>%select(1,2,4,5,6,7,8)%>%rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(SP_ID%in%c("NaCl","TMC")|SP_ID>6000)%>%mutate(delta=abs_nm1-abs_nm2)%>%mutate(Date=Date1)
 
 SP_0128[SP_0128$SP_ID=="6052",]$SP_ID<-"6051"
