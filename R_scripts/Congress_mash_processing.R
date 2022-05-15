@@ -49,6 +49,8 @@ cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0128<-cm
+rm(cm,sp1,s,w)
+
 # Congress mash 1-31
 
 CM_0131<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 01-31-22 21CYGGS6136-6440as.xlsx",
@@ -127,6 +129,7 @@ cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0131<-cm
+
 ### Congress mash ddate
 
 CM_0201<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-01-22 21CYGGS6441-7126as.xlsx",
@@ -164,7 +167,7 @@ cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0201<-cm
 
-
+rm(cm,sp1,s,w,ID)
 #2-02-2022
 
 
@@ -215,14 +218,14 @@ SP_0202<-sp
 cm<-w%>%full_join(SP_0202,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
 cm$Date<-Date1
 cm$Extract_number
-View(cm)
+#View(cm)
 cm[cm$PLOT%in%c("NaCl"),]$Extract_number<-97
 cm[cm$Group=="Group_1",]$Set<-"Set 1";cm[cm$Group=="Group_2",]$Set<-"Set 2"#;cm[cm$Group=="Group_3",]$Set<-"Set 3";cm[cm$Group=="Group_4",]$Set<-"Set 4"
 #need to think of a way to deal with number ordering for NaCls
 cm$Treatment
 cm[1:16,]$Treatment<-"WinterTP1-3"
 cm[17:nrow(cm),]$Treatment<-"WinterTP1-4"
-View(cm)
+#View(cm)
 cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
 
 #t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
@@ -234,7 +237,7 @@ cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0202<-cm
-
+rm(cm,s,w,ID)
 
 #02 03 2022
 
@@ -315,7 +318,7 @@ cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0203<-cm
 cm
-rm(w);rm(cm);rm(sp);rm(sp1)
+rm(cm,sp1,s,w,ID,sp,value)
 #2 07 2022
 
 
@@ -345,12 +348,12 @@ SP_0207<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-07-22 21CYGGW601
 
 s<-SP_0207%>%mutate(SP_order=1:nrow(SP_0207))
 s
-s
+table(s$SP_ID)
 #View(s)
 s[s$SP_ID=="TMC",]
-s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1","TMC-2","TMC-2")
+s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1")
 s$Group<-"Group"
-s[s$SP_ID%in%c("NACL", "NACL(Reblank)","0.5% NaCl"),]$SP_ID<-"NaCl"
+s[s$SP_ID%in%c("NACL", "NACL(Reblank)","0.5% NaCl","NaCl"),]$SP_ID<-"NaCl"
 
 s[1:50,]$Group<-"Group_1"
 s[51:nrow(s),]$Group<-"Group_2"
@@ -363,19 +366,19 @@ value
 
 sp=ID%>%full_join(value,by="SP_ID","Group")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)%>%arrange(Group,SP_order)
 sp$Date<-Date1
-SP_0203<-sp
-SP_0203
+SP_0207<-sp
+SP_0207
 #View(s_131_12)
 #sp<-plyr::rbind.fill(s_131_12,s_34)%>%arrange(Group,SP_order)%>%mutate(Date=Date1,SP_order=1:length(SP_order))
 
 ####
 w$Date
-SP_0203$P
-cm<-w%>%full_join(SP_0203,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
+SP_0207
+cm<-w%>%full_join(SP_0207,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
 cm$Date<-Date1
 
 
-cm
+
 cm[cm$Group=="Group_1",]$Set<-"Set 1";cm[cm$Group=="Group_2",]$Set<-"Set 2"#;cm[cm$Group=="Group_3",]$Set<-"Set 3";cm[cm$Group=="Group_4",]$Set<-"Set 4"
 #need to think of a way to deal with number ordering for NaCls
 cm$Treatment
@@ -393,6 +396,449 @@ cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0207<-cm
+rm(cm,sp1,s,w,ID,sp,value)
 
 
+
+
+
+
+# 2 08 2022
+MQ_list[MQ_list$PLOT%in%c(6379),]
+CM_0208<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-08-22 21CYGGW6089-6356.xlsx",
+                                 sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9,sp_mean=10)%>%select(1:9)%>%
+  drop_na(Date)
+w[w$PLOT%in%c("6286"),]#mixed up sample with SWE. Did not have enough to do analysis
+w<-CM_0208%>%filter(!PLOT%in%c("6286"))
+w
+Date1<-w$Date[3]
+w[w$Entry%in%c("6379"),c("Entry","Treatment","PLOT","Extract_number")]
+MQ_list[MQ_list$PLOT%in%c(6379),]
+w[w$Entry%in%c("6379"),c("Entry","Treatment","PLOT")]<-c("BS615-45","WinterTP2-2","6379")#this was an out of order sample
+
+w[w$PLOT%in%c("6254"),c("Entry","Treatment","PLOT","Extract_number")]#missing the extract number
+MQ_list[MQ_list$PLOT%in%c(6254),]
+w[w$PLOT%in%c("6254"),c("Entry")]<-"BS912-128"
+w[w$PLOT%in%c("6246"),]$Extract_number<-44
+
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC"
+#w<-w%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))%>%arrange(Extract_number)
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-c("TMC-1","TMC-2","TMC-3","TMC-4","TMC-5")
+
+
+
+####
+SP_0208<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-08-22 21CYGGW6089-6356.xlsx",
+                                 sheet = "SP, %",detectDates = TRUE))%>%filter()%>%select(1,2,4,5,6,7,8)%>%
+  rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(!SP_order%in%c("#"))%>%mutate(abs_nm1=as.numeric(abs_nm1),abs_nm2=as.numeric(abs_nm2),delta=abs_nm2-abs_nm1)%>%mutate(Date=Date1)
+
+
+s<-SP_0208%>%mutate(SP_order=1:nrow(SP_0208))%>%filter(!SP_ID%in%c(6286))
+s
+table(s$SP_ID)
+#View(s)
+s[s$SP_ID=="TMC",]
+s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1","TMC-2","TMC-2","TMC-3","TMC-3","TMC-4","TMC-4","TMC-5","TMC-5")
+s$Group<-"Group"
+s[s$SP_ID%in%c("NACL", "NACL(Reblank)","0.5% NaCl","NaCl"),]$SP_ID<-"NaCl"
+#View(s)
+s[1:50,]$Group<-"Group_1"
+s[51:100,]$Group<-"Group_2"
+s[101:nrow(s),]$Group<-"Group_3"
+
+value<-s%>%group_by(Group,SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))%>%ungroup
+#View(value)
+ID<-s%>%arrange%>%select(SP_ID)%>%unique()%>%mutate(SP_order=1:n_distinct(SP_ID))%>%select(2,1)
+length(ID$SP_ID)
+value
+
+sp=ID%>%full_join(value,by="SP_ID","Group")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)%>%arrange(Group,SP_order)
+sp$Date<-Date1
+SP_0208<-sp
+
+#View(s_131_12)
+#sp<-plyr::rbind.fill(s_131_12,s_34)%>%arrange(Group,SP_order)%>%mutate(Date=Date1,SP_order=1:length(SP_order))
+
+####
+w$Date
+
+cm<-w%>%full_join(SP_0208,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
+cm$Date<-Date1
+
+
+#View(cm)
+cm[cm$Group=="Group_1",]$Set<-"Set 1";cm[cm$Group=="Group_2",]$Set<-"Set 2";cm[cm$Group=="Group_3",]$Set<-"Set 3"#;cm[cm$Group=="Group_4",]$Set<-"Set 4"
+#need to think of a way to deal with number ordering for NaCls
+#View(cm)
+cm[1:40,]$Treatment<-"WinterTP2-1"
+
+cm[41:nrow(cm),]$Treatment<-"WinterTP2-2"
+cm[cm$PLOT%in%c("6379"),]$Treatment<-"WinterTP2-2"#these were mislabels as the wrong treatment, the TP1-2 treatment for
+#these plot numbers were done on 1-31-2022 if you would like to confirm
+cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
+
+#t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
+cm$Check<-"E";cm[cm$Entry%in%c("NaCl","TMC","TMC-1","TMC-2"),]$Check<-"C";cm$Check<-as.factor(cm$Check)
+
+cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('%02d', cm$Extract_number)))
+cm$PLOT
+cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
+cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
+
+CM_0208<-cm
+View(CM_0208)
+rm(cm,sp1,s,w,ID,sp,value)
+
+# 02 14 2022
+
+#MQ_list[MQ_list$PLOT%in%c(6379),]
+CM_0214<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-14-22 21CYGGW6380-7009.xlsx",
+                                 sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=3,PLOT=5,Date=6,ME=7,BG=8,FAN=9,sp_mean=10)%>%select(1:9)%>%
+  drop_na(Date)
+
+w<-CM_0214
+w
+Date1<-w$Date[3]
+Date1
+
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC"
+#w<-w%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))%>%arrange(Extract_number)
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-c("TMC-1")
+
+
+
+####
+SP_0214<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-14-22 21CYGGW6380-7009.xlsx",
+                                 sheet = "SP",detectDates = TRUE))%>%filter()%>%select(1,2,4,5,6,7,8)%>%
+  rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(!SP_order%in%c("#"))%>%mutate(abs_nm1=as.numeric(abs_nm1),abs_nm2=as.numeric(abs_nm2),delta=abs_nm2-abs_nm1)%>%mutate(Date=Date1)
+
+
+s<-SP_0214%>%mutate(SP_order=1:nrow(SP_0214))
+s
+table(s$SP_ID)
+#View(s)
+s[s$SP_ID=="TMC",]
+s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1")
+s$Group<-"Group"
+s[s$SP_ID%in%c("NACL", "NACL(Reblank)","0.5% NaCl","NaCl"),]$SP_ID<-"NaCl"
+#View(s)
+s[1:nrow(s),]$Group<-"Group_1"
+#s[1:50,]$Group<-"Group_1"
+#s[51:100,]$Group<-"Group_2"
+#s[101:nrow(s),]$Group<-"Group_3"
+
+value<-s%>%group_by(Group,SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))%>%ungroup
+#View(value)
+ID<-s%>%arrange%>%select(SP_ID)%>%unique()%>%mutate(SP_order=1:n_distinct(SP_ID))%>%select(2,1)
+length(ID$SP_ID)
+value
+
+sp=ID%>%full_join(value,by="SP_ID","Group")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)%>%arrange(Group,SP_order)
+sp$Date<-Date1
+SP_0214<-sp
+
+#View(s_131_12)
+#sp<-plyr::rbind.fill(s_131_12,s_34)%>%arrange(Group,SP_order)%>%mutate(Date=Date1,SP_order=1:length(SP_order))
+
+####
+w$Date
+
+cm<-w%>%full_join(SP_0214,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
+cm$Date<-Date1
+
+View(cm)
+#View(cm)
+cm[cm$Group=="Group_1",]$Set
+cm[cm$Group=="Group_1",]$Set<-"Set 1"#;cm[cm$Group=="Group_2",]$Set<-"Set 2";cm[cm$Group=="Group_3",]$Set<-"Set 3"#;cm[cm$Group=="Group_4",]$Set<-"Set 4"
+#need to think of a way to deal with number ordering for NaCls
+#View(cm)
+cm$Treatment
+#cm[1:40,]$Treatment<-"WinterTP2-1"
+
+cm[1:nrow(cm),]$Treatment<-"WinterTP2-2"
+
+cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
+
+#t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
+cm$Check<-"E";cm[cm$Entry%in%c("NaCl","TMC","TMC-1","TMC-2"),]$Check<-"C";cm$Check<-as.factor(cm$Check)
+
+cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('%02d', cm$Extract_number)))
+cm$PLOT
+cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
+cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
+View(cm)
+CM_0214<-cm
+
+rm(cm,sp1,s,w,ID,sp,value)
+
+# 02 16 2022
+
+
+#MQ_list[MQ_list$PLOT%in%c(6379),]
+CM_0216<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-16-22 21CYGGW7010-7436.xlsx",
+                                 sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9,sp_mean=10)%>%select(1:9)%>%
+  drop_na(Date)
+
+w<-CM_0216
+w
+Date1<-w$Date[3]
+Date1
+
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$PLOT
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$Entry<-"TMC"
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$PLOT<-"TMC"
+#w<-w%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))%>%arrange(Extract_number)
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-c("TMC-1","TMC-2","TMC-3")
+
+
+
+####
+SP_0216<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-16-22 21CYGGW7010-7436.xlsx",
+                                 sheet = "SP, %",detectDates = TRUE))%>%filter()%>%select(1,2,4,5,6,7,8)%>%
+  rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(!SP_order%in%c("#"))%>%mutate(abs_nm1=as.numeric(abs_nm1),abs_nm2=as.numeric(abs_nm2),delta=abs_nm2-abs_nm1)%>%mutate(Date=Date1)
+
+
+s<-SP_0216%>%mutate(SP_order=1:nrow(SP_0216))
+s
+s[c(1,51),]$SP_ID<-"NaCl"
+
+#View(s)
+s[s$SP_ID=="TMC",]
+s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1","TMC-2","TMC-2","TMC-3","TMC-3")
+s$Group<-"Group"
+s[s$SP_ID%in%c("NACL", "NACL(Reblank)","0.5% NaCl","NaCl"),]$SP_ID<-"NaCl"
+#View(s)
+s[1:50,]$Group<-"Group_1"
+s[51:nrow(s),]$Group<-"Group_2"
+#s[1:50,]$Group<-"Group_1"
+#s[51:100,]$Group<-"Group_2"
+#s[101:nrow(s),]$Group<-"Group_3"
+
+value<-s%>%group_by(Group,SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))%>%ungroup
+#View(value)
+ID<-s%>%arrange%>%select(SP_ID)%>%unique()%>%mutate(SP_order=1:n_distinct(SP_ID))%>%select(2,1)
+length(ID$SP_ID)
+value
+
+sp=ID%>%full_join(value,by="SP_ID","Group")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)%>%arrange(Group,SP_order)
+sp$Date<-Date1
+SP_0216<-sp
+
+#View(s_131_12)
+#sp<-plyr::rbind.fill(s_131_12,s_34)%>%arrange(Group,SP_order)%>%mutate(Date=Date1,SP_order=1:length(SP_order))
+
+####
+w$Date
+
+cm<-w%>%full_join(SP_0216,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
+cm$Date<-Date1
+cm
+#View(cm)
+#View(cm)
+cm[cm$Group=="Group_1",]$Set
+cm[cm$Group=="Group_1",]$Set<-"Set 1";cm[cm$Group=="Group_2",]$Set<-"Set 2"#;cm[cm$Group=="Group_3",]$Set<-"Set 3"#;cm[cm$Group=="Group_4",]$Set<-"Set 4"
+#need to think of a way to deal with number ordering for NaCls
+#View(cm)
+cm$Treatment
+cm[1:33,]$Treatment
+cm[1:30,]$Treatment<-"WinterTP2-3"
+
+cm[31:nrow(cm),]$Treatment<-"WinterTP2-4"
+
+cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
+
+#t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
+cm$Check<-"E";cm[cm$Entry%in%c("NaCl","TMC","TMC-1","TMC-2"),]$Check<-"C";cm$Check<-as.factor(cm$Check)
+
+cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('%02d', cm$Extract_number)))
+cm$PLOT
+cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
+cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
+#View(cm)
+CM_0216<-cm
+View(CM_0216)
+rm(cm,sp1,s,w,ID,sp,value)
+
+
+
+## 02 23 2022
+
+#MQ_list[MQ_list$PLOT%in%c(6379),]
+CM_0223<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-23-22 21CYGGS7099-7477as.xlsx",
+                                 sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9,sp_mean=10)%>%select(1:9)%>%
+  drop_na(Date)
+
+w<-CM_0223
+w
+Date1<-w$Date[3]
+Date1
+
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$PLOT
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$Entry<-"TMC"
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$PLOT<-"TMC"
+#w<-w%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))%>%arrange(Extract_number)
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-c("TMC-1","TMC-2")
+
+
+####
+SP_0223<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-23-22 21CYGGS7099-7477as.xlsx",
+                                 sheet = "SP, %",detectDates = TRUE))%>%filter()%>%select(1,2,4,5,6,7,8)%>%
+  rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(!SP_order%in%c("#"))%>%mutate(abs_nm1=as.numeric(abs_nm1),abs_nm2=as.numeric(abs_nm2),delta=abs_nm2-abs_nm1)%>%mutate(Date=Date1)
+
+
+s<-SP_0223%>%mutate(SP_order=1:nrow(SP_0223))
+s
+
+#View(s)
+s[s$SP_ID=="TMC",]
+s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1","TMC-2","TMC-2")
+s$Group<-"Group"
+s[s$SP_ID%in%c("NACL", "NACL(Reblank)","0.5% NaCl","NaCl"),]$SP_ID<-"NaCl"
+#View(s)
+
+s[1:nrow(s),]$Group<-"Group_1"
+#s[1:50,]$Group<-"Group_1"
+#s[51:100,]$Group<-"Group_2"
+#s[101:nrow(s),]$Group<-"Group_3"
+
+value<-s%>%group_by(Group,SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))%>%ungroup
+#View(value)
+ID<-s%>%arrange%>%select(SP_ID)%>%unique()%>%mutate(SP_order=1:n_distinct(SP_ID))%>%select(2,1)
+length(ID$SP_ID)
+value
+
+sp=ID%>%full_join(value,by="SP_ID","Group")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)%>%arrange(Group,SP_order)
+sp$Date<-Date1
+SP_0223<-sp
+
+#View(s_131_12)
+#sp<-plyr::rbind.fill(s_131_12,s_34)%>%arrange(Group,SP_order)%>%mutate(Date=Date1,SP_order=1:length(SP_order))
+
+####
+w$Date
+
+cm<-w%>%full_join(SP_0223,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
+cm$Date<-Date1
+cm
+#View(cm)
+#View(cm)
+cm[cm$Group=="Group_1",]$Set
+cm[cm$Group=="Group_1",]$Set<-"Set 1"#;cm[cm$Group=="Group_2",]$Set<-"Set 2"#;cm[cm$Group=="Group_3",]$Set<-"Set 3"#;cm[cm$Group=="Group_4",]$Set<-"Set 4"
+#need to think of a way to deal with number ordering for NaCls
+#View(cm)
+cm$Treatment
+cm[1:9,]$Treatment<-"WinterTP2-3"
+cm[10:nrow(cm),]$Treatment<-"WinterTP2-4"
+
+
+cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
+
+#t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
+cm$Check<-"E";cm[cm$Entry%in%c("NaCl","TMC","TMC-1","TMC-2"),]$Check<-"C";cm$Check<-as.factor(cm$Check)
+
+cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('%02d', cm$Extract_number)))
+cm$PLOT
+cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
+cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
+#View(cm)
+CM_0223<-cm
+#View(CM_0223)
+rm(cm,sp1,s,w,ID,sp,value)
+
+
+
+
+# 02 24 2022
+
+
+#MQ_list[MQ_list$PLOT%in%c(6379),]
+CM_0301<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 03-01-22 21CYGGW7149-7219as.xlsx",
+                                 sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9,sp_mean=10)%>%select(1:9)%>%
+  drop_na(Date)
+
+w<-CM_0301
+w
+Date1<-w$Date[3]
+Date1
+
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$PLOT
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$Entry<-"TMC"
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$PLOT<-"TMC"
+#w<-w%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))%>%arrange(Extract_number)
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-c("TMC-1","TMC-2")
+
+
+####
+SP_0223<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-23-22 21CYGGS7099-7477as.xlsx",
+                                 sheet = "SP, %",detectDates = TRUE))%>%filter()%>%select(1,2,4,5,6,7,8)%>%
+  rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(!SP_order%in%c("#"))%>%mutate(abs_nm1=as.numeric(abs_nm1),abs_nm2=as.numeric(abs_nm2),delta=abs_nm2-abs_nm1)%>%mutate(Date=Date1)
+
+
+s<-SP_0223%>%mutate(SP_order=1:nrow(SP_0223))
+s
+
+#View(s)
+s[s$SP_ID=="TMC",]
+s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1","TMC-2","TMC-2")
+s$Group<-"Group"
+s[s$SP_ID%in%c("NACL", "NACL(Reblank)","0.5% NaCl","NaCl"),]$SP_ID<-"NaCl"
+#View(s)
+
+s[1:nrow(s),]$Group<-"Group_1"
+#s[1:50,]$Group<-"Group_1"
+#s[51:100,]$Group<-"Group_2"
+#s[101:nrow(s),]$Group<-"Group_3"
+
+value<-s%>%group_by(Group,SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))%>%ungroup
+#View(value)
+ID<-s%>%arrange%>%select(SP_ID)%>%unique()%>%mutate(SP_order=1:n_distinct(SP_ID))%>%select(2,1)
+length(ID$SP_ID)
+value
+
+sp=ID%>%full_join(value,by="SP_ID","Group")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)%>%arrange(Group,SP_order)
+sp$Date<-Date1
+
+
+#View(s_131_12)
+#sp<-plyr::rbind.fill(s_131_12,s_34)%>%arrange(Group,SP_order)%>%mutate(Date=Date1,SP_order=1:length(SP_order))
+
+####
+w$Date
+
+cm<-w%>%full_join(sp,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
+cm$Date<-Date1
+cm
+#View(cm)
+#View(cm)
+cm[cm$Group=="Group_1",]$Set
+cm[cm$Group=="Group_1",]$Set<-"Set 1"#;cm[cm$Group=="Group_2",]$Set<-"Set 2"#;cm[cm$Group=="Group_3",]$Set<-"Set 3"#;cm[cm$Group=="Group_4",]$Set<-"Set 4"
+#need to think of a way to deal with number ordering for NaCls
+#View(cm)
+cm$Treatment
+cm[1:9,]$Treatment<-"WinterTP2-3"
+cm[10:nrow(cm),]$Treatment<-"WinterTP2-4"
+
+
+cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
+
+#t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
+cm$Check<-"E";cm[cm$Entry%in%c("NaCl","TMC","TMC-1","TMC-2"),]$Check<-"C";cm$Check<-as.factor(cm$Check)
+
+cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('%02d', cm$Extract_number)))
+cm$PLOT
+cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
+cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
+#View(cm)
+CM_02<-cm
+#View(CM_0223)
+rm(cm,sp1,s,w,ID,sp,value)
 
