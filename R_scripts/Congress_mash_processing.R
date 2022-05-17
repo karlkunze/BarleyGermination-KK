@@ -940,4 +940,16 @@ CM_0303<-cm
 rm(cm,sp1,s,w,ID,sp,value)
 
 CM<-plyr::rbind.fill(CM_0128,CM_0131,CM_0201,CM_0202,CM_0203,CM_0207,CM_0208,CM_0214,CM_0216,CM_0223,CM_0301,CM_0303)
+#table(CM$Entry)
+
+CM$order_column<-1:nrow(CM)
+t<-CM%>%filter(!Entry=="NaCl")%>%arrange(Treatment,Date,Extract_number)
+t
+t$unique_MQ_ID<-1:nrow(t)+3000;t<-t%>%select(Treatment,Date,Extract_number,PLOT,Entry,order_column,unique_MQ_ID,ID)%>%select(ID,unique_MQ_ID)
+
+CM<-CM%>%left_join(t,by=c("ID"))#%>%arrange(unique_MQ_ID)
+
+
+
+#View(CM)
 save(CM,file="data/Malting_quality/SWE/WMB21_CM.Rdata")
