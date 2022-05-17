@@ -17,7 +17,7 @@ CM_0128<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 01-28-22 21CYGGS120
   drop_na(Date)
 w<-CM_0128[c(56,58:72),]
 Date1<-w$Date[3]
-w
+
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC-1"
@@ -27,7 +27,7 @@ SP_0128<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 01-28-22 21CYGGS120
 
 SP_0128[SP_0128$SP_ID=="6052",]$SP_ID<-"6051"
 s<-SP_0128
-s
+
 s[s$SP_ID=="TMC",]
 s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1")
 value<-s%>%group_by(SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))
@@ -121,14 +121,14 @@ cm[cm$Group=="Group_1",]$Set<-"Set 1";cm[cm$Group=="Group_2",]$Set<-"Set 2";cm[c
 #need to think of a way to deal with number ordering for NaCls
 cm[1:48,]$Treatment<-"WinterTP1-1"
 cm[48:nrow(cm),]$Treatment<-"WinterTP1-2"
-View(cm)
+
 cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
 
 #t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
 cm$Check<-"E";cm[cm$Entry%in%c("NaCl","TMC","TMC-1","TMC-2"),]$Check<-"C";cm$Check<-as.factor(cm$Check)
 
 cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('%02d', cm$Extract_number)))
-cm$PLOT
+
 cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
@@ -140,7 +140,7 @@ CM_0201<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 02-01-22 21CYGGS644
                                  sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9,mean_sp=10)%>%select(1:10)%>%
   drop_na(Date)
 w<-CM_0201%>%arrange(Extract_number)
-w$Date
+
 Date1<-w$Date[3]
 
 nrow(w)
@@ -493,7 +493,7 @@ cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0208<-cm
-View(CM_0208)
+
 rm(cm,sp1,s,w,ID,sp,value)
 
 # 02 14 2022
@@ -667,7 +667,7 @@ cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 #View(cm)
 CM_0216<-cm
-View(CM_0216)
+
 rm(cm,sp1,s,w,ID,sp,value)
 
 
@@ -938,6 +938,6 @@ cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 CM_0303<-cm
 #View(CM_0223)
 rm(cm,sp1,s,w,ID,sp,value)
-View(CM_0303)
-obj<-plyr::rbind.fill(CM_0128,CM_0131,CM_0201,CM_0202,CM_0203,CM_0207,CM_0208,CM_0214,CM_0216,CM_0223,CM_0301,CM_0303)
-View(obj)
+
+CM<-plyr::rbind.fill(CM_0128,CM_0131,CM_0201,CM_0202,CM_0203,CM_0207,CM_0208,CM_0214,CM_0216,CM_0223,CM_0301,CM_0303)
+save(CM,file="data/Malting_quality/SWE/WMB21_CM.Rdata")
