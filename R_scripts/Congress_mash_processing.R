@@ -17,7 +17,7 @@ CM_0128<-as.data.frame(read.xlsx("data/Malting_quality/CM/CM 01-28-22 21CYGGS120
   drop_na(Date)
 w<-CM_0128[c(56,58:72),]
 Date1<-w$Date[3]
-
+Date1
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC-1"
