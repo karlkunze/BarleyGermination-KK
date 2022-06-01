@@ -380,11 +380,16 @@ library(tidyverse)
 SWE=plyr::rbind.fill(SWE_0128,SWE_0131,SWE_0201,SWE_0202,SWE_0203,SWE_0204,SWE_0207,SWE_0210,SWE_0211,SWE_0215,SWE_0217,SWE_0218,
                  SWE_0228,SWE_0302)
 SWE[SWE$Entry%in%c("Tradition Malt Check"),]$Entry<-"TMC"
+SWE[SWE$Date%in%c(as.Date("2022-02-28"))&SWE$Extract_number%in%c(43),]$Treatment<-"WinterTP2-3"
 SWE$order_column<-1:nrow(SWE)
 y<-SWE%>%filter(!Treatment=="Rahr")%>%arrange(Treatment,Date,Extract_number)
 y$unique_MQ_ID<-1:nrow(y)+3000;y<-y%>%select(Treatment,Date,Extract_number,PLOT,Entry,order_column,unique_MQ_ID,ID)%>%select(ID,unique_MQ_ID)
 
 SWE<-SWE%>%left_join(y,by=c("ID"))#%>%arrange(unique_MQ_ID)
+
+table(SWE$Date)
+
+
 
 save(SWE,file = "data/MQ/SWE/WMB21_SWE.Rdata")
 
