@@ -42,9 +42,16 @@ M_0302<-as.data.frame(read_xls("data/MQ/Moisture/21CY WBTP2 7305-7477.xls",skip 
   select(Order,Dish_number,Sample_number,Dish_weight,Initial_sample_weight,Final_sample_weight,Moisture_percent,As_is_weight_170g_DB,Treatment_ID,Actual_sample_weight)%>%
   select(Order,Dish_number,Sample_number,Treatment_ID,Moisture_percent)%>%
   mutate(Date=as.Date("2022-03-02"))%>%mutate(Moisture_percent=as.numeric(Moisture_percent))
-
+WMB21_Moisture
 WMB21_Moisture<-plyr::rbind.fill(M_0130,M_0131,M_0202_01,M_0202_02,M_0207,M_0208,M_0301,M_0302)#
 WMB21_Moisture<-WMB21_Moisture%>%mutate(Treatment_ID=gsub(" ", "", WMB21_Moisture$Treatment_ID, fixed = TRUE))%>%
-  arrange(Treatment_ID,Date,Order,Sample_number)
+  arrange(Treatment_ID,Date,Order,Sample_number)%>%rename(PLOT=Sample_number)
 WMB21_Moisture$Order<-1:nrow(WMB21_Moisture)
+table(WMB21_Moisture$Treatment_ID)
+names(WMB21_Moisture)
+
+MQ_list<-as.data.frame(read.xlsx("data/Phenotype_Data/2021/MQ_samples_schedule.xlsx",
+                                 sheet = "WinterSamples"))%>%filter(rep==1)
+WMB21_Moisture[!WMB21_Moisture$PLOT%in%c(as.character(MQ_list$PLOT),"TMC"),]
+
 save(WMB21_Moisture,file="data/MQ/WMB21_Moistures.Rdata")
