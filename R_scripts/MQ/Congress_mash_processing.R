@@ -37,6 +37,7 @@ ID<-s%>%arrange%>%select(SP_ID)%>%unique()%>%mutate(order=1:n_distinct(SP_ID))%>
 sp1=ID%>%full_join(value,by="SP_ID")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)#%>%filter(!PLOT=="6052")
 sp1$Group<-"Group_1"
 
+sp1<-sp1%>%filter(!PLOT%in%c("TMC"))
 cm<-w%>%full_join(sp1,by="PLOT")%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-order)
 cm$Date<-Date1
 cm$Treatment
@@ -955,6 +956,8 @@ CM<-plyr::rbind.fill(CM_0128,CM_0131,CM_0201,CM_0202,CM_0203,CM_0207,CM_0208,CM_
 View(CM%>%filter(Treatment%in%c("WinterTP2-1","WinterTP2-2"))%>%arrange(Date,Extract_number))
 
 CM[CM$Date%in%c(as.Date("2022-02-08"))&CM$Extract_number%in%c(72),]$Treatment<-"WinterTP2-1"
+CM%>%filter(CM$Date%in%c(as.Date("2022-01-28")),CM$PLOT%in%c("TMC"))
 
 #View(CM)
 save(CM,file="data/MQ/CM/WMB21_CM.Rdata")
+
