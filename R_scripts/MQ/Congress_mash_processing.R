@@ -952,4 +952,4 @@ CM<-CM%>%left_join(t,by=c("ID"))#%>%arrange(unique_MQ_ID)
 
 
 #View(CM)
-save(CM,file="data/Malting_quality/SWE/WMB21_CM.Rdata")
+save(CM,file="data/Malting_quality/CM/WMB21_CM.Rdata")
