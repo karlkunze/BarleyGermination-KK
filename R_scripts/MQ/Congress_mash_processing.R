@@ -961,6 +961,8 @@ CM<-plyr::rbind.fill(CM_0128,CM_0131,CM_0201,CM_0202,CM_0203,CM_0207,CM_0208,CM_
 #View(CM)
 
 CM<-CM%>%filter(!is.na(Extract_number))
+CM$ME<-round(as.numeric(CM$ME),4)
+CM$ME
 #View(CM)
 CM[CM$Date%in%c(as.Date("2022-02-08"))&CM$Extract_number%in%c(72),]$Treatment<-"WinterTP2-2"
 CM[CM$Date%in%c(as.Date("2022-01-31"))&CM$Extract_number%in%c(52),]$Treatment<-"WinterTP1-1"
@@ -968,7 +970,7 @@ CM[68,]$Extract_number<-0.5
 
 CM<-CM[-275,]
 
-View(CM)
+#View(CM)
 
 #View(CM)
 save(CM,file="data/MQ/CM/WMB21_CM.Rdata")
