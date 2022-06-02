@@ -139,8 +139,8 @@ cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('
 cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 cm$Entry
-View(cm)
-CM_0131<-cm
+
+  CM_0131<-cm
 
 ### Congress mash 02 01 2022
 
@@ -975,3 +975,4 @@ CM<-CM[-275,]
 #View(CM)
 save(CM,file="data/MQ/CM/WMB21_CM.Rdata")
 table(CM$Treatment)
+

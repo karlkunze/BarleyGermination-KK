@@ -4,7 +4,7 @@ library(openxlsx)
 library(dplyr)
 library(stringr)
 
-
+rm(t)
 #MQ_list in case only plot numbers are presented
 MQ_list<-as.data.frame(read.xlsx("data/Phenotype_Data/2021/MQ_samples_schedule.xlsx",
                                  sheet = "WinterSamples"))%>%filter(rep==1)
@@ -349,8 +349,8 @@ SWE_0228<-t
 
 SWE_0302<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 03-02-22 21CYGGW7049-7358.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
-t<-SWE_0302%>%slice(1:37)
 t
+t<-SWE_0302%>%slice(1:37)
 #View(t)
 total<-as.data.frame(table(t$Date))[1,2]
 total

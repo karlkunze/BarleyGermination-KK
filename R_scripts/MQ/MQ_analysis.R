@@ -59,24 +59,34 @@ SWE[SWE$Entry%in%c("R"),]$TP<-"R"
 SWE$PLOT_TP<-paste0(SWE$PLOT,"-",SWE$TP)
 SWE[SWE$PLOT%in%c("TMC"),]$PLOT_TP<-paste0(SWE[SWE$PLOT%in%c("TMC"),]$PLOT_TP,"-",SWE[SWE$PLOT%in%c("TMC"),]$n)
 SWE$PLOT_TP
+table(SWE$Treatment)
+
 
 load("data/MQ/CM/WMB21_CM.Rdata")
-CM<-CM[-1,]
+CM<-CM%>%arrange(Treatment,Date,Extract_number)
+View(CM)
 CM[CM$Entry%in%c("TMC"),]$PLOT<-CM[CM$Entry%in%c("TMC"),]$Entry
 
-table(CM$Treatment)
+MQ_list<-as.data.frame(read.xlsx("data/Phenotype_Data/2021/MQ_samples_schedule.xlsx",
+                                 sheet = "WinterSamples"))%>%filter(rep==1)
+#View(MQ_list)
+CM$order_column<-1:nrow(CM)
 CM[CM$Entry%in%c("TMC"),]$PLOT<-CM[CM$Entry%in%c("TMC"),]$Entry
-
-TMC_sets<-CM%>%filter(Entry%in%c("TMC"))%>%group_by(Treatment)%>%mutate(n=1:n())%>%ungroup()%>%
+#View(CM)
+#View(CM)
+TMC_sets<-CM%>%filter(PLOT%in%c("TMC"))%>%group_by(Treatment)%>%mutate(n=1:n())%>%ungroup()%>%
   select(order_column,Entry,Treatment,Date,n)
 table(TMC_sets$n,TMC_sets$Treatment)
+
 
 CM<-CM%>%left_join(TMC_sets,by=c("order_column","Treatment","Date","Entry"))
 
 CM$TP<-substr(CM$Treatment, start = 9, stop = 11)
-CM[CM$Entry%in%c("R"),]$TP<-"R"
+
+CM[CM$Entry%in%c("NaCl"),]$TP<-"N"
 
 CM$PLOT_TP<-paste0(CM$PLOT,"-",CM$TP)
 CM[CM$PLOT%in%c("TMC"),]$PLOT_TP<-paste0(CM[CM$PLOT%in%c("TMC"),]$PLOT_TP,"-",CM[CM$PLOT%in%c("TMC"),]$n)
 CM$PLOT_TP
-
+t<-CM%>%full_join(SWE,by=c("PLOT_TP","Entry","PLOT"))
+View(t)
