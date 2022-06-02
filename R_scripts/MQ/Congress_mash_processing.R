@@ -15,10 +15,12 @@ MQ_list<-as.data.frame(read.xlsx("data/Phenotype_Data/2021/MQ_samples_schedule.x
 CM_0128<-as.data.frame(read.xlsx("data/MQ/CM/CM 01-28-22 21CYGGS1208-endTP2Springas.xlsx",
                                  sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:9)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9)%>%select(1:9)%>%
   drop_na(Date)
+nrow(CM_0128)
 w<-CM_0128[c(58:72),]
 w$PLOT
 Date1<-w$Date[3]
 Date1
+
 # w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
 # w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
 # w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC-1"
@@ -66,7 +68,7 @@ drop_na(Date)
 w<-CM_0131
 w$Date<-as.Date("2022-01-31")
 Date1<-w$Date[3]
-CM_0131
+w$PLOT
 
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
@@ -123,7 +125,7 @@ cm[cm$PLOT%in%c("NaCl"),]$Extract_number<-97:100
 cm[cm$Group=="Group_1",]$Set<-"Set 1";cm[cm$Group=="Group_2",]$Set<-"Set 2";cm[cm$Group=="Group_3",]$Set<-"Set 3";cm[cm$Group=="Group_4",]$Set<-"Set 4"
 #need to think of a way to deal with number ordering for NaCls
 cm$PLOT
-cm[48,]
+cm[46:48,]
 cm[1:48,]$Treatment<-"WinterTP1-1"
 cm[49:nrow(cm),]$Treatment<-"WinterTP1-2"
 
@@ -136,7 +138,8 @@ cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('
 
 cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
-
+cm$Entry
+View(cm)
 CM_0131<-cm
 
 ### Congress mash 02 01 2022
@@ -161,7 +164,7 @@ cm[25:48,]$Set<-"Set 2"
 cm$Group<-"Group"
 cm[cm$Set=="Set 1",]$Group<-"Group_1"
 cm[cm$Set=="Set 2",]$Group<-"Group_2"
-View(cm)
+#View(cm)
 cm[1:17,]
 cm[1:16,]$Treatment<-"WinterTP1-2"
 cm[17:nrow(cm),]$Treatment<-"WinterTP1-3"
@@ -177,10 +180,10 @@ cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 names(cm)
 
 CM_0201<-cm%>%rename(sp_mean=mean_sp)
-
+CM_0201$Entry
 rm(cm,sp1,s,w,ID)
 #2-02-2022
-rbind(CM_0128,CM_0131,CM_0201)
+#rbind(CM_0128,CM_0131,CM_0201)
 table(CM_0201$Treatment)
 CM_0202<-as.data.frame(read.xlsx("data/MQ/CM/CM 02-02-22 21CYGGS7129-7314.xlsx",
                                  sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:9)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9)%>%select(1:9)%>%
@@ -673,6 +676,7 @@ cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('
 cm$PLOT
 cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
+cm$Entry
 #View(cm)
 CM_0216<-cm
 
@@ -953,11 +957,19 @@ rm(cm,sp1,s,w,ID,sp,value)
 
 CM<-plyr::rbind.fill(CM_0128,CM_0131,CM_0201,CM_0202,CM_0203,CM_0207,CM_0208,CM_0214,CM_0216,CM_0223,CM_0301,CM_0303)
 #table(CM$Entry)
-View(CM%>%filter(Treatment%in%c("WinterTP2-1","WinterTP2-2"))%>%arrange(Date,Extract_number))
+#View(CM%>%filter(Treatment%in%c("WinterTP1-1","WinterTP1-2"))%>%arrange(Date,Extract_number))
+#View(CM)
 
-CM[CM$Date%in%c(as.Date("2022-02-08"))&CM$Extract_number%in%c(72),]$Treatment<-"WinterTP2-1"
-CM%>%filter(CM$Date%in%c(as.Date("2022-01-28")),CM$PLOT%in%c("TMC"))
+CM<-CM%>%filter(!is.na(Extract_number))
+#View(CM)
+CM[CM$Date%in%c(as.Date("2022-02-08"))&CM$Extract_number%in%c(72),]$Treatment<-"WinterTP2-2"
+CM[CM$Date%in%c(as.Date("2022-01-31"))&CM$Extract_number%in%c(52),]$Treatment<-"WinterTP1-1"
+CM[68,]$Extract_number<-0.5
+
+CM<-CM[-275,]
+
+View(CM)
 
 #View(CM)
 save(CM,file="data/MQ/CM/WMB21_CM.Rdata")
-
+table(CM$Treatment)
