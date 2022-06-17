@@ -88,5 +88,30 @@ CM[CM$Entry%in%c("NaCl"),]$TP<-"N"
 CM$PLOT_TP<-paste0(CM$PLOT,"-",CM$TP)
 CM[CM$PLOT%in%c("TMC"),]$PLOT_TP<-paste0(CM[CM$PLOT%in%c("TMC"),]$PLOT_TP,"-",CM[CM$PLOT%in%c("TMC"),]$n)
 CM$PLOT_TP
-t<-CM%>%full_join(SWE,by=c("PLOT_TP","Entry","PLOT"))
+table(SWE$Treatment)
+
+CM_SWE<-CM%>%full_join(SWE,by=c("PLOT_TP","Treatment","Entry","PLOT","TP","Check","n"))
+WMB21_MQ<-CM_SWE%>%full_join(WMB21_Leco_M,by=c("PLOT_TP",'Treatment',"PLOT","Entry"))
+WMB21_MQ<-WMB21_MQ%>%mutate(MP=N_percent*6.25/(1-Moisture_percent/100),sp_mean=abs(sp_mean),ST=sp_mean/MP)
+WMB21_MQ$Timepoint<-substr(WMB21_MQ$TP, start = 1, stop = 1)
+WMB21_MQ[WMB21_MQ$Timepoint%in%c("1"),]$Timepoint<-"TP4"
+WMB21_MQ[WMB21_MQ$Timepoint%in%c("2"),]$Timepoint<-"TP6"
+WMB21_MQ[WMB21_MQ$Entry%in%c("TMC"),]$PLOT<-substr(WMB21_MQ[WMB21_MQ$Entry%in%c("TMC"),]$PLOT_TP,start = 7,stop=9)
+MQ_long<-WMB21_MQ%>%pivot_longer(names_to = c("trait"),cols = c("ME","BG","FAN","sp_mean","DP","AA","MP","ST"))
+t1<-read.csv("C:/Users/kars8/Dropbox/Cornell Small Grains Breeding/2022/Winter Grains22/WMB Repl22/ws_per_env.csv")
+t1
+t1<-t1 %>%filter(grepl('BS', Entry)|Entry%in%c("DH130910 (Fac)","KWS Scala"))
+t1[t1$Entry=="DH130910 (Fac)",]$Entry<-"DH130910"
+WMB22_select<-MQ_long%>%filter(Entry%in%c(t1$Entry))%>%select(3,5,23,24,25)
+View(WMB22_select)
+names(WMB22_select)
+t<-WMB22_select%>%pivot_wider(names_from = c("trait","Timepoint"),values_from = "value")%>%arrange(Entry)
+ws_s<-t1%>%select(Entry,all_locations)%>%rename(ws_percent=2)
+t3<-t%>%full_join(ws_s,by="Entry")
+load("data/Genotype_data/AlaT_markers.Rdata")
+alat_select<-AlaT_markers%>%select(Entry,AlaT_Allele)
+alat_select
+total_s<-t3%>%full_join(alat_select,by="Entry")
+
+write.csv(total_s,file="C:/Users/kars8/Dropbox/Cornell Small Grains Breeding/2022/Winter Grains22/WMB Repl22/WMB22_malt_scores.csv")
 View(t)
