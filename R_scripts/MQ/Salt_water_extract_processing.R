@@ -4,14 +4,14 @@ library(openxlsx)
 library(dplyr)
 library(stringr)
 
-
+rm(t)
 #MQ_list in case only plot numbers are presented
 MQ_list<-as.data.frame(read.xlsx("data/Phenotype_Data/2021/MQ_samples_schedule.xlsx",
                                  sheet = "WinterSamples"))%>%filter(rep==1)
 
 
 
-SWE_0128<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 01-28-22 21CYGGS1216-endspringtp2_WMB6011-6051-as.xlsx",
+SWE_0128<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 01-28-22 21CYGGS1216-endspringtp2_WMB6011-6051-as.xlsx",
                            sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
 
 t<-SWE_0128 
@@ -33,18 +33,18 @@ SWE_0128[SWE_0128$Entry=="R",]$Treatment<-"Rahr"
 
 #SWE 1-31-2022
 
-SWE_0131<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 01-31-22 21CYGGS6060-6290.xlsx",
+SWE_0131<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 01-31-22 21CYGGS6060-6290.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=5,PLOT=4,Date=6,DP=7,AA=8)%>%select(1:8)%>%slice(1:72)
 total<-as.data.frame(table(SWE_0131$Date))[1,2]
 SWE_0131
 t<-SWE_0131
+t[1:24,]
 t[1:24,]$Set<-"Set 1"; t[25:48,]$Set<-"Set 2";t[49:72,]$Set<-"Set 3";t$Date<-t$Date[3]
 t[t$PLOT=="Tradition Malt Check",]$Entry<-"TMC"
 t[t$PLOT=="R",]$Entry<-"R"
 t$Check<-"E";t[t$Entry%in%c("R","TMC"),]$Check<-"C";t$Check<-as.factor(t$Check)
-t[t$Set=="Set 1",]$Treatment<-"WinterTP1-1"
-t[t$Set=="Set 2",]$Treatment<-"WinterTP1-1"
-t[t$Set=="Set 3",]$Treatment<-"WinterTP1-2"
+t[1:54,]$Treatment<-"WinterTP1-1"
+t[55:72,]$Treatment<-"WinterTP1-2"
 
 
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
@@ -55,7 +55,7 @@ SWE_0131<-t
 SWE_0131
 #
 
-SWE_0201<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-01-22  21CYGGS6300-7018.xlsx",
+SWE_0201<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-01-22  21CYGGS6300-7018.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=5,PLOT=3,Date=6,DP=7,AA=8)%>%select(1:8)%>%slice(1:72)
 total<-as.data.frame(table(SWE_0201$Date))[1,2]
 total
@@ -77,7 +77,7 @@ t[t$Entry=="R",]$Treatment<-"Rahr"
 SWE_0201<-t
 
 # 02-02-2022
-SWE_0202<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-02-22 21CYGGW7019-7194.xlsx",
+SWE_0202<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-02-22 21CYGGW7019-7194.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)%>%slice(1:72)
 total<-as.data.frame(table(SWE_0202$Date))[1,2]
 total
@@ -90,6 +90,7 @@ t[t$PLOT=="Tradition Malt Check",]$Entry<-"TMC"
 t[t$PLOT=="R",]$Entry<-"R"
 t$Check<-"E";t[t$Entry%in%c("R","TMC"),]$Check<-"C";t$Check<-as.factor(t$Check)
 table(t$Treatment)
+t[1:4,]
 t[1:4,]$Treatment<-"WinterTP1-2"
 t[5:48,]$Treatment<-"WinterTP1-3"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
@@ -100,7 +101,7 @@ SWE_0202<-t
 # 02-03-2022
 
 # 02-03-2022
-SWE_0203<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-03-22 21CYGGW7176-7335.xlsx",
+SWE_0203<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-03-22 21CYGGW7176-7335.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)%>%slice(1:72)
 total<-as.data.frame(table(SWE_0203$Date))[1,2]
 t<-SWE_0203
@@ -128,7 +129,7 @@ t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
 t[t$Entry=="R",]$Treatment<-"Rahr"
 SWE_0203<-t
 # 2-04-2022
-SWE_0204<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-04-22 21CYGGW7337-7419.xlsx",
+SWE_0204<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-04-22 21CYGGW7337-7419.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=3,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)%>%slice(1:72)
 t<-SWE_0204
 total<-as.data.frame(table(t$Date))[1,2]
@@ -151,7 +152,7 @@ t[t$Entry=="R",]$Treatment<-"Rahr"
 SWE_0204<-t
 
 # 02-07-2022
-SWE_0207<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-07-22 21CYGGW7439-6095.xlsx",
+SWE_0207<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-07-22 21CYGGW7439-6095.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=3,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
 t<-SWE_0207
 t
@@ -177,7 +178,7 @@ SWE_0207<-t
 #View(SWE_0207)
 #02-10-22
 SWE_0207$Treatment
-SWE_0210<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-10-22 21CYGGW7421-6245.xlsx",
+SWE_0210<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-10-22 21CYGGW7421-6245.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
 t<-SWE_0210
 t
@@ -204,7 +205,7 @@ t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
 t[t$Entry=="R",]$Treatment<-"Rahr"
 SWE_0210<-t
 #02
-SWE_0211<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-11-22 21CYGGW6246-6347.xlsx",
+SWE_0211<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-11-22 21CYGGW6246-6347.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=3,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
 t<-SWE_0211
 t
@@ -232,7 +233,7 @@ t[t$Entry=="R",]$Treatment<-"Rahr"
 SWE_0211<-t
 
 #
-SWE_0215<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-15-22 21CYGGW6342-7030.xlsx",
+SWE_0215<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-15-22 21CYGGW6342-7030.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=3,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
 t<-SWE_0215
 t
@@ -259,7 +260,7 @@ SWE_0215<-t
 SWE_0215
 ##2 17 2022
 
-SWE_0217<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-17-22 21CYGGW7035-7377.xlsx",
+SWE_0217<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-17-22 21CYGGW7035-7377.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=3,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
 t<-SWE_0217
 t
@@ -275,6 +276,7 @@ t$Check<-"E";t[t$Entry%in%c("R","TMC"),]$Check<-"C";t$Check<-as.factor(t$Check)
 table(t$Treatment)
 #View(t)
 t<-t%>%arrange(Extract_number)
+t[1:19,]
 t[1:18,]$Treatment<-"WinterTP2-3"
 t[19:24,]$Treatment<-"WinterTP2-4"
 
@@ -288,7 +290,7 @@ SWE_0217<-t
 ##
 
 
-SWE_0218<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-18-22 21CYGGW7380-7471.xlsx",
+SWE_0218<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-18-22 21CYGGW7380-7471.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=4,Treatment=3,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
 t<-SWE_0218
 t
@@ -315,7 +317,7 @@ t[t$Entry=="R",]$Treatment<-"Rahr"
 SWE_0218<-t
 ###
 #02-28-2022
-SWE_0228<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 02-28-22 21CYGGW7099-7274.xlsx",
+SWE_0228<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-28-22 21CYGGW7099-7274.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
 t<-SWE_0228
 t
@@ -345,10 +347,10 @@ t[t$Entry=="R",]$Treatment<-"Rahr"
 SWE_0228<-t
 ###
 
-SWE_0302<-as.data.frame(read.xlsx("data/Malting_quality/SWE/SWE 03-02-22 21CYGGW7049-7358.xlsx",
+SWE_0302<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 03-02-22 21CYGGW7049-7358.xlsx",
                                   sheet = "Data",startRow = 9,detectDates = TRUE))%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,DP=7,AA=8)%>%select(1:8)
-t<-SWE_0302%>%slice(1:37)
 t
+t<-SWE_0302%>%slice(1:37)
 #View(t)
 total<-as.data.frame(table(t$Date))[1,2]
 total
@@ -378,11 +380,16 @@ library(tidyverse)
 SWE=plyr::rbind.fill(SWE_0128,SWE_0131,SWE_0201,SWE_0202,SWE_0203,SWE_0204,SWE_0207,SWE_0210,SWE_0211,SWE_0215,SWE_0217,SWE_0218,
                  SWE_0228,SWE_0302)
 SWE[SWE$Entry%in%c("Tradition Malt Check"),]$Entry<-"TMC"
+SWE[SWE$Date%in%c(as.Date("2022-02-28"))&SWE$Extract_number%in%c(43),]$Treatment<-"WinterTP2-3"
 SWE$order_column<-1:nrow(SWE)
 y<-SWE%>%filter(!Treatment=="Rahr")%>%arrange(Treatment,Date,Extract_number)
 y$unique_MQ_ID<-1:nrow(y)+3000;y<-y%>%select(Treatment,Date,Extract_number,PLOT,Entry,order_column,unique_MQ_ID,ID)%>%select(ID,unique_MQ_ID)
 
 SWE<-SWE%>%left_join(y,by=c("ID"))#%>%arrange(unique_MQ_ID)
-View(SWE)
-save(SWE,file = "data/Malting_quality/SWE/WMB21_SWE.Rdata")
+
+table(SWE$Date)
+
+
+
+save(SWE,file = "data/MQ/SWE/WMB21_SWE.Rdata")
 
