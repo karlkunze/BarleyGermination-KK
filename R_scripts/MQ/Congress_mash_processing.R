@@ -16,21 +16,21 @@ CM_0128<-as.data.frame(read.xlsx("data/MQ/CM/CM 01-28-22 21CYGGS1208-endTP2Sprin
                                  sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:9)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9)%>%select(1:9)%>%
   drop_na(Date)
 nrow(CM_0128)
-w<-CM_0128[c(58:72),]
+w<-CM_0128[c(58:73),]
 w$PLOT
 Date1<-w$Date[3]
 Date1
 
-# w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
-# w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
-# w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC-1"
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC-1"
 
 SP_0128<-as.data.frame(read.xlsx("data/MQ/CM/CM 01-28-22 21CYGGS1208-endTP2Springas.xlsx",
                                  sheet = "SP3",detectDates = TRUE))%>%select(1,2,4,5,6,7,8)%>%rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(SP_ID%in%c("NaCl")|SP_ID>6000)%>%mutate(delta=abs_nm1-abs_nm2)%>%mutate(Date=Date1)
 
 SP_0128[SP_0128$SP_ID=="6052",]$SP_ID<-"6051"
 s<-SP_0128
-
+s
 # s[s$SP_ID=="TMC",]
 # s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1")
 value<-s%>%group_by(SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))
@@ -84,6 +84,7 @@ SP_0131_34
 s<-SP_0131_34%>%filter(!SP_order%in%c("#"))%>%mutate(Date=Date1,SP_order=as.numeric(SP_order),sp_mean=round(as.numeric(sp_mean),4),sp_sd=round(as.numeric(sp_sd),4))
 
 s
+s[s$SP_ID%in%c(6356),]
 s[s$SP_ID%in%c(6356),]$SP_order<-16
 s[s$SP_ID=="TMC",]
 s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-4","TMC-5","TMC-6","TMC-7")
@@ -140,10 +141,11 @@ cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 cm$Entry
 
-  CM_0131<-cm
+CM_0131<-cm
 
 ### Congress mash 02 01 2022
 CM_0131$ID
+CM_0131
 CM_0201<-as.data.frame(read.xlsx("data/MQ/CM/CM 02-01-22 21CYGGS6441-7126as.xlsx",
                                  sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9,mean_sp=10)%>%select(1:10)%>%
   drop_na(Date)
@@ -1059,9 +1061,9 @@ CM$ME<-round(as.numeric(CM$ME),4)
 CM$ME
 #View(CM)
 CM[CM$Date%in%c(as.Date("2022-02-08"))&CM$Extract_number%in%c(72),]$Treatment<-"WinterTP2-2"
-CM[CM$Date%in%c(as.Date("2022-01-31"))&CM$Extract_number%in%c(52),]$Treatment<-"WinterTP1-1"
-CM[68,]$Extract_number<-0.5
-
+#CM[CM$Date%in%c(as.Date("2022-01-31"))&CM$Extract_number%in%c(52),]$Treatment<-"WinterTP1-1"
+#CM[68,]$Extract_number<-0.5
+CM[275,]
 CM<-CM[-275,]
 
 #View(CM)
