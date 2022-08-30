@@ -59,7 +59,7 @@ cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0128<-cm
 rm(cm,sp1,s,w)
-
+CM_0128
 # Congress mash 1-31
 
 CM_0131<-as.data.frame(read.xlsx("data/MQ/CM/CM 01-31-22 21CYGGS6136-6440as.xlsx",
@@ -74,7 +74,7 @@ w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC"
 w<-w%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))%>%arrange(Extract_number)
-
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
 w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-c("TMC-1","TMC-2","TMC-3","TMC-4","TMC-5","TMC-6","TMC-7")
 
 SP_0131_34<-as.data.frame(read.xlsx("data/MQ/CM/CM 01-31-22 21CYGGS6136-6440as.xlsx",
@@ -102,7 +102,7 @@ SP_0131_12<-as.data.frame(read.xlsx("data/MQ/CM/CM 01-31-22 21CYGGS6136-6440as.x
 
 s<-SP_0131_12
 s
-s[s$SP_ID=="TMC",]
+table(s[s$SP_ID=="TMC",]$SP_ID)
 s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1","TMC-1","TMC-1","TMC-2","TMC-2","TMC-2","TMC-2","TMC-3","TMC-3","TMC-3")
 s$Group<-"Group"
 s[1:99,]$Group<-"Group_1"
@@ -143,7 +143,7 @@ cm$Entry
   CM_0131<-cm
 
 ### Congress mash 02 01 2022
-
+CM_0131$ID
 CM_0201<-as.data.frame(read.xlsx("data/MQ/CM/CM 02-01-22 21CYGGS6441-7126as.xlsx",
                                  sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9,mean_sp=10)%>%select(1:10)%>%
   drop_na(Date)

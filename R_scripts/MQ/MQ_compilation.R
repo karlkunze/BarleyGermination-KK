@@ -11,7 +11,7 @@ Experiment_SWE<-SWE%>%filter(!Entry=="TMC")
 Experiment_CM<-CM%>%filter(!Entry=="TMC")
 Exp_Moisture<-WMB21_Moisture%>%rename(Treatment=Treatment_ID)%>%filter(!PLOT=="TMC")%>%arrange(Date,Order)%>%group_by(PLOT)%>%arrange(Order)%>%mutate(numbering=1,Date_Moisture=Date,Order_Moisture=Order)
 
-Check_SWE<-SWE%>%filter(Entry=="TMC")%>%arrange(Entry,Date,Extract_number)%>%group_by(Treatment)%>%arrange(Date)%>%mutate(numbering = row_number())
+Check_SWE<-SWE%>%filter(!Treatment=="SpringTP2-4")%>%filter(Entry=="TMC")%>%arrange(Entry,Date,Extract_number)%>%group_by(Treatment)%>%arrange(Date)%>%mutate(numbering = row_number())
 Check_SWE
 Check_CM<-CM%>%filter(Entry=="TMC")%>%arrange(Entry,Date,Extract_number)%>%group_by(Treatment)%>%arrange(Date)%>%mutate(numbering = row_number())
 
@@ -22,7 +22,7 @@ Check_Moisture<-WMB21_Moisture%>%rename(Treatment=Treatment_ID)%>%filter(PLOT=="
 check<-full_join(Check_CM,Check_SWE,by=c("Entry","Treatment","numbering"))%>%
   full_join(Check_Moisture,by=c("Entry","Treatment","numbering"))%>%
   mutate(PLOT=paste0(PLOT.x,"-",PLOT.y))%>%select(!c(PLOT.x,PLOT.y))%>%filter(!Treatment=="SpringTP2-4")
-
+View(check)
 Exper<-full_join(Experiment_CM,Experiment_SWE,by=c("Treatment","PLOT","Entry"))%>%full_join(Exp_Moisture,by=c("Treatment","PLOT"))%>%
   mutate(numbering=1)#%>%filter(!Treatment=="Rahr")
 colnames(check)
