@@ -1027,7 +1027,7 @@ cm$PLOT
 cm[1:9,]
 cm$Treatment#<-"WinterTP2-3"
 #Treatments are correct
-View(cm)
+
 
 cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
 
