@@ -646,7 +646,7 @@ value
 sp=ID%>%full_join(value,by="SP_ID","Group")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)%>%arrange(Group,SP_order)
 sp$Date<-Date1
 SP_0216<-sp
-
+View(SP_0216)
 #View(s_131_12)
 #sp<-plyr::rbind.fill(s_131_12,s_34)%>%arrange(Group,SP_order)%>%mutate(Date=Date1,SP_order=1:length(SP_order))
 
@@ -870,7 +870,7 @@ rm(cm,sp1,s,w,ID,sp,value)
 
 library(tibble)
 #MQ_list[MQ_list$PLOT%in%c(6379),]
-
+CM_0303
 CM_0303<-as.data.frame(read.xlsx("data/MQ/CM/CM 03-03-22 21CYGGS7220-7476as.xlsx",
                                  sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Treatment=3,PLOT=4,Date=5,ME=6,BG=7,FAN=8,sp_mean=9)%>%select(1:9)%>%
   drop_na(Date)
@@ -954,8 +954,102 @@ cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 CM_0303<-cm
 #View(CM_0223)
 rm(cm,sp1,s,w,ID,sp,value)
+### 3 04 2022
+CM_0304
 
-CM<-plyr::rbind.fill(CM_0128,CM_0131,CM_0201,CM_0202,CM_0203,CM_0207,CM_0208,CM_0214,CM_0216,CM_0223,CM_0301,CM_0303)
+CM_0304<-as.data.frame(read.xlsx("data/MQ/CM/CM 03-04-22 21CYGGS7318-6286as.xlsx",
+                                 sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:10)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9,sp_mean=10)%>%select(1:10)%>%
+  drop_na(Date)
+
+w<-CM_0304
+w[grep("rpt",w[,'PLOT']),]$PLOT<-c("7307","6286")
+
+w$Date[3]
+Date1<-w$Date[3]
+#Date1%>%add_column(dataset, .after = 2)
+w$Treatment
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$PLOT
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]
+w[w$PLOT%in%c("Traditional Malt Check","TMC"),]$PLOT<-"TMC"
+
+w
+w<-w%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))%>%arrange(Extract_number)
+w
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]
+w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-c("TMC-1","TMC-2")
+
+####
+SP_0304<-as.data.frame(read.xlsx("data/MQ/CM/CM 03-04-22 21CYGGS7318-6286as.xlsx",
+                                 sheet = "SP, %",detectDates = TRUE))%>%filter()%>%select(1,2,4,5,6,7,8)%>%
+  rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(!SP_order%in%c("#"))%>%mutate(abs_nm1=as.numeric(abs_nm1),abs_nm2=as.numeric(abs_nm2),delta=abs_nm2-abs_nm1)%>%mutate(Date=Date1)
+
+
+s<-SP_0304%>%mutate(SP_order=1:nrow(SP_0304))
+s
+
+#View(s)
+s[s$SP_ID=="TMC",]
+s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1","TMC-2","TMC-2")
+s$Group<-"Group"
+s[s$SP_ID%in%c("NACL", "NACL(Reblank)","0.5% NaCl","NaCl","Blank"),]$SP_ID<-"NaCl"
+#View(s)
+s[1:nrow(s),]$Group
+s[1:nrow(s),]$Group<-"Group_1"
+#s[1:50,]$Group<-"Group_1"
+#s[51:100,]$Group<-"Group_2"
+#s[101:nrow(s),]$Group<-"Group_3"
+value<-s%>%group_by(Group,SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))%>%ungroup
+#View(value)
+ID<-s%>%arrange%>%select(SP_ID)%>%unique()%>%mutate(SP_order=1:n_distinct(SP_ID))%>%select(2,1)
+length(ID$SP_ID)
+#value
+
+sp=ID%>%full_join(value,by="SP_ID","Group")%>%mutate(sd=round(sd,4))%>%rename(PLOT=SP_ID)%>%arrange(Group,SP_order)
+sp$Date<-Date1
+sp
+
+#View(s_131_12)
+#sp<-plyr::rbind.fill(s_131_12,s_34)%>%arrange(Group,SP_order)%>%mutate(Date=Date1,SP_order=1:length(SP_order))
+
+####
+w$Date
+
+cm<-w%>%select(-sp_mean)%>%full_join(sp,by=c("PLOT","Date"))%>%rename(sp_mean=mean,sp_sd=sd)%>%select(-SP_order)%>%arrange(Extract_number,Group)
+cm
+cm$Date<-Date1
+#View(cm)
+#View(cm)
+cm[cm$Group=="Group_1",]$Set
+cm[cm$Group=="Group_1",]$Set<-"Set 1"#;cm[cm$Group=="Group_2",]$Set<-"Set 2"#;cm[cm$Group=="Group_3",]$Set<-"Set 3"#;cm[cm$Group=="Group_4",]$Set<-"Set 4"
+#need to think of a way to deal with number ordering for NaCls
+#View(cm)
+cm$PLOT
+cm[1:9,]
+cm$Treatment#<-"WinterTP2-3"
+#Treatments are correct
+View(cm)
+
+cm[cm$PLOT%in%c("NaCl"),]$Entry<-"NaCl"
+
+#t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
+cm$Check<-"E";cm[cm$Entry%in%c("NaCl","TMC","TMC-1","TMC-2"),]$Check<-"C";cm$Check<-as.factor(cm$Check)
+
+cm$ID<-as.numeric(paste0(1,format(cm$Date, "%m"),format(cm$Date, "%d"),sprintf('%02d', cm$Extract_number)))
+cm$PLOT
+cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
+cm$ID
+cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[" , 2))
+#View(cm)
+CM_0304<-cm
+#View(CM_0223)
+rm(cm,sp1,s,w,ID,sp,value)
+
+
+
+
+
+
+CM<-plyr::rbind.fill(CM_0128,CM_0131,CM_0201,CM_0202,CM_0203,CM_0207,CM_0208,CM_0214,CM_0216,CM_0223,CM_0301,CM_0303,CM_0304)
 #table(CM$Entry)
 #View(CM%>%filter(Treatment%in%c("WinterTP1-1","WinterTP1-2"))%>%arrange(Date,Extract_number))
 #View(CM)
