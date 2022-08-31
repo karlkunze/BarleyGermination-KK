@@ -40,4 +40,10 @@ colnames(Exper)[!colnames(Exper)%in%colnames(Exper)]
 
 MQ_WMB21<-Exper%>%plyr::rbind.fill(check)%>%arrange(Treatment,TB)
 
-save(MQ_WMB21,file="data/MQ/WMB21_Master_Cornell.Rdata")
+
+#
+save(MQ_WMB21,file="data/MQ/WMB21_Master_Cornell.Rdata")#complete form
+
+#Now were going to make a reduced form with calculated percentages
+
+
