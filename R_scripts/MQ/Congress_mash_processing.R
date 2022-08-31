@@ -16,21 +16,21 @@ CM_0128<-as.data.frame(read.xlsx("data/MQ/CM/CM 01-28-22 21CYGGS1208-endTP2Sprin
                                  sheet = "Data",startRow = 8,detectDates = TRUE))%>%select(1:9)%>%rename(Set=1,Extract_number=2,Entry=3,Treatment=4,PLOT=5,Date=6,ME=7,BG=8,FAN=9)%>%select(1:9)%>%
   drop_na(Date)
 nrow(CM_0128)
-w<-CM_0128[c(58:73),]
+w<-CM_0128[c(58:72),]
 w$PLOT
 Date1<-w$Date[3]
 Date1
 
-w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
-w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
-w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC-1"
+# w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT
+# w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$Entry<-"TMC"
+# w[w$PLOT%in%c("Tradition Malt Check","TMC"),]$PLOT<-"TMC-1"
 
 SP_0128<-as.data.frame(read.xlsx("data/MQ/CM/CM 01-28-22 21CYGGS1208-endTP2Springas.xlsx",
                                  sheet = "SP3",detectDates = TRUE))%>%select(1,2,4,5,6,7,8)%>%rename(SP_order=1,SP_ID=2,Date=3,nm1=4,abs_nm1=5,nm2=6,abs_nm2=7)%>%filter(SP_ID%in%c("NaCl")|SP_ID>6000)%>%mutate(delta=abs_nm1-abs_nm2)%>%mutate(Date=Date1)
 
 SP_0128[SP_0128$SP_ID=="6052",]$SP_ID<-"6051"
-s<-SP_0128
-s
+s<-SP_0128%>%filter(P)
+s$P
 # s[s$SP_ID=="TMC",]
 # s[s$SP_ID=="TMC",]$SP_ID<-c("TMC-1","TMC-1")
 value<-s%>%group_by(SP_ID) %>%summarize(mean = mean(delta, na.rm = TRUE),sd=sd(delta))
@@ -58,6 +58,7 @@ cm[cm$Check=="C",]$PLOT<-cm[cm$Check=="C",]$ID
 cm$ID<-paste0(cm$ID,"-T",sapply(str_split(cm$Treatment,"T"), "[[" , 2))
 
 CM_0128<-cm
+cm
 rm(cm,sp1,s,w)
 CM_0128
 # Congress mash 1-31
