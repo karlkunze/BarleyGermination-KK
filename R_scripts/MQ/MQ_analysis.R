@@ -58,4 +58,4 @@ summary(mod)$varcomp[1,1]/(summary(mod)$varcomp["units!R",1]/2+summary(mod)$varc
 mod<-asreml(fixed=ST~1,random=~gid,residual=~units,data=MQ_WMB21)
 summary(mod)$varcomp[1,1]/(summary(mod)$varcomp["units!R",1]/2+summary(mod)$varcomp[1,1])
 
-save(MQ_WMB21,file="data/MQ/Maltinq_quality_processing.Rdata")
+save(MQ_WMB21,file="data/MQ/Maltinq_quality_proccesed.Rdata")
