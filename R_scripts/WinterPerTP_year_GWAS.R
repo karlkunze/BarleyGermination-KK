@@ -53,11 +53,12 @@ BLUPH2 = function(trait.lm) {
 # Load and modify input data, calcuate the GI and GE for all assays ####
 
 setwd(rprojroot::find_rstudio_root_file())
-DHs2020 = rbind(read_excel("data/Phenotype_Data/2020Harvest/DHtp1_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP1',PM_date =5),
-            read_excel("data/Phenotype_Data/2020Harvest/DHtp2_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP2',PM_date =19),
-            read_excel("data/Phenotype_Data/2020Harvest/DHtp3_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP3',PM_date =47),
-            read_excel("data/Phenotype_Data/2020Harvest/DHtp4_all.xlsx",  guess_max = 1723)%>%mutate(TP = 'TP4',PM_date =96),
-            read_excel("data/Phenotype_Data/2020Harvest/DHtp5_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP5',PM_date =152)) %>%
+getwd()
+DHs2020 = rbind(read_excel("data/Phenotype_Data/2020/DHtp1_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP1',PM_date =5),
+            read_excel("data/Phenotype_Data/2020/DHtp2_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP2',PM_date =19),
+            read_excel("data/Phenotype_Data/2020/DHtp3_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP3',PM_date =47),
+            read_excel("data/Phenotype_Data/2020/DHtp4_all.xlsx",  guess_max = 1723)%>%mutate(TP = 'TP4',PM_date =96),
+            read_excel("data/Phenotype_Data/2020/DHtp5_all.xlsx", guess_max = 1723)%>%mutate(TP = 'TP5',PM_date =152)) %>%
   dplyr::mutate(GE =(Day1Germ+Day2Germ+Day3Germ)/(Day1Germ+Day2Germ+Day3Germ+Day4Germ+Day5Germ+KernelsLeft),
          GI = 10*GE*(Day1Germ+Day2Germ+Day3Germ)/(Day1Germ+2*Day2Germ+3*Day3Germ),
          GI = ifelse(is.nan(GI),0,GI),
