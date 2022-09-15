@@ -6,9 +6,26 @@ library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr);
 setwd(rprojroot::find_rstudio_root_file())
 
+getwd()
+path_n<-"/home/karl/git/NY-winter-barley-analysis/"# change this based on the path for the neighboring git repo
+
+load(paste0(path_n,"data/genotypes/wmb_GD_rrblup.Rdata"))
+load(paste0(path_n,"data/genotypes/GAPIT_wmb.Rdata"))
+load(paste0(path_n,"data/genotypes/wmb_pedigree.Rdata"))
+load(paste0(path_n,"data/phenotypes/Field_data_2020_2022.Rdata"))
+
+dh_list<-wmb_ped%>%filter(!Population%in%c("Recombinant_inbred_lines"))
+wmb_dh_imputed<-wmb_GD_rr$imputed[rownames(wmb_GD_rr$imputed)%in%dh_list$Ind,]
+WinterGD_1=wmb_dh_imputed%>%as.data.frame()
+WinterGM=GAPIT_wmb$GM
 load('data/Genotype_data/WinterGD_ter.RData')
-load('data/Genotype_data/WinterGM_ter.RData')
+#load('data/Genotype_data/WinterGM_ter.RData')
+WinterGD[1:5,1:5]
+WinterGD_1$taxa<-rownames(WinterGD_1)
+
 WinterGM = WinterGM %>% arrange(Chromosome, Position)
+
+WinterGD<-WinterGD_1%>%relocate("taxa",.before=1)
 WinterGD = WinterGD %>%
   mutate(taxa = gsub(pattern = '-',replacement = '_',taxa),
          taxa = gsub(pattern = ' ', replacement = '_',taxa),
@@ -17,7 +34,6 @@ WinterGD = WinterGD %>%
 sum(WinterGM$SNP == colnames(WinterGD[,-1]))
 # Make sure things are in the right order
 # Sum should = 8384
-dim(WinterGD)
 
 # PCA plot of pop structure #####
 WinterRelationship = rrBLUP::A.mat(WinterGD[,-1]-1, impute.method = 'EM', return.imputed = F)
@@ -29,8 +45,8 @@ winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>%
                            to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910')),
          taxa = WinterGD$taxa,
-         shapes = ifelse(taxa %in% c('DH130910', 'Flavia','SY_Tepee','Wintmalt','Scala'), taxa, 'Lines'),
-         size = ifelse(taxa %in% c('DH130910', 'Flavia','SY_Tepee','Wintmalt','Scala'), 3, 2))
+         shapes = ifelse(taxa %in% c('DH130910', 'FLAVIA','TEPEE','WINTMALT','SCALA'), taxa, 'Lines'),
+         size = ifelse(taxa %in% c('DH130910', 'FLAVIA','TEPEE','WINTMALT','SCALA'), 3, 2))
  
 winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point()+
   winterlinePCAvalues%>% ggplot(aes(x = X1, y = X3,color = family)) + geom_point()+
@@ -79,14 +95,14 @@ DHs2020 = rbind(read_excel("data/Phenotype_Data/2020/DHtp1_all.xlsx", guess_max 
                                    'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910'))) %>%
   filter(Entry %nin% c('BBBdormSNLine', 'BBBdormSRLine'))
 
-DHs2021 = rbind(read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_GGS_TP1_PM5_full.xlsx') %>% mutate(notes = NA, TP = 'TP1'),
-                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_12_full.xlsx')%>% mutate(notes = NA,TP = 'TP1.5'),
-                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_19_GGS_TP2_full.xlsx') %>% mutate(notes = NA, TP = 'TP2'),
-                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_33_GGS_TP3_full.xlsx') %>% mutate(TP = 'TP2.5'),
-                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_47_GGS_TP4_full.xlsx') %>% mutate(TP = 'TP3'),
-                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_68_GGS_TP5_full.xlsx')%>% mutate(TP='TP3.5'),
-                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_96_full.xlsx') %>% mutate(TP = 'TP4'),
-                read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PM_150_GGS_TP7_full.xlsx') %>% mutate(Pmdate = 152,notes = NA,TP = 'TP5')) %>%
+DHs2021 = rbind(read_excel('data/Phenotype_Data/2021/DHs_GGS_TP1_PM5_full.xlsx') %>% mutate(notes = NA, TP = 'TP1'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_12_full.xlsx')%>% mutate(notes = NA,TP = 'TP1.5'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_19_GGS_TP2_full.xlsx') %>% mutate(notes = NA, TP = 'TP2'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_33_GGS_TP3_full.xlsx') %>% mutate(TP = 'TP2.5'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_47_GGS_TP4_full.xlsx') %>% mutate(TP = 'TP3'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_68_GGS_TP5_full.xlsx')%>% mutate(TP='TP3.5'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_96_full.xlsx') %>% mutate(TP = 'TP4'),
+                read_excel('data/Phenotype_Data/2021/DHs_PM_150_GGS_TP7_full.xlsx') %>% mutate(Pmdate = 152,notes = NA,TP = 'TP5')) %>%
   filter(!is.na(Day2Germ)) %>% filter(AssayNumber != 10 & AssayNumber != 318 & AssayNumber != 190) %>% #These look to be contamination
   filter(Location == 'McGowan' | Location == 'Ketola') %>%
   dplyr::select(!c('seed_mass', 'GerminationAssay', 'MaltingQualitySampling')) %>%
@@ -109,9 +125,9 @@ DHs2021 %>% filter(substr(taxa,1,2) !='BS') %>% select(taxa) %>% unique()
 #View(DHs2021)
 
 #PHS 
-DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xlsx')
+DH_Sprout = read_excel('data/Phenotype_Data/2021/Data/DHs_PHS_2021.xlsx')
 #View(DH_Sprout)
-DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xlsx') %>%
+DH_Sprout = read_excel('data/Phenotype_Data/2021/Data/DHs_PHS_2021.xlsx') %>%
   mutate(location = ifelse(PLOT>6999, 'Ketola','McGowan'), year = '2021') %>% 
   # rbind(read_excel('WinterBarley/PhenotypeData/2020Harvest/2020WinterDH_PHS.xlsx')%>%
   #         mutate(location = 'Ketola2020'), year = '2020')  #Not sure if this should be included as these were planed as facultatives. 
@@ -120,9 +136,8 @@ DH_Sprout = read_excel('data/Phenotype_Data/2021Phenotyping/Data/DHs_PHS_2021.xl
   separate(score, into =c('p0','p1','p2','p3','p4','p5'), sep = '') %>% select(!p0) %>% pivot_longer(cols = c(p1,p2,p3,p4,p5)) %>%
   mutate(value = as.numeric(value)) %>%
   group_by(taxa, location, Harv, year,PLOT) %>% summarise(PHS = mean(value,na.rm = T))
+phs<-all_pheno%>%filter(GID%in%dh_list$Ind)%>%filter(!trial%in%"Screening")%>%select(GID,SourcePLOT,Location,Year,PHS,PHS_in,PHS_var)
 
-PHS.lmer = asreml(fixed=PHS ~ location,random=~location:Harv+taxa, data=DH_Sprout,res) 
-predict(PHS.lmer)
 library(dplyr)
 colnames(DH_Sprout)[5]<-"SourcePLOT"
 DHs2021$SourcePLOT<-as.numeric(DHs2021$SourcePLOT)
@@ -250,6 +265,10 @@ DHs20202021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(tra
 DHs20202021 %>%pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% 
   ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+facet_grid(trait~year, scales = 'free')
 
+#Malting Quality
+
+View(MQ_WMB21)
+TechnicalReps%>%filter(year=="2021")
 # Lets extract out 2020, 2021, and 2020/2021 values for GWA: Always including rep and location #####
 
 BlueBlupsH2_Location_rep_taxa <- function(d, groupvars) {
