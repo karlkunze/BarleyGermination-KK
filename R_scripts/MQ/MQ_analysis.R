@@ -1,18 +1,31 @@
+
+if( .Platform$OS.type == "unix" )
+pathT <- "/home/karl/git/"
+if( .Platform$OS.type == "windows" )
+  pathT <- "windows"
+#end
+pathT
+
+pathT
+Sys.info()['sysname']
+
 load("data/MQ/WMB21_Master_Cornell.Rdata")#MQ_WMB21
 getwd()
-patht<-"/home/karl/git/NY-winter-barley-analysis/"
+
+patht<-paste0(pathT,"NY-winter-barley-analysis/")
+patht
 load(paste0(patht,"data/phenotypes/Field_data_2020_2022.Rdata"))#all
 load(paste0(patht,"data/genotypes/wmb_GD_rrblup.Rdata"))
 
 load(paste0(patht,"data/genotypes/GAPIT_wmb.Rdata"))
 load(paste0(patht,"data/genotypes/wmb_pedigree.Rdata"))
 library(readxl)
+library(dplyr)
 AlaT_markers<-read_excel(paste0(patht,"data/genotypes/WMB_DH_AlaAT_KASP_rawdata.xlsx"),sheet = 'Results')%>%
   select("Sample Name",Allele_bp)%>%rename(GID=1,AlaAT=2)%>%mutate(GID=toupper(GID))%>%filter(!GID%in%c("UNKNOWN-OMIT"))%>%tidyr::drop_na(AlaAT)
 
-colnames(im)
-im$Qs
-library(dplyr)
+
+
 MQ_WMB21$Entry
 
 MQ_WMB21<-MQ_WMB21%>%rename(gid=Entry,N_percent=NitrogenPercent)%>%mutate(MP=N_percent*6.25/(1-Moisture_percent/100),sp_mean=abs(sp_mean),ST=sp_mean/MP)
