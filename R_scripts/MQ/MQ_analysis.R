@@ -131,6 +131,8 @@ TP2_MQ_values<-rbind(BG_TP2,modelAA_TP2,modelST_TP2,modelP_TP2,modelME_TP2,model
 MQ_values<-rbind(TP1_MQ_values,TP2_MQ_values)%>%rename(GID=1,value=2)%>%mutate_at(vars(Timepoint,trait,GID),  list(factor))
 
 
+save(MQ_values,file="data/MQ/MQ_values_step1.Rdata")
+
 #now analyze across both
 #BG
 modelBG<-asreml(fixed=value~Timepoint,random = ~GID,residual = ~units,data=MQ_values[MQ_values$trait=="BG",],na.action = na.method(x = "include"))

@@ -136,11 +136,12 @@ DH_Sprout = read_excel('data/Phenotype_Data/2021/Data/DHs_PHS_2021.xlsx') %>%
   separate(score, into =c('p0','p1','p2','p3','p4','p5'), sep = '') %>% select(!p0) %>% pivot_longer(cols = c(p1,p2,p3,p4,p5)) %>%
   mutate(value = as.numeric(value)) %>%
   group_by(taxa, location, Harv, year,PLOT) %>% summarise(PHS = mean(value,na.rm = T))
-phs<-all_pheno%>%filter(GID%in%dh_list$Ind)%>%filter(!trial%in%"Screening")%>%select(GID,SourcePLOT,Location,Year,PHS,PHS_in,PHS_var)
-
+phs<-all_pheno%>%filter(GID%in%dh_list$Ind)%>%filter(!trial%in%"Screening")%>%dplyr::select(GID,SourcePLOT,Location,Year,PHS,PHS_in,PHS_var)
+DH_Sprout 
 library(dplyr)
 colnames(DH_Sprout)[5]<-"SourcePLOT"
 DHs2021$SourcePLOT<-as.numeric(DHs2021$SourcePLOT)
+
 DHs2021_PHS=full_join(DHs2021,DH_Sprout[,c("SourcePLOT","PHS")],by="SourcePLOT")
 table(DHs2021_PHS$taxa)
 checks=c("DH130910","Endeavor","Scala","BS908_25")
