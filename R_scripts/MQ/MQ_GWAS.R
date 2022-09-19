@@ -89,10 +89,21 @@ return(df)
 
 all_pheno$winter_survival<-as.numeric(all_pheno$winter_survival)
 all_pheno$Ht<-as.numeric(all_pheno$Ht)
-MQ_WMB2
-MQ_WMB21%>%select(PLOT,Treatment,AA,BG,FAN,SP,)
-pheno<-all_pheno%>%tidyr::pivot_longer(cols=c("yield_kgha","winter_survival","Scald","SpotBlotch","Ht","Lodging","PHS","TP_JD","HD_JD","Maturity_JD","TWT"),names_to = "trait",values_to = "value")%>%
-  rename(taxa=GID)
+colnames(MQ_WMB21$sp_mean)
+MQ_WMB21$ST
+MQ_WMB21$Timepoint
+all_pheno$Scald
+field_data<-all_pheno%>%filter(trial=="PYT",Year=="2021")%>%dplyr::select(SourcePLOT,GID,Env,Row,Column,PHS,Scald,winter_survival,yield_kgha)%>%rename(PLOT=SourcePLOT,taxa=GID)
+colnames(field_data)
+str(field_data$PLOT)
+field_data$PLOT<-as.character(field_data$PLOT)
+data<-MQ_WMB21%>%dplyr::select(PLOT,Treatment,gid,Timepoint_group,Timepoint,Check.x,TB,AA,BG,ME,FAN,ST,DP,TotalProtein)%>%rename(taxa=gid)%>%left_join(field_data,by=c("PLOT","taxa"))%>%
+  tidyr::pivot_longer(Timepoint,names_to = "name",values_to = "Timepoint")%>%tidyr::pivot_longer(cols=c("AA","BG","ME","FAN","ST","DP","TotalProtein"),names_to="trait")%>%arrange(Timepoint,trait,PLOT)
+data
+View(data)
+#pheno_MQ<-all_pheno%>%tidyr::pivot_longer(cols=c("yield_kgha","winter_survival","Scald","SpotBlotch","Ht","Lodging","PHS","TP_JD","HD_JD","Maturity_JD","TWT"),names_to = "trait",values_to = "value")%>%
+ # rename(taxa=GID)
+
 GD<-GD_prune
 GM<-GM_prune
 GD_gapit<-GD_prune%>%tibble::add_column(taxa=rownames(GD_prune),.before = 1)
@@ -100,14 +111,14 @@ GD_gapit<-GD_prune%>%tibble::add_column(taxa=rownames(GD_prune),.before = 1)
 
 length(table(pheno$taxa))
 rownames(GD)
-pheno<-all_pheno%>%filter(GID%in%rownames(GD))
+pheno<-data%>%filter(taxa%in%rownames(GD))
 pheno
 library(dplyr)
 t
-df = pheno%>%filter(!Year=="2020",trial=="PYT")%>%mutate(Fac = ifelse(Fac_type == "Fac",1,0))%>%filter(trait%in%c("winter_survival"))
+df = pheno#%>%filter(!Year=="2020",trial=="PYT")%>%mutate(Fac = ifelse(Fac_type == "Fac",1,0))%>%filter(trait%in%c("winter_survival"))
 #filter(trait=="Fac_type",trial=="PYT",Env%in%c("KET-2021","WMB22 Master - Snyder"))
-df$Fac<-as.numeric(df$Fac)
-df%>%select(taxa,value)
+
+
 library(sommer)
 ?GWAS()
 #install_github('covaruber/sommer')
@@ -115,10 +126,9 @@ library(sommer)
 
 
 data(DT_polyploid)
-table(all_pheno$trial)
-DT <- all_pheno
+table(df$Env)
+DT <- df
 DT
-DT$GID
 GT <- GD
 MP <- GM
 
@@ -127,13 +137,14 @@ MP <- GM
 ####=========================================####
 GT[1:5,1:5]
 #numo <- atcg1234(data=GT, ploidy=4)
+
 numo<-GD-1
 numo[1:5,1:5]
 ?atcg1234()
 ###=========================================####
 ###### plants with both genotypes and phenotypes
 ###=========================================####
-common <- intersect(DT$GID,rownames(numo))
+common <- intersect(DT$taxa,rownames(numo))
 table(common)
 ###=========================================####
 ### get the markers and phenotypes for such inds
@@ -141,10 +152,10 @@ table(common)
 common
 marks <- numo[common,]; marks[1:5,1:5]
 dim(marks)
-DT2 <- DT%>%filter(GID%in%common)
-table(DT2$Env)
+DT2 <- DT%>%filter(taxa%in%common)
+
 DT2 <- as.data.frame(DT2)
-table(DT2$Env)
+table(DT2)
 DT2[1:5,]
 
 ###=========================================####
@@ -156,15 +167,16 @@ A <- sommer::A.mat(marks)
 ### run it as GWAS model
 ###=========================================####
 marks
-DT2$Fac_type_n<-ifelse(DT2$Fac_type=="Fac",0,1)
-DT2$Fac_type_n
-dt3<-DT2%>%filter(trial=="PYT")%>%filter(!Location=="Ketola")
+
 table(dt3$Env)
-ans2 <- GWAS(winter_survival~Env,
-             random=~vsr(GID,Gu=A),
+dt3<-DT2%>%filter(trait=="FAN")
+dt3$Timepoint
+ans2 <- GWAS(value~Timepoint+Timepoint_group,
+             random=~vsr(taxa,Gu=A),
              rcov=~units,
-             gTerm = "u:GID",
+             gTerm = "u:taxa",
              M=marks, data=dt3,getPEV=TRUE)
+
 
 
 DF_Operations_sommer = function(df){
