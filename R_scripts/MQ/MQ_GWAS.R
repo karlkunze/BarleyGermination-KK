@@ -25,41 +25,8 @@ load(paste0(patht,"data/genotypes/wmb_GD_rrblup.Rdata"))
 load(paste0(patht,"data/genotypes/GAPIT_wmb.Rdata"))
 load(paste0(patht,"data/genotypes/wmb_pedigree.Rdata"))
 
-AlaT_markers<-read_excel(paste0(patht,"data/genotypes/WMB_DH_AlaAT_KASP_rawdata.xlsx"),sheet = 'Results')%>%
-  select("Sample Name",Allele_bp)%>%rename(GID=1,AlaAT=2)%>%mutate(GID=toupper(GID))%>%filter(!GID%in%c("UNKNOWN-OMIT"))%>%tidyr::drop_na(AlaAT)
 
-
-
-MQ_WMB21$Entry
-
-MQ_WMB21<-MQ_WMB21%>%rename(gid=Entry,N_percent=NitrogenPercent)%>%mutate(MP=N_percent*6.25/(1-Moisture_percent/100),sp_mean=abs(sp_mean),ST=sp_mean/MP)
-
-MQ_WMB21$Timepoint<-substr(MQ_WMB21$Treatment, start = 9, stop =9)
-MQ_WMB21$Timepoint_group<-substr(MQ_WMB21$Treatment, start = 11, stop =11)
-
-MQ_WMB21[MQ_WMB21$Timepoint%in%c("1"),]$Timepoint<-"TP1"
-MQ_WMB21[MQ_WMB21$Timepoint%in%c("2"),]$Timepoint<-"TP2"
-
-MQ_WMB21[MQ_WMB21$gid=="TMC",]$PLOT<-paste0("TMC-",MQ_WMB21[MQ_WMB21$gid=="TMC",]$Timepoint_group,"-",MQ_WMB21[MQ_WMB21$gid=="TMC",]$TB)
-MQ_WMB21<-MQ_WMB21%>%mutate_at(vars(Timepoint_group,Timepoint,gid),  list(factor))
-library(lme4)
-colnames(MQ_WMB21)
-load("data/Genotype_data/AlaT_markers.Rdata")
-
-
-#MQ_WMB21<-MQ_WMB21%>%left_join(AlaAT,by="gid")
-#MQ_WMB21$AlaT_Allele<-as.factor(MQ_WMB21$AlaT_Allele)
-
-
-MQ_WMB21$gid<-toupper(MQ_WMB21$gid)
-MQ_WMB21[MQ_WMB21$gid=="KWS SCALA",]$gid<-"SCALA"
-MQ_WMB21[MQ_WMB21$gid=="ENDEAVOR",]$gid<-"ENDEAVOR"
-MQ_WMB21$TotalProtein<-MQ_WMB21$N_percent*6.25
-#Split up into timepoints
-
-MQ_TP<-MQ_WMB21%>%as.data.frame()%>%
-  mutate_at(vars(gid,Treatment,Timepoint,PLOT,Timepoint),  list(factor))
-save(MQ_TP,file="data/MQ/Maltinq_quality_proccesed.Rdata")
+load("data/MQ/Maltinq_quality_proccesed.Rdata")
 
 GD<-wmb_GD_rr$imputed;GD<-GD+1;GD<-as.data.frame(GD)
 GM<-GAPIT_wmb$GM
@@ -87,8 +54,6 @@ return(df)
 #   return(Out)
 # }
 
-all_pheno$winter_survival<-as.numeric(all_pheno$winter_survival)
-all_pheno$Ht<-as.numeric(all_pheno$Ht)
 colnames(MQ_WMB21$sp_mean)
 MQ_WMB21$ST
 MQ_WMB21$Timepoint
@@ -97,12 +62,43 @@ field_data<-all_pheno%>%filter(trial=="PYT",Year=="2021")%>%dplyr::select(Source
 colnames(field_data)
 str(field_data$PLOT)
 field_data$PLOT<-as.character(field_data$PLOT)
+View(MQ_WMB21)
 data<-MQ_WMB21%>%dplyr::select(PLOT,Treatment,gid,Timepoint_group,Timepoint,Check.x,TB,AA,BG,ME,FAN,ST,DP,TotalProtein)%>%rename(taxa=gid)%>%left_join(field_data,by=c("PLOT","taxa"))%>%
-  tidyr::pivot_longer(Timepoint,names_to = "name",values_to = "Timepoint")%>%tidyr::pivot_longer(cols=c("AA","BG","ME","FAN","ST","DP","TotalProtein"),names_to="trait")%>%arrange(Timepoint,trait,PLOT)
+  tidyr::pivot_longer(Timepoint,names_to = "name",values_to = "Timepoint")%>%tidyr::pivot_longer(cols=c("AA","BG","ME","FAN","ST","DP","TotalProtein"),names_to="trait")%>%
+  arrange(Timepoint,trait,PLOT)%>%mutate_at(vars(Timepoint_group,Timepoint,taxa,Check.x,Env,Row,Column),  list(factor))
 data
+library(asreml)
+table(data$Timepoint)
 View(data)
+asreml_step1 <- function(d2, groupvars) {
+
+model0<-asreml(fixed=value~Timepoint_group,random=~taxa,residual=~units,data=d2,na.action = na.method(x = "include"))
+model
+#model<-asreml(fixed=value~Timepoint_group,random=~taxa,residual=~units,data=data%>%filter(trait=="BG",Timepoint=="TP1"),na.action = na.method(x = "include"))
+var_Comp<-as.data.frame(summary(model0)$varcomp)
+t<-as.data.frame(table(d2$taxa));t<-t[!t$Var1%in%c("R","NACL"),];r<-mean(t$Freq)
+r
+H2<-var_Comp["taxa",]$component/((var_Comp["taxa",]$component+var_Comp["units!R",]$component)/r)
+H2<-as.data.frame(H2)
+predict
+predictV<-predict(model,classify = "taxa")
+
+object<-as.data.frame(list(predictV,H2))
+object
+return(object)
+}
 #pheno_MQ<-all_pheno%>%tidyr::pivot_longer(cols=c("yield_kgha","winter_survival","Scald","SpotBlotch","Ht","Lodging","PHS","TP_JD","HD_JD","Maturity_JD","TWT"),names_to = "trait",values_to = "value")%>%
  # rename(taxa=GID)
+data$trait<-as.factor(data$trait)
+data$Timepoint
+step1_MQ<-data%>%group_by(Timepoint,trait)%>%group_modify(asreml_step1)%>%ungroup()
+step1_MQ
+#Broad_H2<-function(d2, groupvars)
+step1_MQ%>%filter(trait=="BG",Timepoint=="TP1")
+View(step1_MQ)
+  mean(step1_MQ$component)/(mean(step1_MQ$std.error)+mean(step1_MQ$component))
+  
+
 
 GD<-GD_prune
 GM<-GM_prune
@@ -120,13 +116,6 @@ df = pheno#%>%filter(!Year=="2020",trial=="PYT")%>%mutate(Fac = ifelse(Fac_type 
 
 
 library(sommer)
-?GWAS()
-#install_github('covaruber/sommer')
-
-
-
-data(DT_polyploid)
-table(df$Env)
 DT <- df
 DT
 GT <- GD
@@ -135,7 +124,6 @@ MP <- GM
 ####=========================================####
 ####### convert markers to numeric format
 ####=========================================####
-GT[1:5,1:5]
 #numo <- atcg1234(data=GT, ploidy=4)
 
 numo<-GD-1
@@ -153,9 +141,7 @@ common
 marks <- numo[common,]; marks[1:5,1:5]
 dim(marks)
 DT2 <- DT%>%filter(taxa%in%common)
-
 DT2 <- as.data.frame(DT2)
-table(DT2)
 DT2[1:5,]
 
 ###=========================================####
@@ -168,9 +154,9 @@ A <- sommer::A.mat(marks)
 ###=========================================####
 marks
 
-table(dt3$Env)
+table(DT2$trait)
 dt3<-DT2%>%filter(trait=="FAN")
-dt3$Timepoint
+
 ans2 <- GWAS(value~Timepoint+Timepoint_group,
              random=~vsr(taxa,Gu=A),
              rcov=~units,
