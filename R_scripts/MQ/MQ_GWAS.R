@@ -207,24 +207,31 @@ library(GAPIT3)
 GM_prune
 DF_OperationsV3 = function(df){
   df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
-                                           rank = c(1:length(df$SNP))) %>% arrange(Chr, Pos) %>%
+                                           rank = c(1:length(df$SNP))) %>% arrange(Chromosome, Position) %>%
     mutate(log10PVal = -log10(P.value),ordinal = c(1:length(df$SNP)))
   return(df)
 }
+modelT<-c("MLMM","Blink", "FarmCPU")
 GWA_MLMM_fortidyR = function(df, groupvars) {
   
-  
+  df<-data%>%filter(trait=="BG",Timepoint=="TP1")
+  df
   GWAS = GAPIT(Y = df %>% dplyr::select(taxa, value) %>% as.data.frame(),GD=GD_prune_gapit, GM=GM_prune,PCA.total = 2,
-               Geno.View.output=F, model="MLMM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
-  Out = DF_OperationsV3(GWAS$GWAS) %>% arrange(P.value) #%>% slice_head(n=1000)
+               Geno.View.output=F, model=modelT, Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
+  str(GWAS)[4]
   
-  return(Out)
+  return(GWAS)
 }
+data$model<-NA
+data1=data;data2=data;data3=data
+data1$model<-"MLMM"
+data2$model<-"Blink"
+data3$model<-"FarmCPU"
+data0=rbind(data1,data2,data3)
+rm(data1,data2,data3)
+Gapit_results<-data0%>%group_by(model,Timepoint,trait)%>%group_modify(GWA_MLMM_fortidyR)
 
-
-Gapit_results<-data%>%group_by(Timepoint,trait)%>%group_modify(GWA_MLMM_fortidyR)
-
-Gapit_results%>% ggplot(aes(ordinal, log10PVal, color = trait,shape=Timepoint))+geom_point(size=2.5)+
+Gapit_resultsT%>% ggplot(aes(ordinal, log10PVal, color = trait,shape=Timepoint))+geom_point(size=2.5)+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
  geom_vline(xintercept = 4975, color = 'red')+
  annotate(geom= 'text', x = 4975, y = 15, label = 'Qsd1')+
