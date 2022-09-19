@@ -470,7 +470,7 @@ DHs2020 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Family) %>%
 library(GAPIT3)
 DF_OperationsV3 = function(df){
   df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
-           rank = c(1:length(df$SNP))) %>% arrange(Chromosome, as.numeric(Position)) %>%
+           rank = c(1:length(df$SNP))) %>% arrange(Chromosome, Position) %>%
     mutate(log10PVal = -log10(P.value),ordinal = c(1:length(df$SNP)))
   return(df)
 }
@@ -495,7 +495,7 @@ GWA_MLMM_fortidyR.perFamily = function(df, groupvars) {
                Geno.View.output=F, model="MLM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
   Out = (GWAS$GWAS) %>% arrange(P.value)  %>%
     mutate(logPercentileQQplot = -log10(c(1:length(GWAS$GWAS$SNP))/length(GWAS$GWAS$SNP)),
-           rank = c(1:length(GWAS$GWAS$SNP))) %>% arrange(Chromosome, 'Position') %>%
+           rank = c(1:length(GWAS$GWAS$SNP))) %>% arrange(Chromosome, Position) %>%
     mutate(log10PVal = -log10(P.value), ordinal = c(1:length(GWAS$GWAS$SNP)))%>% 
     arrange(P.value) %>% slice_head(n = 1000)
   return(Out)

@@ -15,7 +15,6 @@ library(SNPRelate)
 library(readxl)
 library(dplyr)
 load("data/MQ/WMB21_Master_Cornell.Rdata")#MQ_WMB21#load("data/MQ/Maltinq_quality_proccesed.Rdata")
-getwd()
 
 patht<-paste0(pathT,"NY-winter-barley-analysis/")
 patht
@@ -58,20 +57,22 @@ return(df)
 # }
 MQ_WMB21<-MQ_TP
 MQ_WMB21$ST
-MQ_WMB21$Timepoint
+MQ_WM
 all_pheno$Scald
+all_pheno
 field_data<-all_pheno%>%filter(trial=="PYT",Year=="2021")%>%dplyr::select(SourcePLOT,GID,Env,Row,Column,PHS,Scald,winter_survival,yield_kgha)%>%rename(PLOT=SourcePLOT,taxa=GID)
 colnames(field_data)
 str(field_data$PLOT)
 field_data$PLOT<-as.character(field_data$PLOT)
 #View(MQ_WMB21)
-data<-MQ_WMB21%>%dplyr::select(PLOT,Treatment,gid,Timepoint_group,Timepoint,Check.x,TB,AA,BG,ME,FAN,ST,DP,TotalProtein)%>%rename(taxa=gid)%>%left_join(field_data,by=c("PLOT","taxa"))%>%
+
+data<-MQ_WMB21%>%dplyr::select(PLOT,Treatment,gid,Timepoint_group,Timepoint,Check.x,TB,AA,BG,ME,FAN,ST,DP,TotalProtein,AlaAT)%>%rename(taxa=gid)%>%left_join(field_data,by=c("PLOT","taxa"))%>%
   tidyr::pivot_longer(Timepoint,names_to = "name",values_to = "Timepoint")%>%tidyr::pivot_longer(cols=c("AA","BG","ME","FAN","ST","DP","TotalProtein"),names_to="trait")%>%
   arrange(Timepoint,trait,PLOT)%>%mutate_at(vars(Timepoint_group,Timepoint,taxa,Check.x,Env,Row,Column),  list(factor))
 data
 library(asreml)
 table(data$Timepoint)
-View(data)
+#View(data)
 rr
 
 colnames(Am)
@@ -99,18 +100,50 @@ object<-as.data.frame(list(predictV,H2,h2))
 object
 return(object)
 }
+
+
 #pheno_MQ<-all_pheno%>%tidyr::pivot_longer(cols=c("yield_kgha","winter_survival","Scald","SpotBlotch","Ht","Lodging","PHS","TP_JD","HD_JD","Maturity_JD","TWT"),names_to = "trait",values_to = "value")%>%
  # rename(taxa=GID)
 data$trait<-as.factor(data$trait)
 data$Timepoint
 step1_MQ.0<-data%>%group_by(Timepoint,trait)%>%group_modify(asreml_step1)%>%ungroup()
+
 step1_MQ1<-step1_MQ.0%>%rename(taxa=pvals.taxa)#%>%left_join(field_data,by=c("taxa"))
+asreml_step1_AlaAT <- function(d2, groupvars) {
+  #d2<-data%>%filter(trait=="AA",Timepoint=="TP2")
+  model0<-asreml(fixed=value~Qsd1+Timepoint:Qsd1,random=~taxa,residual=~units,data=d2,na.action = na.method(x = "include"))
+  
+  model_narrow<-asreml(fixed=value~Timepoint+Timepoint_group,random=~vm(taxa,Am, singG = "PSD"),residual=~units,data=d2,na.action = na.method(x = "include"))
+  var_comp_narrow<-as.data.frame(summary(model_narrow)$varcomp)
+  var_comp_narrow
+  var_Comp<-as.data.frame(summary(model0)$varcomp)
+  
+  t<-as.data.frame(table(d2$taxa));t<-t[!t$Var1%in%c("R","NACL"),];r<-mean(t$Freq)
+  r
+  var_Comp
+  H2<-round(var_Comp["taxa",]$component/((var_Comp["taxa",]$component+var_Comp["units!R",]$component)/r),4)
+  h2<-round(var_comp_narrow[1,]$component/((var_comp_narrow[1,]$component+var_comp_narrow["units!R",]$component)/r),4)
+  h2<-as.data.frame(h2)
+  H2<-as.data.frame(H2)
+  H2
+  predict
+  predictV<-predict(model0,classify = "taxa")
+  
+  object<-as.data.frame(list(predictV,H2,h2))
+  object
+  return(object)
+}
+
+step1_MQ.AlaAT<-data%>%left_join(GD_prune_gapit[,c("taxa","Qsd1")])%>%mutate_at(vars(taxa,Qsd1),  list(factor))%>%group_by(trait)%>%group_modify(asreml_step1_AlaAT)%>%ungroup()
+
+step1_MQ.AlaAT<-step1_MQ.AlaAT%>%rename(taxa=pvals.taxa)
+table(step1_MQ.AlaAT$h2,step1_MQ.AlaAT$trait)
 #cant really adjust here
 View(step1_MQ1)
 #Broad_H2<-function(d2, groupvars)
 #GWAS
-chrTable=GM%>%arrange(Chromosome,Position)
-chrTable = c(as.data.frame(table(GM$Chromosome))$Freq);chrLabel = c(1:7, 'UN')
+chrTable=GM_prune%>%arrange(Chromosome,Position)
+chrTable = c(as.data.frame(table(GM_prune$Chromosome))$Freq);chrLabel = c(1:7, 'UN')
 winterOrdinalBreaks = c(chrTable[1]/2)
 WinterChrLines = c(as.data.frame(table(GM_prune$Chromosome))$Freq[1])
 
@@ -179,26 +212,47 @@ DF_OperationsV3 = function(df){
   return(df)
 }
 GWA_MLMM_fortidyR = function(df, groupvars) {
-
-
+  
+  
   GWAS = GAPIT(Y = df %>% dplyr::select(taxa, value) %>% as.data.frame(),GD=GD_prune_gapit, GM=GM_prune,PCA.total = 2,
                Geno.View.output=F, model="MLMM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
   Out = DF_OperationsV3(GWAS$GWAS) %>% arrange(P.value) #%>% slice_head(n=1000)
- 
+  
   return(Out)
 }
 
+
 Gapit_results<-data%>%group_by(Timepoint,trait)%>%group_modify(GWA_MLMM_fortidyR)
-Gapit_results2<-Gapit_results%>%arrange(ordinal)
-table(Gapit_results2$Chr)
-table(Gapit_results2$ordinal)
-hist(Gapit_results2$Pos)
-Gapit_results2 %>% ggplot(aes(ordinal, log10PVal, color = trait))+geom_point()+
- # geom_vline(xintercept = WinterChrLines, color = 'black')+
-#  geom_vline(xintercept = 4780, color = 'red')+
- # annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
-#  geom_vline(xintercept = WinterChrLines)+
- # scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
-               #      breaks = winterOrdinalBreaks)+
+
+Gapit_results%>% ggplot(aes(ordinal, log10PVal, color = trait,shape=Timepoint))+geom_point(size=2.5)+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+ geom_vline(xintercept = 4975, color = 'red')+
+ annotate(geom= 'text', x = 4975, y = 15, label = 'Qsd1')+
+geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
+  theme_bw()
+#second step results
+second_step<-step1_MQ1%>%rename(value=4)%>%group_by(Timepoint,trait)%>%group_modify(GWA_MLMM_fortidyR)
+second_step%>% ggplot(aes(ordinal, log10PVal, color = trait,shape=Timepoint))+geom_point(size=3)+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4975, color = 'red')+
+  annotate(geom= 'text', x = 4975, y = 15, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
+  theme_bw()
+step1_MQ.AlaAT
+AlAT_second_step<-step1_MQ.AlaAT%>%rename(value=3)%>%group_by(trait)%>%group_modify(GWA_MLMM_fortidyR)
+
+AlAT_second_step%>% ggplot(aes(ordinal, log10PVal, color = trait))+geom_point(size=1)+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4975, color = 'red')+
+  annotate(geom= 'text', x = 4975, y = 15, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
   theme_bw()
