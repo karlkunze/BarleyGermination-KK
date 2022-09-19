@@ -29,7 +29,7 @@ SWE_0128$ID<-as.numeric(paste0(1,format(SWE_0128$Date, "%m"),format(SWE_0128$Dat
 SWE_0128[SWE_0128$Check=="C",]$PLOT<-SWE_0128[SWE_0128$Check=="C",]$ID
 #SWE_0128$ID<-paste0(SWE_0128$ID,"-T",sapply(str_split(SWE_0128$Treatment,"T"), "[[" , 2))
 SWE_0128$ID<-paste0(SWE_0128$ID,"-TP1-1")
-SWE_0128[SWE_0128$Entry=="R",]$Treatment<-"Rahr"
+
 
 #SWE 1-31-2022
 
@@ -50,7 +50,8 @@ t[55:72,]$Treatment<-"WinterTP1-2"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
+
 SWE_0131<-t
 SWE_0131
 #
@@ -73,7 +74,7 @@ t[t$Set=="Set 2",]$Treatment<-"WinterTP1-2"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0201<-t
 
 # 02-02-2022
@@ -96,7 +97,7 @@ t[5:48,]$Treatment<-"WinterTP1-3"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0202<-t
 # 02-03-2022
 
@@ -126,7 +127,7 @@ t<-t%>%mutate(Entry=plyr::mapvalues(PLOT,from=MQ_list$PLOT,to=MQ_list$Entry))
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0203<-t
 # 2-04-2022
 SWE_0204<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-04-22 21CYGGW7337-7419.xlsx",
@@ -148,7 +149,7 @@ t[1:24,]$Treatment<-"WinterTP1-4"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0204<-t
 
 # 02-07-2022
@@ -173,7 +174,7 @@ t[19:48,]$Treatment<-"WinterTP2-1"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0207<-t
 #View(SWE_0207)
 #02-10-22
@@ -202,7 +203,7 @@ t[45:48,]$Treatment<-"WinterTP2-2"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0210<-t
 #02
 SWE_0211<-as.data.frame(read.xlsx("data/MQ/SWE/SWE 02-11-22 21CYGGW6246-6347.xlsx",
@@ -229,7 +230,7 @@ t$Treatment
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0211<-t
 
 #
@@ -255,7 +256,7 @@ t[42:48,]$Treatment<-"WinterTP2-3"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0215<-t
 SWE_0215
 ##2 17 2022
@@ -284,7 +285,7 @@ t[19:24,]$Treatment<-"WinterTP2-4"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0217<-t
 
 ##
@@ -313,7 +314,7 @@ t[1:24,]$Treatment<-"WinterTP2-4"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0218<-t
 ###
 #02-28-2022
@@ -343,7 +344,7 @@ t[t$Entry=="R",]$Treatment<-"WinterTP2-3"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0228<-t
 ###
 
@@ -373,7 +374,7 @@ t[t$Entry=="R",]$Treatment<-"WinterTP2-3"
 t$ID<-as.numeric(paste0(1,format(t$Date, "%m"),format(t$Date, "%d"),sprintf('%02d', t$Extract_number)))
 t[t$Check=="C",]$PLOT<-t[t$Check=="C",]$ID
 t$ID<-paste0(t$ID,"-T",sapply(str_split(t$Treatment,"T"), "[[" , 2))
-t[t$Entry=="R",]$Treatment<-"Rahr"
+
 SWE_0302<-t
 View(SWE_0302)
 library(tidyverse)
@@ -389,7 +390,7 @@ SWE<-SWE%>%left_join(y,by=c("ID"))#%>%arrange(unique_MQ_ID)
 
 table(SWE$Date)
 
-
+View(SWE)
 
 save(SWE,file = "data/MQ/SWE/WMB21_SWE.Rdata")
 
