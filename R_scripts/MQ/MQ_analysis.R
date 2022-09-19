@@ -1,15 +1,12 @@
 
-if( .Platform$OS.type == "unix" )
-pathT <- "/home/karl/git/"
-if( .Platform$OS.type == "windows" )
-  pathT <- "windows"
+
 #end
 pathT
 
 pathT
 Sys.info()['sysname']
 
-load("data/MQ/WMB21_Master_Cornell.Rdata")#MQ_WMB21
+
 getwd()
 
 patht<-paste0(pathT,"NY-winter-barley-analysis/")
@@ -21,41 +18,7 @@ load(paste0(patht,"data/genotypes/GAPIT_wmb.Rdata"))
 load(paste0(patht,"data/genotypes/wmb_pedigree.Rdata"))
 library(readxl)
 library(dplyr)
-AlaT_markers<-read_excel(paste0(patht,"data/genotypes/WMB_DH_AlaAT_KASP_rawdata.xlsx"),sheet = 'Results')%>%
-  select("Sample Name",Allele_bp)%>%rename(GID=1,AlaAT=2)%>%mutate(GID=toupper(GID))%>%filter(!GID%in%c("UNKNOWN-OMIT"))%>%tidyr::drop_na(AlaAT)
 
-
-
-MQ_WMB21$Entry
-
-MQ_WMB21<-MQ_WMB21%>%rename(gid=Entry,N_percent=NitrogenPercent)%>%mutate(MP=N_percent*6.25/(1-Moisture_percent/100),sp_mean=abs(sp_mean),ST=sp_mean/MP)
-
-MQ_WMB21$Timepoint<-substr(MQ_WMB21$Treatment, start = 9, stop =9)
-MQ_WMB21$Timepoint_group<-substr(MQ_WMB21$Treatment, start = 11, stop =11)
-
-MQ_WMB21[MQ_WMB21$Timepoint%in%c("1"),]$Timepoint<-"TP1"
-MQ_WMB21[MQ_WMB21$Timepoint%in%c("2"),]$Timepoint<-"TP2"
-
-MQ_WMB21[MQ_WMB21$gid=="TMC",]$PLOT<-paste0("TMC-",MQ_WMB21[MQ_WMB21$gid=="TMC",]$Timepoint_group,"-",MQ_WMB21[MQ_WMB21$gid=="TMC",]$TB)
-MQ_WMB21<-MQ_WMB21%>%mutate_at(vars(Timepoint_group,Timepoint,gid),  list(factor))
-library(lme4)
-colnames(MQ_WMB21)
-load("data/Genotype_data/AlaT_markers.Rdata")
-
-
-#MQ_WMB21<-MQ_WMB21%>%left_join(AlaAT,by="gid")
-#MQ_WMB21$AlaT_Allele<-as.factor(MQ_WMB21$AlaT_Allele)
-
-
-MQ_WMB21$gid<-toupper(MQ_WMB21$gid)
-MQ_WMB21[MQ_WMB21$gid=="KWS SCALA",]$gid<-"SCALA"
-MQ_WMB21[MQ_WMB21$gid=="ENDEAVOR",]$gid<-"ENDEAVOR"
-MQ_WMB21$TotalProtein<-MQ_WMB21$N_percent*6.25
-#Split up into timepoints
-
-MQ_TP<-MQ_WMB21%>%as.data.frame()%>%
-  mutate_at(vars(gid,Treatment,Timepoint,PLOT,Timepoint),  list(factor))
-save(MQ_TP,file="data/MQ/Maltinq_quality_proccesed.Rdata")
 library(asreml)
 library(asremlPlus)
 MQ_TP1<-MQ_TP%>%filter(Timepoint%in%c("TP1"))
