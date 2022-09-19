@@ -14,7 +14,7 @@ library(GAPIT3)
 library(SNPRelate)
 library(readxl)
 library(dplyr)
-load("data/MQ/WMB21_Master_Cornell.Rdata")#MQ_WMB21
+load("data/MQ/WMB21_Master_Cornell.Rdata")#MQ_WMB21#load("data/MQ/Maltinq_quality_proccesed.Rdata")
 getwd()
 
 patht<-paste0(pathT,"NY-winter-barley-analysis/")
@@ -26,7 +26,7 @@ load(paste0(patht,"data/genotypes/GAPIT_wmb.Rdata"))
 load(paste0(patht,"data/genotypes/wmb_pedigree.Rdata"))
 
 
-load("data/MQ/Maltinq_quality_proccesed.Rdata")
+
 
 GD<-wmb_GD_rr$imputed;GD<-GD+1;GD<-as.data.frame(GD)
 GM<-GAPIT_wmb$GM
