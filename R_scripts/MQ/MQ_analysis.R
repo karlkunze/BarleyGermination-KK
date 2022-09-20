@@ -1,15 +1,13 @@
 
 
-#end
-pathT
 
-pathT
 Sys.info()['sysname']
 
 
 getwd()
 
 patht<-paste0(pathT,"NY-winter-barley-analysis/")
+load("data/MQ/WMB21_Master_Cornell.Rdata")
 patht
 load(paste0(patht,"data/phenotypes/Field_data_2020_2022.Rdata"))#all
 load(paste0(patht,"data/genotypes/wmb_GD_rrblup.Rdata"))

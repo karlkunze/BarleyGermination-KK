@@ -38,8 +38,8 @@ set.seed(1000)
 snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 3000)
 snpset_names=unlist(snpset)
 GD_prune=GD[,c(1,which(colnames(GD) %in% snpset_names))]
-GD_prune_gapit<-GD_prune%>%add_column(.before = 1,taxa=rownames(GD_prune))
-
+GD_prune_gapit<-GD_prune%>%tibble::add_column(.before = 1,taxa=rownames(GD_prune))
+?add_column()
 GM_prune=GM[which(GM$SNP %in% colnames(GD_prune)),]
 GM_prune<-GM_prune%>%arrange(Chromosome,Position)
 
@@ -56,10 +56,7 @@ return(df)
 #   return(Out)
 # }
 MQ_WMB21<-MQ_TP
-MQ_WMB21$ST
-MQ_WM
-all_pheno$Scald
-all_pheno
+
 field_data<-all_pheno%>%filter(trial=="PYT",Year=="2021")%>%dplyr::select(SourcePLOT,GID,Env,Row,Column,PHS,Scald,winter_survival,yield_kgha)%>%rename(PLOT=SourcePLOT,taxa=GID)
 colnames(field_data)
 str(field_data$PLOT)
@@ -139,7 +136,7 @@ step1_MQ.AlaAT<-data%>%left_join(GD_prune_gapit[,c("taxa","Qsd1")])%>%mutate_at(
 step1_MQ.AlaAT<-step1_MQ.AlaAT%>%rename(taxa=pvals.taxa)
 table(step1_MQ.AlaAT$h2,step1_MQ.AlaAT$trait)
 #cant really adjust here
-View(step1_MQ1)
+#View(step1_MQ1)
 #Broad_H2<-function(d2, groupvars)
 #GWAS
 chrTable=GM_prune%>%arrange(Chromosome,Position)
@@ -214,12 +211,13 @@ DF_OperationsV3 = function(df){
 modelT<-c("MLMM","Blink", "FarmCPU")
 GWA_MLMM_fortidyR = function(df, groupvars) {
   
-  df<-data%>%filter(trait=="BG",Timepoint=="TP1")
-  df
-  GWAS = GAPIT(Y = df %>% dplyr::select(taxa, value) %>% as.data.frame(),GD=GD_prune_gapit, GM=GM_prune,PCA.total = 2,
-               Geno.View.output=F, model=modelT, Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
+ # df<-data0%>%filter(trait=="BG",Timepoint=="TP1",model=="FarmCPU")
+   
+    GWAS = GAPIT(Y = df %>% dplyr::select(taxa, value) %>% as.data.frame(),GD=GD_prune_gapit, GM=GM_prune,PCA.total = 2,
+               Geno.View.output=F, model="FarmCPU", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
+    DF_OperationsV3 
   str(GWAS)[4]
-  
+  GWAS=as.data.frame(GWAS$GWAS)
   return(GWAS)
 }
 data$model<-NA
@@ -229,9 +227,22 @@ data2$model<-"Blink"
 data3$model<-"FarmCPU"
 data0=rbind(data1,data2,data3)
 rm(data1,data2,data3)
-Gapit_results<-data0%>%group_by(model,Timepoint,trait)%>%group_modify(GWA_MLMM_fortidyR)
+Gapit_results_base<-data0%>%group_by(Timepoint,trait,model)%>%group_modify(GWA_MLMM_fortidyR)
 
-Gapit_resultsT%>% ggplot(aes(ordinal, log10PVal, color = trait,shape=Timepoint))+geom_point(size=2.5)+
+df<-Gapit_results %>%filter(Timepoint=="TP2",trait=="BG",model=="Blink")
+
+Model_pvalues = function(df, groupvars) {
+  
+  df=DF_OperationsV3(df)
+  return(df)
+}
+
+object<-Gapit_results%>%group_by(model,Timepoint,trait)%>%group_modify(Model_pvalues)
+
+
+table(Gapit_results$model)
+library(ggplot2)
+object%>%filter(model=="MLMM")%>%ggplot(aes(ordinal, log10PVal, color = trait,shape=Timepoint))+geom_point(size=2)+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
  geom_vline(xintercept = 4975, color = 'red')+
  annotate(geom= 'text', x = 4975, y = 15, label = 'Qsd1')+
@@ -240,7 +251,9 @@ geom_vline(xintercept = WinterChrLines)+
                      breaks = winterOrdinalBreaks)+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
   theme_bw()
+table(object$model)
 #second step results
+Gapit_results$model
 second_step<-step1_MQ1%>%rename(value=4)%>%group_by(Timepoint,trait)%>%group_modify(GWA_MLMM_fortidyR)
 second_step%>% ggplot(aes(ordinal, log10PVal, color = trait,shape=Timepoint))+geom_point(size=3)+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
