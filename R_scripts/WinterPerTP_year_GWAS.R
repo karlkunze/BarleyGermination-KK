@@ -5,7 +5,8 @@ library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr);
 setwd(rprojroot::find_rstudio_root_file())
-
+library(dplyr)
+library(tidyr)
 getwd()
 path_n<-"/home/karl/git/NY-winter-barley-analysis/"# change this based on the path for the neighboring git repo
 path_n<-"C:/Users/kars8/git/NY-winter-barley-analysis/"
@@ -18,24 +19,29 @@ load(paste0(path_n,"data/phenotypes/Field_data_2020_2022.Rdata"))
 dh_list<-wmb_ped%>%filter(!Population%in%c("Recombinant_inbred_lines"))
 wmb_dh_imputed<-wmb_GD_rr$imputed[rownames(wmb_GD_rr$imputed)%in%dh_list$Ind,]
 WinterGD_1=wmb_dh_imputed%>%as.data.frame()
-WinterGM=GAPIT_wmb$GM
+
 load('data/Genotype_data/WinterGD_ter.RData')
+
+WinterGM=GAPIT_wmb$GM%>%filter(SNP%in%colnames(WinterGD))
 #load('data/Genotype_data/WinterGM_ter.RData')
 WinterGD[1:5,1:5]
 WinterGD_1$taxa<-rownames(WinterGD_1)
 
 WinterGM = WinterGM %>% arrange(Chromosome, Position)
 
-WinterGD<-WinterGD_1%>%relocate("taxa",.before=1)
+#WinterGD<-WinterGD_1%>%relocate("taxa",.before=1)
+#taxa = gsub(pattern = '-',replacement = '_',taxa),
 WinterGD = WinterGD %>%
-  mutate(taxa = gsub(pattern = '-',replacement = '_',taxa),
+  mutate(
          taxa = gsub(pattern = ' ', replacement = '_',taxa),
          taxa1 = taxa) %>% remove_rownames()%>% 
   column_to_rownames('taxa1')
+sum(WinterGM)
+sum(colnames(WinterGD[,-1]))
 sum(WinterGM$SNP == colnames(WinterGD[,-1]))
 # Make sure things are in the right order
 # Sum should = 8384
-
+library(ggplot2)
 # PCA plot of pop structure #####
 WinterRelationship = rrBLUP::A.mat(WinterGD[,-1]-1, impute.method = 'EM', return.imputed = F)
 WinterPCA = eigen(WinterRelationship)
@@ -142,18 +148,33 @@ DHs2021 %>% filter(substr(taxa,1,2) !='BS') %>% select(taxa) %>% unique()
 #source from all df
 #phs<-all_pheno%>%filter(GID%in%dh_list$Ind)%>%filter(!trial%in%"Screening")%>%dplyr::select(GID,SourcePLOT,Location,Year,PHS,PHS_in,PHS_var)
 DH_Sprout
-list<-c(DHs2021$taxa,DHs2020$taxa)%>%unique()
-list
-
-DH_Sprout<-all_pheno%>%rename(taxa=GID,year=Year)%>%filter(!year=="2020",trial=="PYT",taxa%in%list)%>%
-  dplyr::select(taxa,Location,SourcePLOT,Year,PHS,PHS_in,PHS_var)
+listt<-c(DHs2021$taxa,DHs2020$taxa)%>%unique()
+rm(list)
+all_pheno
+DH_Sprout<-all_pheno%>%rename(taxa=GID,year=Year)%>%filter(!year=="2020",trial=="PYT",taxa%in%listt)%>%
+  dplyr::select(taxa,Location,SourcePLOT,year,PHS,PHS_in,PHS_var)%>%mutate_at(vars(taxa,year,Location),  list(factor))
 DH_Sprout$SourcePLOT<-as.character(DH_Sprout$SourcePLOT)
 #we added 2022 here
 library(dplyr)
 #colnames(DH_Sprout)[5]<-"SourcePLOT"
 #DHs2021$SourcePLOT<-as.numeric(DHs2021$SourcePLOT)
+DH_Sprout
+#going to run a model here quuck for the phs 
+library(asreml)
+library
+str(DH_Sprout)
+str(DH_Sprout)
+df<-DH_Sprout%>%as.data.frame()
+df
+library(lme4)
+lmer(PHS~(1|taxa)+year,data=df)
+asreml()
+asreml(fixed=GE~taxa,residual =~units,data=df,asr_gaussian(link = "identity"))
 
-DHs2021_PHS=full_join(DHs2021,DH_Sprout[,c("SourcePLOT","PHS")],by=c("SourcePLOT","year")
+mod_MET1<-asreml(fixed=ME~GID,residual=~units,data=df)
+
+
+DHs2021_PHS=full_join(DHs2021,DH_Sprout[,c("SourcePLOT","PHS","year")],by=c("SourcePLOT","year"))
 table(DHs2021_PHS$taxa)
 checks=c("DH130910","Endeavor","Scala","BS908_25")
 
@@ -166,8 +187,8 @@ test1$c<-"Test Entry"
 test1[test1$taxa=="ENDEAVOR",]$c="Endeavor"
 test1[test1$taxa=="SCALA",]$c="KWS Scala"
 test1[test1$taxa=="DH130910",]$c="DH130910(Lightning)"
-
-ggplot(data = test1, aes(x =GE, y =PHS,color=c,shape=Year)) + 
+test1$year<-as.factor(test1$year)
+ggplot(data = test1, aes(x =GE, y =PHS,color=c,shape=year)) + 
   ggtitle("Correlation of GE TP1 and PHS")+
   xlab("Germination Energy(TP 1)") + ylab("Pre-harvest-sprouting")+
  geom_point(show.legend = FALSE)+
@@ -281,7 +302,7 @@ DHs20202021 %>%pivot_longer(cols = c(GE,GI), names_to = 'trait') %>%
 
 #Malting Quality
 
-View(MQ_WMB21)
+#View(MQ_WMB21)
 TechnicalReps%>%filter(year=="2021")
 # Lets extract out 2020, 2021, and 2020/2021 values for GWA: Always including rep and location #####
 
@@ -403,43 +424,83 @@ c<-rbind(DH2021Estimates, DH2020Estimates) %>%  filter(type == 'BLUE')%>%join(Wi
   mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% mutate(headerFacet = 'Data source')
   
   
-rbind(DH2021Estimates, DH2020Estimates) %>%  filter(type == 'BLUE')%>%join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
+dfr<-rbind(DH2021Estimates, DH2020Estimates) %>%  filter(type == 'BLUE')%>%join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
   filter(Family %nin% c('Cha','End','DH130910')) %>% 
-  mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% mutate(headerFacet = 'Year') %>%
-  ggplot(aes(x = PM_date, y = value,fill=Qsd1, group = taxa))+
+  mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% mutate(headerFacet = 'Year')
+ dfr%>%ggplot(aes(x = PM_date, y = value,fill=Qsd1, group = taxa))+
   
   geom_line()+
 facet_nested(trait~headerFacet+year, scales = 'free')+
-  geom_vline(xintercept = c(12,33,68), color = 'red',linetype="longdash",alpha=0.5)+
+  #geom_vline(xintercept = c(12,33,68), color = 'red',linetype="longdash",alpha=0.5)+
+  geom_vline(xintercept = c(68,140),color = 'red',linetype="longdash",alpha=1,size=0.8)+
  # annotate("rect", xmin =0, xmax = 150, ymin = 0.5, ymax = 1,
  # color="black")+
-  labs(title = 'GE and GI BLUEs over time with differeing datasets')+theme_bw()
+  labs(title = 'GE and GI of taxa over time across two years')+theme_bw()
+#box plot this on TP
+
+rbind(DH2021Estimates, DH2020Estimates) %>%  filter(type == 'BLUE')%>%join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% 
+  mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% mutate(headerFacet = 'Year') %>%
+  ggplot(aes(x = PM_date, y = value,group=taxa,color=Qsd1))+
+  
+  geom_line(show.legend = FALSE)+
+  facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_vline(xintercept = c(68,140),color = 'red',linetype="longdash",alpha=1,size=0.8)+
+  # annotate("rect", xmin =0, xmax = 150, ymin = 0.5, ymax = 1,
+  # color="black")+
+  ylab(label = "GE/GI value")+
+  labs(title = 'GE and GI of taxa over time across two years based on Qsd1')+theme_bw()
+
+
+
+##
 
 DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+
   geom_vline(xintercept = c(12,33,68), color = 'red')
 dev.off()
 png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/Sup_BluesByFamilyQsd1AllYears.png', 2400, 1500, res =120)
+#WinterGD[-1]=WinterGD[-1]+1
+WinterGD[1:5,1:5]
 
+AllDHBluesPerYear
+Qsd1<-WinterGD[,c('taxa','Qsd1')]
+Qsd1[Qsd1$Qsd1==1,]$Qsd1<-2
+Qsd1[Qsd1$taxa=="FLAVIA",]$Qsd1<-0
+Qsd1
+table(AllDHBluesPerYear$Family)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
+  left_join(Qsd1,by="taxa") %>% filter(Qsd1!= 1) %>% mutate(Qsd1= as.factor(Qsd1)) %>%
   filter(Family %nin% c('Cha','End','DH130910')) %>% 
   mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
-  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  ggplot(aes(x = TP, y = value, fill = Qsd1))  +
   geom_boxplot()+facet_nested(trait~year+Family, scales = 'free', space = 'free_x')
+
 dev.off()
 #2020
 png('plots/Presentation2022_01/BluesByFamilyQsd1_2020.png', 1400, 800, res =120)
+AllDHBluesPerYear$PM_date<-as.factor(AllDHBluesPerYear$PM_date)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') 
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2021'))  %>%
+  left_join(Qsd1,by="taxa") %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('Cha','End','DH130910')) %>% filter(year %in% c('2020','2021'))  %>%
   filter(!(year == '2020' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
-  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~year, scales = 'free')+
-  theme_bw()
+  ggplot(aes(x = PM_date, y = value, fill = Qsd1))+  
+  geom_vline(xintercept = c(1,5,color = 'red',linetype="longdash",alpha=1,size=0.8)+
+  geom_boxplot(outlier.shape = NA,show.legend = NA)+facet_nested(trait~year, scales = 'free')+
+ 
+  
+  geom_vline(xintercept=68)+
+  ggtitle(label="Germination over Timepoints by Qsd1")+
+  ylab(label = "GE/GI value")+
+  xlab(label="Post Days after Maturity")+
+
+ 
+ theme_bw()+
+
+  theme(legend.position = "none")
 dev.off()
 png('plots/Presentation2022_01/BluesByFamilyQsd1_2021.png', 1400, 800, res =120)
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
