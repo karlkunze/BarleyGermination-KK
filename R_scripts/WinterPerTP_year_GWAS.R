@@ -8,7 +8,8 @@ setwd(rprojroot::find_rstudio_root_file())
 
 getwd()
 path_n<-"/home/karl/git/NY-winter-barley-analysis/"# change this based on the path for the neighboring git repo
-
+path_n<-"C:/Users/kars8/git/NY-winter-barley-analysis/"
+getwd()
 load(paste0(path_n,"data/genotypes/wmb_GD_rrblup.Rdata"))
 load(paste0(path_n,"data/genotypes/GAPIT_wmb.Rdata"))
 load(paste0(path_n,"data/genotypes/wmb_pedigree.Rdata"))
@@ -87,12 +88,14 @@ DHs2020 = rbind(read_excel("data/Phenotype_Data/2020/DHtp1_all.xlsx", guess_max 
          taxa =  mapvalues(taxa, from = c("Check 1-Flavia","Check 2-Scala","Check 3-DH130910","Check 3-SY Tepee",
                                           "Check 4-SY Tepee","Check 5-Wintmalt","Check 6-Charles"),
                            to = c('Flavia', 'Scala','DH130910','DH130910','SY_Tepee','Wintmalt','Charles')),
-         taxa = gsub(pattern = '-',replacement = '_',taxa),
+        
          taxa = gsub(pattern = ' ', replacement = '_',taxa),
          year = '2020',
          Family = mapvalues(substr(taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win','KWS'), 
                             to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
-                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910'))) %>%
+                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910','Scala/DH130910')),
+         taxa = toupper(taxa),
+         taxa = ifelse(taxa == 'SY_TEPEE','TEPEE',taxa)) %>%
   filter(Entry %nin% c('BBBdormSNLine', 'BBBdormSRLine'))
 
 DHs2021 = rbind(read_excel('data/Phenotype_Data/2021/DHs_GGS_TP1_PM5_full.xlsx') %>% mutate(notes = NA, TP = 'TP1'),
@@ -114,9 +117,9 @@ DHs2021 = rbind(read_excel('data/Phenotype_Data/2021/DHs_GGS_TP1_PM5_full.xlsx')
                                    'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910')),
          GI = ifelse(is.nan(GI),0,GI), 
          taxa = ifelse(AssayNumber == 408, 'Charles',taxa), #AssayNumber 408 is 'Charles' not the entry it claims to be!
-         taxa = gsub(pattern = '-',replacement = '_',taxa), 
+         taxa = toupper(taxa), 
          taxa = gsub(pattern = ' ', replacement = '_',taxa),
-         taxa = ifelse(taxa == 'KWS_Scala','Scala',taxa), year = '2021')
+         taxa = ifelse(taxa == 'KWS_SCALA','SCALA',taxa), year = '2021')
 
 DHs2021 %>% filter(substr(taxa,1,2) !='BS') %>% select(taxa) %>% unique()
 #
@@ -125,36 +128,46 @@ DHs2021 %>% filter(substr(taxa,1,2) !='BS') %>% select(taxa) %>% unique()
 #View(DHs2021)
 
 #PHS 
-DH_Sprout = read_excel('data/Phenotype_Data/2021/Data/DHs_PHS_2021.xlsx')
+#DH_Sprout = read_excel('data/Phenotype_Data/2021/Data/DHs_PHS_2021.xlsx')
 #View(DH_Sprout)
-DH_Sprout = read_excel('data/Phenotype_Data/2021/Data/DHs_PHS_2021.xlsx') %>%
-  mutate(location = ifelse(PLOT>6999, 'Ketola','McGowan'), year = '2021') %>% 
+#DH_Sprout = read_excel('data/Phenotype_Data/2021/Data/DHs_PHS_2021.xlsx') %>%
+ # mutate(location = ifelse(PLOT>6999, 'Ketola','McGowan'), year = '2021') %>% 
   # rbind(read_excel('WinterBarley/PhenotypeData/2020Harvest/2020WinterDH_PHS.xlsx')%>%
-  #         mutate(location = 'Ketola2020'), year = '2020')  #Not sure if this should be included as these were planed as facultatives. 
-  select(!Comment) %>% mutate(taxa = gsub(pattern = '-', replacement = '_',Entry),taxa = gsub(pattern = ' ', replacement = '_',taxa)) %>%
-  rename(score = `Sprout Score`) %>% 
-  separate(score, into =c('p0','p1','p2','p3','p4','p5'), sep = '') %>% select(!p0) %>% pivot_longer(cols = c(p1,p2,p3,p4,p5)) %>%
-  mutate(value = as.numeric(value)) %>%
-  group_by(taxa, location, Harv, year,PLOT) %>% summarise(PHS = mean(value,na.rm = T))
-phs<-all_pheno%>%filter(GID%in%dh_list$Ind)%>%filter(!trial%in%"Screening")%>%dplyr::select(GID,SourcePLOT,Location,Year,PHS,PHS_in,PHS_var)
-DH_Sprout 
-library(dplyr)
-colnames(DH_Sprout)[5]<-"SourcePLOT"
-DHs2021$SourcePLOT<-as.numeric(DHs2021$SourcePLOT)
+  # #         mutate(location = 'Ketola2020'), year = '2020')  #Not sure if this should be included as these were planed as facultatives. 
+  # select(!Comment) %>% mutate(taxa = gsub(pattern = '-', replacement = '_',Entry),taxa = gsub(pattern = ' ', replacement = '_',taxa)) %>%
+  # rename(score = `Sprout Score`) %>% 
+  # separate(score, into =c('p0','p1','p2','p3','p4','p5'), sep = '') %>% select(!p0) %>% pivot_longer(cols = c(p1,p2,p3,p4,p5)) %>%
+  # mutate(value = as.numeric(value)) %>%
+  # group_by(taxa, location, Harv, year,PLOT) %>% summarise(PHS = mean(value,na.rm = T))
+#source from all df
+#phs<-all_pheno%>%filter(GID%in%dh_list$Ind)%>%filter(!trial%in%"Screening")%>%dplyr::select(GID,SourcePLOT,Location,Year,PHS,PHS_in,PHS_var)
+DH_Sprout
+list<-c(DHs2021$taxa,DHs2020$taxa)%>%unique()
+list
 
-DHs2021_PHS=full_join(DHs2021,DH_Sprout[,c("SourcePLOT","PHS")],by="SourcePLOT")
+DH_Sprout<-all_pheno%>%rename(taxa=GID,year=Year)%>%filter(!year=="2020",trial=="PYT",taxa%in%list)%>%
+  dplyr::select(taxa,Location,SourcePLOT,Year,PHS,PHS_in,PHS_var)
+DH_Sprout$SourcePLOT<-as.character(DH_Sprout$SourcePLOT)
+#we added 2022 here
+library(dplyr)
+#colnames(DH_Sprout)[5]<-"SourcePLOT"
+#DHs2021$SourcePLOT<-as.numeric(DHs2021$SourcePLOT)
+
+DHs2021_PHS=full_join(DHs2021,DH_Sprout[,c("SourcePLOT","PHS")],by=c("SourcePLOT","year")
 table(DHs2021_PHS$taxa)
 checks=c("DH130910","Endeavor","Scala","BS908_25")
-checks
-DHs2021_PHS=DHs2021_PHS[!is.na(DHs2021_PHS$PM),]
-#DHs2021_PHS=DHs2021_PHS[!DHs2021_PHS$taxa%in%checks,]
 
-test1<-as.data.frame(DHs2021_PHS[DHs2021_PHS$TP=="TP1",])
-test1$c="Test Entry"
-test1[test1$taxa=="Endeavor",]$c="Endeavor"
-test1[test1$taxa=="Scala",]$c="KWS Scala"
+
+#DHs2021_PHS=DHs2021_PHS[!DHs2021_PHS$taxa%in%checks,]
+DHs2021_PHS
+test1<-as.data.frame(DHs2021_PHS)%>%filter(Year=="2021")
+test1$taxa
+test1$c<-"Test Entry"
+test1[test1$taxa=="ENDEAVOR",]$c="Endeavor"
+test1[test1$taxa=="SCALA",]$c="KWS Scala"
 test1[test1$taxa=="DH130910",]$c="DH130910(Lightning)"
-ggplot(data = test1, aes(x =GE, y =PHS,color=c)) + 
+
+ggplot(data = test1, aes(x =GE, y =PHS,color=c,shape=Year)) + 
   ggtitle("Correlation of GE TP1 and PHS")+
   xlab("Germination Energy(TP 1)") + ylab("Pre-harvest-sprouting")+
  geom_point(show.legend = FALSE)+
