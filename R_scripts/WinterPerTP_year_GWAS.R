@@ -180,15 +180,23 @@ checks=c("DH130910","Endeavor","Scala","BS908_25")
 
 
 #DHs2021_PHS=DHs2021_PHS[!DHs2021_PHS$taxa%in%checks,]
-DHs2021_PHS
-test1<-as.data.frame(DHs2021_PHS)%>%filter(Year=="2021")
+
+t<-lmer(PHS~(1|taxa)+Location,data=DHs2021_PHS)
+#read in the predictions from the NY analysis tttt
+phsP<-read.csv(paste0(path_n,"data/phenotypes/phenotype_predictions.csv"))%>%select(GID,pvals.predicted.value_PHS)%>%
+  rename(taxa=GID,phs.pval=2)%>%filter(taxa%in%DHs2021_PHS$taxa)
+phsP
+load('data/Analysis/AllDHBluesPerYear.RData')#AllDHBluesPerYear
+
+test1<-AllDHBluesPerYear%>%left_join(phsP,by="taxa")%>%pivot_wider(names_from = "trait",values_from = "value")
+test1
 test1$taxa
 test1$c<-"Test Entry"
 test1[test1$taxa=="ENDEAVOR",]$c="Endeavor"
 test1[test1$taxa=="SCALA",]$c="KWS Scala"
 test1[test1$taxa=="DH130910",]$c="DH130910(Lightning)"
 test1$year<-as.factor(test1$year)
-ggplot(data = test1, aes(x =GE, y =PHS,color=c,shape=year)) + 
+ggplot(data = test1, aes(x =GE, y =phs.pval,color=c)) + 
   ggtitle("Correlation of GE TP1 and PHS")+
   xlab("Germination Energy(TP 1)") + ylab("Pre-harvest-sprouting")+
  geom_point(show.legend = FALSE)+
@@ -203,25 +211,56 @@ ggplot(data = test1, aes(x =GE, y =PHS,color=c,shape=year)) +
            alpha = .1,fill="red")+
   theme_bw()
 #GI
-ggplot(data = test1, aes(x =GI, y =PHS,color=c)) + 
-  ggtitle("Correlation of GI for TP1 and PHS")+
-  xlab("Germination Index(TP 1)") + ylab("Pre-harvest-sprouting")+
-  geom_point(show.legend = FALSE)+
+Qsd<-WinterGD[,c("taxa","Qsd1")]
+Qsd$taxa<-toupper(Qsd$taxa)
+Qsd[Qsd$taxa%in%c("SCALA","TEPEE","DH130910"),]
+test2<-test1%>%left_join(Qsd,by="taxa")#%>%filter(!taxa%in%c("ENDEAVOR"))
+test2$Haplotype<-"Dormant Qsd1"#red
+test2$Qsd1
+test2
+test2[!test2$Qsd1==2&!is.na(test2$Qsd1),]$Haplotype<-"Nondormant Qsd1"
+test2[test2$taxa=="ENDEAVOR",]$Haplotype<-"Nondormant MKK3 & Dormant Qsd1(Endeavor)"
+#View(test2[,c("Q","taxa")])
+test2%>%filter(TP)
+#
+ggplot(data = test2, aes(x =GI, y =phs.pval,color=Haplotype,group=PM_date)) + 
+  ggtitle("Correlation of GI values with PHS")+
+  xlab("Germination Index values") + ylab("Pre-harvest-sprouting score")+
+ geom_point(show.legend = "none")+
   
-  # geom_smooth(orientation = "x",method = "lm",se=TRUE)+
-  scale_color_manual(values = c("green","#E69F00","blue","black"))+
-  annotate("rect", xmin =0, xmax = 8, ymin = 0, ymax = 3,
+   #geom_smooth(orientation = "x",method = "lm",se=TRUE)+
+ scale_color_manual(values = c("#F8766D","#e1ad01","#619CFF"))+
+
+  annotate("rect", xmin =-0.2, xmax = 8.7, ymin = -0.5, ymax = 2,
            alpha = .1,fill="green")+
-  annotate("rect", xmin =0, xmax = 8, ymin = 3, ymax = 5,
+  annotate("rect", xmin =-0.2, xmax = 8.7, ymin = 2, ymax = 5,
            alpha = .1,fill="yellow")+
-  annotate("rect", xmin =0, xmax = 8, ymin = 5, ymax = 9.1,
+  annotate("rect", xmin =-0.2, xmax = 8.7, ymin = 5, ymax = 7,
            alpha = .1,fill="red")+
+
+  theme_bw()
+#GE
+ggplot(data = test2, aes(x =GE, y =phs.pval,color=Haplotype,group=PM_date)) + 
+  ggtitle("Correlation of GE values with PHS")+
+  xlab("Germination Energy values") + ylab("Pre-harvest-sprouting score")+
+  geom_point(show.legend = "none")+
+  
+  #geom_smooth(orientation = "x",method = "lm",se=TRUE)+
+  scale_color_manual(values = c("#F8766D","#e1ad01","#619CFF"))+
+  annotate("rect", xmin =0, xmax = 1.1, ymin = -0.3, ymax = 2,
+           alpha = .1,fill="green")+
+  annotate("rect", xmin =0, xmax = 1.1, ymin = 2, ymax = 5,
+           alpha = .1,fill="yellow")+
+  annotate("rect", xmin =0, xmax = 1.1, ymin = 5, ymax = 9.1,
+           alpha = .1,fill="red")+
+  xlim(0, 1.1)+
   theme_bw()
 ##
-cor(test1$GI,test1$PHS,use = "pairwise.complete.obs")
-cor(test1$GE,test1$PHS,use = "pairwise.complete.obs")
-cor(test1$Day2Germ,test1$PHS,use = "pairwise.complete.obs")
+test3<-test2%>%pivot_wider(values_from = c("GE","GI"),names_from = "TP")
+cor(test3$GE_TP5,test1$phs.pval,use = "pairwise.complete.obs")
+cor(test3$GI_TP5,test1$phs.pval,use = "pairwise.complete.obs")
 
+test2
 
 test2<-as.data.frame(DHs2021_PHS[DHs2021_PHS$TP=="TP2",])
 cor(test2$GI,test2$PHS,use = "pairwise.complete.obs")

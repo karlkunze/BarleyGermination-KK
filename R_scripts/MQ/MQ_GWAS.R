@@ -3,10 +3,10 @@
 if( .Platform$OS.type == "unix" )
   pathT <- "/home/karl/git/"
 if( .Platform$OS.type == "windows" )
-  pathT <- "windows"
+  pathT <- "C:/Users/kars8/git/"
 #end
 pathT
-
+getwd()
 pathT
 Sys.info()['sysname']
 library(dplyr)
@@ -130,7 +130,7 @@ asreml_step1_AlaAT <- function(d2, groupvars) {
   object
   return(object)
 }
-
+library(asreml)
 step1_MQ.AlaAT<-data%>%left_join(GD_prune_gapit[,c("taxa","Qsd1")])%>%mutate_at(vars(taxa,Qsd1),  list(factor))%>%group_by(trait)%>%group_modify(asreml_step1_AlaAT)%>%ungroup()
 
 step1_MQ.AlaAT<-step1_MQ.AlaAT%>%rename(taxa=pvals.taxa)
