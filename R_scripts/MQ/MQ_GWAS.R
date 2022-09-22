@@ -1,11 +1,11 @@
 
 
 if( .Platform$OS.type == "unix" )
-  pathT <- "/home/karl/git/"
+  patht <- "/home/karl/git/"
 if( .Platform$OS.type == "windows" )
-  pathT <- "C:/Users/kars8/git/"
-#end
-pathT
+  patht <- "C:/Users/kars8/git/"
+#ent
+patht
 getwd()
 pathT
 Sys.info()['sysname']
@@ -16,7 +16,7 @@ library(readxl)
 library(dplyr)
 load("data/MQ/WMB21_Master_Cornell.Rdata")#MQ_WMB21#load("data/MQ/Maltinq_quality_proccesed.Rdata")
 
-patht<-paste0(pathT,"NY-winter-barley-analysis/")
+patht<-paste0(patht,"NY-winter-barley-analysis/")
 patht
 load(paste0(patht,"data/phenotypes/Field_data_2020_2022.Rdata"))#all
 load(paste0(patht,"data/genotypes/wmb_GD_rrblup.Rdata"))
@@ -66,7 +66,7 @@ field_data$PLOT<-as.character(field_data$PLOT)
 data<-MQ_WMB21%>%dplyr::select(PLOT,Treatment,gid,Timepoint_group,Timepoint,Check.x,TB,AA,BG,ME,FAN,ST,DP,TotalProtein,AlaAT)%>%rename(taxa=gid)%>%left_join(field_data,by=c("PLOT","taxa"))%>%
   tidyr::pivot_longer(Timepoint,names_to = "name",values_to = "Timepoint")%>%tidyr::pivot_longer(cols=c("AA","BG","ME","FAN","ST","DP","TotalProtein"),names_to="trait")%>%
   arrange(Timepoint,trait,PLOT)%>%mutate_at(vars(Timepoint_group,Timepoint,taxa,Check.x,Env,Row,Column),  list(factor))
-data
+data%>%select(taxa)%>%unique()
 library(asreml)
 table(data$Timepoint)
 #View(data)
@@ -236,11 +236,11 @@ Model_pvalues = function(df, groupvars) {
   df=DF_OperationsV3(df)
   return(df)
 }
+Gapit_results_base
+object<-Gapit_results_base%>%group_by(model,Timepoint,trait)%>%group_modify(Model_pvalues)
 
-object<-Gapit_results%>%group_by(model,Timepoint,trait)%>%group_modify(Model_pvalues)
-
-
-table(Gapit_results$model)
+save(object,file="data/GWA_results/MQ_results.Rdata")
+ggtitle()
 library(ggplot2)
 object%>%filter(model=="MLMM")%>%ggplot(aes(ordinal, log10PVal, color = trait,shape=Timepoint))+geom_point(size=2)+
   geom_vline(xintercept = WinterChrLines, color = 'black')+
@@ -249,9 +249,11 @@ object%>%filter(model=="MLMM")%>%ggplot(aes(ordinal, log10PVal, color = trait,sh
 geom_vline(xintercept = WinterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
+  ggtitle(lab="Genome Wide Assocation of Malting Quality Traits")+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
   theme_bw()
 table(object$model)
+asreml.license.status(quiet = FALSE, task = "checkout", json = "")
 #second step results
 Gapit_results$model
 second_step<-step1_MQ1%>%rename(value=4)%>%group_by(Timepoint,trait)%>%group_modify(GWA_MLMM_fortidyR)

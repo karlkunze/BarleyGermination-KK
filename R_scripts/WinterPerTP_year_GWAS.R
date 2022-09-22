@@ -172,12 +172,12 @@ asreml()
 asreml(fixed=GE~taxa,residual =~units,data=df,asr_gaussian(link = "identity"))
 
 mod_MET1<-asreml(fixed=ME~GID,residual=~units,data=df)
-
+DH_Sprout$SourcePLOT<-as.character(DH_Sprout$SourcePLOT)
 
 DHs2021_PHS=full_join(DHs2021,DH_Sprout[,c("SourcePLOT","PHS","year")],by=c("SourcePLOT","year"))
 table(DHs2021_PHS$taxa)
 checks=c("DH130910","Endeavor","Scala","BS908_25")
-
+DHs2021_PHS
 
 #DHs2021_PHS=DHs2021_PHS[!DHs2021_PHS$taxa%in%checks,]
 
@@ -426,7 +426,7 @@ DHCombined = DHs2020 %>% select(taxa, rep, Location,TP, GE, GI,PM_date,year,Fami
 AllDHBluesPerYear = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
 save(AllDHBluesPerYear, file = 'data/Analysis/AllDHBluesPerYear.RData')
 save(AllDHBluesPerYear, file = 'C:/Users/kars8/git/Cornell-WMB21-selections/data/phenotypes/Germination/AllDHBluesGerminationPerYear.RData')
-View(AllDHBluesPerYear)
+
 
 
 # Plotting of 2020 vs 2021 to find outliers and removed contamination #####
