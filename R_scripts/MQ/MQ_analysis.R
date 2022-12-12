@@ -76,7 +76,7 @@ wald.asreml(modelTP1.ME.0,modelTP1.ME)
 modelME_TP1<-predict(modelTP1.ME,classify ="gid")%>%as.data.frame()%>%select(1,2,3)%>%mutate(Timepoint="TP1",trait="ME")
 
 TP1_MQ_values<-rbind(BG_TP1,modelAA_TP1,modelST_TP1,modelP_TP1,modelME_TP1,modelDP_TP1,modelFAN_TP1)
-View(TP1_MQ_values)
+#View(TP1_MQ_values)
 #Timepoint 2
 
 MQ_TP2<-MQ_TP%>%filter(Timepoint%in%c("TP2"))
@@ -174,7 +174,7 @@ MQ_values$ratio<-MQ_values$pvals.std.error/MQ_values$value
 df3 <- data.frame(trait= c('AA','BG','DP','FAN','ME','P','ST'),threshold=c(0.3,0.7,0.17,0.16,0.009,0.07,0.07),stringsAsFactors = FALSE)
 df3
 t<-MQ_values%>%group_by(Timepoint,trait)%>%inner_join(df3,by="trait") %>% filter(ratio < threshold)%>%ungroup()
-
+table(MQ_values$Timepoint)
 load(paste0(patht,"data/genotypes/GAPIT_wmb.Rdata"))
 GD_Q<-GAPIT_wmb$GD[,c("Qsd1","taxa")]
 GD_Q$taxa<-rownames(GD_Q)
@@ -186,10 +186,10 @@ t %>%filter(!GID%in%c("NACL","TMC"))%>%left_join(GD_Q,by="GID")%>%filter(!Qsd1==
                                   to = c('Alpha-amylase','Beta-glucan','Diastatic power','Free amino nitrogen','Malt extract','Malt protein',
                                          'Soluble protein','Soluble/total protein')),Qsd1=plyr::mapvalues(Qsd1,from=c(0,2),to=c("Dormant","Nondormant")),
           Timepoint=plyr::mapvalues(Timepoint,from=c("TP1","TP2"),to=c("67 days \n after Maturity","140 days \n after Maturity"))) %>%
-  ggplot(aes(x = as.factor(Timepoint), y = value,fill=Qsd1)) +
-  geom_boxplot(show.legend = "none")+facet_wrap(~trait, scales = 'free')+
+  ggplot(aes(x = as.factor(Timepoint), y = value,fill=as.factor(Timepoint))) +
+  geom_boxplot(show.legend = "none")+facet_wrap(~trait, scales = 'free')+scale_fill_manual(values =c("gray","black"))+
   
-labs(x="Timepoint",y="MQ value",face="bold")+ggtitle("WMB 21 Nano Malting Distributions")+
+labs(x="Timepoint",y="MQ value",face="bold")+ggtitle("Winter Malting Barley 2021 Nano Malting Distributions")+
   theme_bw() 
 t %>%filter(!GID%in%c("NACL","TMC"))%>%left_join(GD_Q,by="GID")%>%filter(!Qsd1==1)%>%
 
@@ -197,8 +197,8 @@ t %>%filter(!GID%in%c("NACL","TMC"))%>%left_join(GD_Q,by="GID")%>%filter(!Qsd1==
                             to = c('Alpha-amylase','Beta-glucan','Diastatic power','Free amino nitrogen','Malt extract','Malt protein',
                                    'Soluble protein','Soluble/total protein')),Qsd1=plyr::mapvalues(Qsd1,from=c(0,2),to=c("Dormant","Nondormant")),
                                                                                                      Timepoint=plyr::mapvalues(Timepoint,from=c("TP1","TP2"),to=c("67 days post PM \n(2 months)","140 days post PM \n(5 months)"))) %>%
-filter(!trait=="Malt protein")%>%  ggplot(aes(x = as.factor(Timepoint), y = value,fill=Qsd1)) +
-  geom_boxplot(show.legend = "none")+facet_wrap(~trait, scales = 'free') +labs(x="Timepoint",y="MQ value")+ggtitle("WMB 21 Nano Malting Distributions")+
+filter(!trait=="Malt protein")%>%  ggplot(aes(x = as.factor(Timepoint), y = value,fill=as.factor(Timepoint))) +
+  geom_boxplot(show.legend = FALSE)+facet_wrap(~trait, scales = 'free')+scale_fill_manual(values =c("#F6C604","darkgreen")) +xlab(label = "Timepoint")+
   theme_bw() 
 
 
