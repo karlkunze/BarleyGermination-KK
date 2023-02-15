@@ -1,0 +1,65 @@
+---
+title: "GWAS of Seed Dormancy"
+author:
+  - name: Karl Kunze
+    orcid: 0000-0003-4548-1808
+    email: khk44@cornell.edu
+    affiliations:
+      - name: Cornell University
+        address: 422 Bradfield Hall
+        city: Ithaca
+        state: NY
+        postal-code: 14853
+  - name: Mark Sorrells
+    email: khk44@cornell.edu
+    affiliations:
+      - name: Cornell University
+        address: 240 Emerson Hall
+        city: Ithaca
+        state: NY
+        postal-code: 14853
+address:
+  - code: Cornell University
+    address: Plant Breeding and Genetics, Bradfield Hall, Ithaca, NY 14853
+editor: visual
+format:
+  docx:
+    reference-doc: custom-reference-doc.docx
+link-citations: true
+editor_options: 
+  chunk_output_type: console
+crossref:
+  fig-title: Figure    # (default is "Figure")
+  tbl-title: tbl     # (default is "Table")
+  title-delim: —     
+bibliography: references.bib
+---
+
+```{r, include=FALSE}
+library(flextable)
+library(officer)
+library(officedown)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(png)
+
+
+sysname <- Sys.info()["sysname"]
+sysname
+if(sysname == "Darwin") {
+    path<-("~/Google Drive/projectX") # example on mac machine
+} else if(sysname == "Linux") {
+    path<-("/home/karl/git/naked_barley_GWAS") # example on linux machine
+} else if(sysname == "Windows") {
+    path<-("C:/Users/kars8/git/naked_barley_GWAS") # example on win machine
+}
+path
+quarto_path<-paste0(path,"/ms")
+setwd(quarto_path)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+```
+
+@sweeneydissertation2021
