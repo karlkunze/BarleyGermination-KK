@@ -1,0 +1,412 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+Workflow:
+Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd->GWA_results_interpretation.Rmd
+
+Filling in Missing Chr positions
+Update: This is for the wrong alignment, use the .gff file for correct alignment if needed, as the most recent file from tassel should be correct.
+
+
+Correct Morex v2 2019 upload
+```{r}
+library(stringr)
+getwd()
+
+#setwd("C:/Users/Karl/git/BarleyGermination-KK")
+Morex2019<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",skip=1,header = FALSE)
+#should be the correct alignment
+Morex2019
+Morex2019=Morex2019[,c(1,2,4,7,9)]
+Morex2019$V1<-str_split_fixed(Morex2019$V1,"r" , 2)[,2]
+Morex2019$V9<-str_split_fixed(Morex2019$V9,"=" , 2)[,2]
+colnames(Morex2019)
+colnames(Morex2019)<-c("Chrom","Type","pos","strand","Marker")
+#check for NAs
+#table(Morex2019$Chrom,useNA = "ifany")
+Morex2019<-Morex2019[with(Morex2019, order(Chrom, pos)),]
+#Alignment_list<-Morex2019[Morex2019$Marker%in%wdh_raw$`rs-`,]
+Morex2019
+```
+Morex V3, do not have strand values
+```{r}
+library(readxl)
+library(stringr)
+MorexV3 <- read_excel("data/Genotype_data/SNPPositions_50k_on_MorexV3.xlsx")
+colnames(MorexV3)<-c("Marker","Chrom","pos")
+
+MorexV3$Chrom<-sapply(str_split(MorexV3$Chrom,"r"),`[`,2)
+colnames(Morex2019)
+Morex2019
+MorexV3$Type<-"barley50kChip"
+MorexV3$strand<-NA
+MorexV3=MorexV3[,c(2,4,3,5,1)]
+MorexV3$version<-"V3"
+```
+
+Winter DH 50K GENOTYPING PROCESSING
+
+```{r}
+
+setwd("C:/Users/Karl/git/BarleyGermination-KK")
+
+library(here)
+load(here("data/Winter_DH/WMB DH 2020 all data for analysis.RData"))
+WDH20_pheno<-All_pheno_TPall
+
+#changed to read new table
+wdh<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines_numeric.hmp.txt",skip = 1, header=T)
+length(wdh[duplicated(t(wdh))])
+##
+# This is the area where we add the list of Entry names to remove
+# First is "BS911-50", coverage is too low, seen at PCA plot that it is an outlier, "BS911-67", we will do this when the parents are removed
+
+###
+#wdh0<-read.table("data/Genotype_data/Cornell2020-50K_Project_WDH_WMB_lines.hmp.txt",skip = 1, header=T,sep ='\t')
+#rm(wdh0)
+```
+Check Entry names
+```{r}
+#Check marker names
+#txt tab delimited files replace "-" character with ".", need to replace "." with "-"
+
+colnames(wdh)=gsub("\\.","-",colnames(wdh))
+
+#which(colnames(wdh)%in%allsnps$Name)
+ncol(wdh)
+colnames(wdh)[1]
+
+colnames(wdh)[1]<-"Entry"
+
+#15467entries match
+#retained 39,621 but we only want the 15467 in the genotype file beacause those are the filtered ones
+
+#remove markers in allsnps(paired sample file) not in the genotype file
+
+#allsnps<-allsnps[which(allsnps$Name%in%colnames(wdh)),]
+#this paired sample dataframe is redundant, I initally used allsnps from a paired sample frame, the purpose was to have a SNP from the orignal all 50K marker positions to only include markers that are part of the genotype file
+#parent genotype names
+
+
+```
+
+Add AlAT marker dat
+```{r}
+library(readxl)
+AlaT_markers<-read_excel("data/Marker_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results')
+AlaT_markers<-AlaT_markers[,c(1:12)]
+colnames(AlaT_markers)[12]
+colnames(AlaT_markers)[12]<-"AlaT_Allele"
+hist(AlaT_markers$AlaT_Allele)
+AlaT_markers<-AlaT_markers[!is.na(AlaT_markers$AlaT_Allele),]
+hist(AlaT_markers$AlaT_Allele)
+#remove het called markers, most likely a mistake
+#AlaT_markers$AlaT_Allele<-as.factor(AlaT_markers$AlaT_Allele)
+#cant be a factor once its in the genotype table
+
+colnames(AlaT_markers)[4]
+colnames(AlaT_markers)[4]<-"Entry"
+#in 0 and 2 coding
+```
+retain relevant wdh_parents for analysis
+```{r}
+#we want to keep DH1301910, SY Tepee, KWS Scala, Flavia, Wintmalt, Charles, and Endeavor(will be for 20-21)
+
+
+
+wdh[c(3,489,490),]$Entry
+wdh[c(3,489,490),]$Entry<-c("Flavia","Scala","SY Tepee")
+wdh[c(1:2,484,487,488,491),]$Entry
+#remove these rows
+wdh<-wdh[-c(1:2,484,487,488,491),]
+dim(wdh)
+#removing problem genotype lines
+wdh<-wdh[!(wdh$Entry=="BS911.50" | wdh$Entry=="BS911.67"),]
+#DONT RUN RECURSIVELY
+
+library(tidyverse)
+#duplicated(wdh)
+
+```
+Check Entry Names
+
+```{r}
+
+
+rownames(wdh)<-wdh[,1]
+rownames(wdh)
+wdh[,1]
+wdh<-wdh[,-1]
+
+colnames(wdh)[ncol(wdh)-1]
+
+rownames(wdh)=gsub("\\.","-",rownames(wdh))
+
+ncol(wdh)
+wdh[1:4,c(15464:ncol(wdh))]
+```
+
+
+Change coding
+This step should be modified if using GAPIT or rrBLUP
+```{r}
+#convert to 0/1/2 coding
+nrow(wdh)
+#QsD1 is already in 0/2 coding
+
+str(wdh$BK_01)
+
+str(wdh)
+str(wdh)[1:5]
+class(wdh)
+dim(wdh)
+
+wdh_1<-wdh%>% mutate(Missing = sum(is.na(wdh)), 
+         Valid = sum(!is.na(wdh)), 
+         percentMissing = Missing/(Missing+Valid)) %>% 
+  #Filtering OUT variables with more than 20% missing.  
+  filter(percentMissing  > 0.5)
+dim(wdh)
+dim(wdh_1)
+wdh=as.data.frame(apply(wdh,1, function(x) { 
+  x[which(x == 0)] = 0
+  x[which(x == 0.5)] <- NA
+  x[which(x == 1)] = 2
+  
+  
+  
+  x
+  }))
+#be careful not to run this recursively(i e more than once)
+#this aparently inverted the matrix, which you want
+
+#check for entries as rows, markers as columns
+colnames(wdh)[1:10]
+rownames(wdh)[1:10]
+head(wdh)
+
+wdh=as.data.frame(t(wdh))
+wdh[c(20:80),c(140:150)]
+```
+Add AlAt
+```{r}
+library(tidyverse)
+#need to find marker position location
+str(wdh)
+v2<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",header = F,skip = 1)
+colnames(v2)<-c("Chromo","Platform","Type","pos","pos2","unknown_1","strand","unknown_2","SNP")
+v2$Chromo<-sapply(strsplit(v2$Chromo,"r"), "[", 2)
+v2$SNP<-sapply(strsplit(v2$SNP,"D="), "[", 2)
+v2[nrow(v2)+1,] = c("5H","KASP_marker","KASP",442160000,442160000,NA,"+",NA,"Qsd1")
+v2[nrow(v2),]
+v2$pos<-as.integer(v2$pos)
+v2<-as.data.frame(v2[with(v2, order(Chromo,pos)),])
+v2
+v2$Order=1:nrow(v2)
+
+v2[v2$SNP=="Qsd1",]
+Qsd_number<-v2[v2$SNP=="Qsd1",]$Order
+
+v2[c(Qsd_number+1),9]
+v2
+
+which(v2[c((Qsd_number+1):c(Qsd_number+10)),9] %in% colnames(wdh))#3 above 26098
+which(v2[c((Qsd_number-11):c(Qsd_number-1)),9] %in% colnames(wdh))#1 below 26098
+v2[c((Qsd_number-13):c(Qsd_number-1)),9][1]
+v2[c((Qsd_number+1):c(Qsd_number+16)),9][1]
+
+
+v2[v2$SNP=="JHI-Hv50k-2016-308537",]$pos#Before
+v2[v2$SNP=="Qsd1",]$pos
+v2[v2$SNP=="JHI-Hv50k-2016-308590",]$pos#after
+
+#as a result we will put this marker in the dataframe after JHI-Hv50k-2016-308537 and before JHI-Hv50k-2016-308590 at 44216000
+
+
+#wdh<-as.data.frame(merge(wdh,AlaT_markers[,c(4,12)],by="Entry",all.x = TRUE))
+which(colnames(wdh)=="JHI-Hv50k-2016-308537")#9580
+#determined that this is closet marker dowstream of QsD1 position
+AlaT_markers[AlaT_markers$AlaT_Allele=="Tepee",]$Entry<-"SY Tepee"
+AlaT_markers=AlaT_markers[with(AlaT_markers,order(Entry)),]
+AlaT_markers$AlaT_Allele[match( rownames(wdh), AlaT_markers$Entry)]
+
+
+
+wdh=add_column(wdh,AlaT_markers$AlaT_Allele[match( rownames(wdh), AlaT_markers$Entry)],.after="JHI-Hv50k-2016-308537");colnames(wdh)[c(9580+1)]
+#check for changing column name
+
+colnames(wdh)[9580+1]="Qsd1"
+table(wdh$Qsd1)
+#Entry names appear unchanged in genotype file from phenotype entry list(maybe
+#every line we use should have a non name entry)
+
+```
+
+
+```{r}
+library(rrBLUP)
+wdh[1:10,1:3]
+
+save(wdh,file="C:/Users/Karl/git/Cornell-WMB21-selections/data/genotypes/wdh_genotypes.Rdata")
+str(wdh$year)
+rankMatrix(as.matrix(wdh),method = "qr.R")
+sapply(wdh, function(x) sum(is.na(x)))
+dim(wdh)
+A=A.mat(wdh-1, return.imputed = T,impute.method = "EM")$A
+apply(A)
+dim(A)
+wdh=as.data.frame(A.mat(wdh-1, return.imputed = T,impute.method = "EM")$imputed+1)
+wdh=round(wdh,0)
+
+save(A,file="C:/Users/Karl/git/BarleyGermination-KK/data/Genotype_data/Relationship_matrix.Rdata")
+View(wdh[1:5,1:5])
+
+
+#need 
+myGM20=data.frame(SNP=colnames(wdh))
+myGM20$SNP
+
+myGM20$Chromosome = v2$Chromo[match(myGM20$SNP, v2$SNP)]; myGM20$Chromosome = substr(myGM20$Chromosome ,1,1)
+myGM20$Chromosome
+  str(myGM20)
+
+myGM20$Chromosome[which(myGM20$Chromosome=="U")]="8"
+
+myGM20$Position = as.character(v2$pos[match(myGM20$SNP, v2$SNP)])
+
+myGM20[myGM20$SNP=="JHI-Hv50k-2016-308537",]#8745 -inserting after 8745
+myGM20[myGM20$SNP=="Qsd1",]
+
+myGD20=as.data.frame(cbind(rownames(wdh), wdh)); colnames(myGD20)[1]="taxa"
+str(myGD20)
+str(myGM20)
+
+myGM20<-myGM20[with(myGM20, order(Chromosome,Position)),]
+myGM20[myGM20$SNP=="Qsd1",]
+```
+
+```{r}
+library(tidyverse)
+WDH20_pheno[1:3,c(1,2,3,7,10)]
+
+DH_Entry<-WDH20_pheno
+DH_Entry<-DH_Entry[!duplicated(DH_Entry['PLOT']),]
+DH_Entry<-DH_Entry[!is.na(DH_Entry),]
+
+DH_Entry
+library(gdsfmt)
+library(SNPRelate)
+myGM20$Chromosome
+chr=as.integer(myGM20$Chromosome)
+getwd()
+
+
+snpgdsCreateGeno("test1.gds", genmat = as.matrix(round(wdh,0)), sample.id=row.names(wdh), snp.id = colnames(wdh), snp.chromosome = chr,
+                 snp.position = as.integer(myGM20$Position), snpfirstdim = F)
+
+gdsfile <- snpgdsOpen("test1.gds")
+snpgdsPCA(gdsfile)
+pca <- snpgdsPCA(gdsfile)
+pc.percent <- pca$varprop*100
+head(round(pc.percent, 2))
+plot(1:10,pc.percent[1:10])
+DH_Entry<-DH_Entry[!is.na(DH_Entry$Pedigree),]
+DH_Entry<-droplevels(DH_Entry)
+
+DH_Entry[DH_Entry$Entry=="Check 1-Flavia",]$Entry<-"Flavia"
+
+DH_Entry[DH_Entry$Entry=="Check 2-Scala",]$Entry<-"Scala"
+DH_Entry[DH_Entry$Entry=="Check 3-DH130910",]$Entry<-"DH130910"
+DH_Entry[DH_Entry$Entry=="Check 4-Sy Tepee",]$Entry<-"SY Tepee"
+DH_Entry[DH_Entry$Entry=="Check 5-Wintmalt",]$Entry<-"Wintmalt"
+DH_Entry[DH_Entry$Entry=="Check 6-Charles",]$Entry<-"Charles"
+
+library(ggplot2)
+pca$eigenvect
+pca
+
+test=data.frame(pca$eigenvect)
+
+DH_Entry$Pedigree
+pca$sample.id
+DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
+Check=DH_Entry$Check[match(pca$sample.id, DH_Entry$Entry)]
+
+test$pedigree=DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
+test$Check=Check=DH_Entry$Check[match(pca$sample.id, DH_Entry$Entry)]
+DH_Entry$Pedigree[match(pca$sample.id, DH_Entry$Entry)]
+
+
+test<-test[!is.na(test$pedigree),]
+test[is.na(test$Check),]
+ggplot(test, aes(x=X1, y=X2, color=pedigree))+
+  geom_point(size=1.5) +
+  theme_bw() +
+ theme(plot.title = element_text(hjust=0.5))+
+  ggtitle("PCA by Pedigree")+
+  labs(color="Pedigree")+
+  xlab("PC1: 16.30%") +
+  ylab("PC2: 4.80%") 
+```
+
+
+```{r}
+getwd()
+
+save(myGD20, file="data/Genotype_data/myGD20.Rdata")
+save(myGM20, file="data/Genotype_data/myGM20.Rdata")
+save(AlaT_markers, file="data/Genotype_data/AlaT_markers.Rdata")
+snpgdsClose(gdsfile)
+rm(myGM20)
+rm(myGD20)
+```
+
+
+LD Pruning
+
+```{r}
+load(here("data/Genotype_data/myGD20.Rdata"))
+dim(myGD20)
+load(here("data/Genotype_data/myGM20.Rdata"))
+chr=as.integer(myGM20$Chromosome)
+chr
+snpgdsCreateGeno("test3.gds", genmat = as.matrix(round(myGD20[,-1],0)), sample.id=myGD20$taxa, snp.id = colnames(myGD20)[-1], snp.chromosome = chr,
+                 snp.position = as.integer(myGM20$Position), snpfirstdim = F)
+
+(gdsfile <- snpgdsOpen("test3.gds"))
+
+set.seed(1000)
+
+snpset <- snpgdsLDpruning(gdsfile, method="corr", ld.threshold=0.95, slide.max.bp = 8000)
+
+snpset_names=unlist(snpset)
+myGD20_prune=myGD20[,c(1,which(colnames(myGD20) %in% snpset_names))]
+myGM20_prune=myGM20[which(myGM20$SNP %in% colnames(myGD20_prune)),]
+str(myGM20_prune)
+
+
+myGM20_prune<-myGM20_prune[with(myGM20_prune, order(Chromosome, Position)),]
+str(myGM20_prune)
+myGM20_prune$Position<-as.integer(myGM20_prune$Position)
+table(myGM20_prune$Chromosome)
+library(rrBLUP)
+wdh[1:10,1:3]
+which(!duplicated(t(wdh)))
+rankMatrix(as.matrix(wdh),method = "qr.R")
+str(myGD20_prune)
+
+str(wdh)
+
+#test=as.data.frame(A.mat(wdh-1, return.imputed = T,impute.method = "EM")$imputed+1)
+
+setwd("C:/Users/Karl/git/BarleyGermination-KK")
+save(myGD20_prune, file="data/Genotype_data/myGD20_LDprune.Rdata")
+save(myGM20_prune, file="data/Genotype_data/myGM20_LDprune.Rdata")
+
+snpgdsClose(gdsfile)
+
+```

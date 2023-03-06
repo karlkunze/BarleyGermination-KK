@@ -17,19 +17,18 @@ getwd()
 library(dplyr)
 rm(list = ls(all = TRUE))
 library(stringr);library(plyr);library(dplyr)
-library(plyr)
-if("plyr" %in% (.packages())){
-         detach("package:dplyr", unload=TRUE) 
-         detach("package:plyr", unload=TRUE) 
-} 
 
 
 
-#Timeponts for 2020
+```
+
+## Timeponts for 2020
+```{r}
 #time point 1, remember that we only did half of the population
-library(plyr)
+
 TP1_half<-as.data.frame(read.csv("data/Phenotype_Data/2020/DHtp1_full_F.csv",stringsAsFactors = FALSE))%>%dplyr::select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%dplyr::mutate(PLOT=replace(PLOT,PLOT=="SN",13001),PLOT=replace(PLOT,PLOT=="SR",13002),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP1",PM_date=5)
 TP1_half$PLOT
+
 #Time point 2
 TP2<-as.data.frame(read.csv("data/Phenotype_Data/2020/DHtp2_all_F.csv",stringsAsFactors = FALSE))%>%dplyr::select(Entry,PLOT,Full_sample,Sample_ID,replication,Day1Germ,Day2Germ,Day3Germ,Day4Germ,Day5Germ,kernels_remaining,Year,Location)%>%arrange(Sample_ID,replication)%>%dplyr::mutate(PLOT = gsub("a","",PLOT),PLOT=replace(PLOT,PLOT=="SN",13001),PLOT=replace(PLOT,PLOT=="SR",13002),PLOT=as.numeric(PLOT))%>%arrange(PLOT)%>%mutate(TP="TP2",PM_date=19)
 TP2$PLOT
@@ -97,7 +96,7 @@ DH_2020_Ketola<-as.data.frame(read_excel("data/Winter_DH/WMB_DH_2020_kkGit.xlsx"
 #detach("package:plyr", unload=TRUE) c#can add dplyr:: in front of function instead
 DH_2020_Snyder$Entry
 DH_2020_field<-rbind(DH_2020_Snyder,DH_2020_Ketola)%>%dplyr::filter(!Entry=="Check 7-Erie")%>%dplyr::select(Entry,PLOT,mass,Facultative_Greenhouse,Facultative_Spring_planted,wh_percent,Scald,HD,Ht,PM)%>%dplyr::rename(fac_GH=Facultative_Greenhouse,fac_field=Facultative_Spring_planted,ws_percent=wh_percent,scald=Scald,Maturity_date=PM)%>%mutate(scald=as.numeric(scald),HD=as.numeric(HD),Ht=as.numeric(Ht),Maturity_date=as.numeric(Maturity_date),Year="year")%>%mutate(fac_field=replace(fac_field,str_detect(fac_field,"W"),"Winter"),fac_field=na_if(fac_field,"Missing"))
-library(plyr)
+
 
 DH_2020_field$Entry
 #this the map function for Greenhouse scored facultative
@@ -123,7 +122,7 @@ DH_2020_field$HD<-julian_days(DH_2020_field,26)
 colnames(DH_2020_field)[!colnames(DH_2020_field)%in%colnames(DH_2020_PHS)]
 colnames(DH_2020_PHS)[!colnames(DH_2020_PHS)%in%colnames(DH_2020_field)]
 #ensure that PLOT then taxa column names match, and no others do
-library(plyr)
+
 DH_2020_field_traits=dplyr::full_join(DH_2020_field,DH_2020_PHS,by=c("PLOT","taxa"))
 
 DH_2020_field_traits<-DH_2020_field_traits%>%mutate(Year="2020",Family = mapvalues(substr(taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win','KWS','Cha'), 
@@ -142,11 +141,9 @@ All2020=All2020%>%dplyr::rename(SourcePLOT=PLOT,seed_mass=mass,HD_date=HD,AssayN
 
 
 ```
-2021 data
-Timepoint
+## 2021 data Timepoint
 ```{r}
-#View(DHs2021)
-library(dplyr)
+
 DHs2021 = rbind(read_excel('data/Phenotype_Data/2021/DHs_GGS_TP1_PM5_full.xlsx') %>% mutate(notes = NA, TP = 'TP1'),
                 read_excel('data/Phenotype_Data/2021/DHs_PM_12_full.xlsx')%>% mutate(notes = NA,TP = 'TP1.5'),
                 read_excel('data/Phenotype_Data/2021/DHs_PM_19_GGS_TP2_full.xlsx') %>% mutate(notes = NA, TP = 'TP2'),
@@ -190,11 +187,11 @@ summary(lm(phs~taxa+Location+Location:Check,data=WBMaster21))$coefficients[1,1]
 
 table1<-summary(lm(phs~taxa+Location+Location:Check,data=WBMaster21))$coefficients[,1]
 table1=as.data.frame(table1+summary(lm(phs~taxa+Location+Location:Check,data=WBMaster21))$coefficients[1,1])
-View(table1)
+#View(table1)
 colnames(table1)<-c("effect","taxa")
 table1$taxa<-rownames(table1)
 table1[table1$effect>4,]
-phs=WBMaster21%>%select(taxa,phs)%>%group_by(taxa)%>%summarize(mean = mean(phs))%>%ungroup()
+phs=WBMaster21%>%dplyr::select(taxa,phs)%>%group_by(taxa)%>%summarize(mean = mean(phs))%>%ungroup()
 str(phs)
 
 
@@ -211,10 +208,13 @@ colnames(DHs2021)[names(DHs2021)%in%names(WBMaster21)]
 table(DHs2021$SourcePLOT)
 
 WBMaster21_trait_names=colnames(WBMaster21)
+str(WBMaster21$Check)
+str(DHs2021$Check)
+DHs2021$Check<-as.factor(DHs2021$Check)
 All2021=dplyr::left_join(DHs2021,WBMaster21,by=c("SourcePLOT","taxa","Check","Location","Year"))
 #All_pheno_TPall=merge(DH_2020_field,TPall,by=c("PLOT","Entry","Location","Year"),all =TRUE)
 #doing an rbind
-All2021=All2021%>%dplyr::rename(replication=rep,scald=Scald,spot_bloch=SB)%>%select(-PM)
+All2021=All2021%>%dplyr::rename(replication=rep,scald=Scald,spot_bloch=SB)%>%dplyr::select(-PM)
 colnames(All2021)[!names(All2021)%in%names(All2020)]
 colnames(All2020)[names(All2020)%in%names(All2021)]
 
@@ -223,19 +223,119 @@ colnames(All2020)[names(All2020)%in%names(All2021)]
 DH2020_2021=rbind.fill(All2020,All2021)%>%arrange(Year,SourcePLOT)
 
 DH2020_2021=DH2020_2021%>%mutate(replication=as.factor(replication),Year=as.factor(Year),PM_date=as.factor(PM_date))
-#save(All_pheno_TPall, file="data/Winter_DH/WMB DH 2020 all data for analysis.RData")
-#will need to create a pivot wider for correlations to field data
-colnames(DH2020_2021)
-library(tidyr)
-#would need to pivot wide GE, GI and GE5 GI5, based on TP and Year but keep the rep and year
-#View(DH2020_2021)
+```
+# data quality control
+```{r}
 
-TP_data=DH2020_2021%>%select(taxa,SourcePLOT,Location,Family,Year,replication,PM_date,GE,GI,GE5,GI5,Day1Germ)%>% select(-replication)%>%pivot_wider(names_from = c(PM_date), values_from = -names(.)[c(1:6)],values_fill=NA,values_fn =mean)
+DH2020_2021%>% group_by(Year,PM_date) %>% ggplot(aes(GE)) + 
+        # it sets bins intead of breaks, so add 1
+        geom_histogram(bins = 15) + 
+        # make a new "facet" for each value of `variable` (formerly column names), and 
+        # use a convenient x-scale instead of the same for all 3
+        facet_wrap(~Year+PM_date, scales = 'free_x')+ggtitle(lab="Histogram for Germination Energy")+theme_bw()
+DH2020_2021%>% group_by(Year) %>% ggplot(aes(PM_date,GI,group=taxa)) + 
+        # it sets bins intead of breaks, so add 1
+       geom_smooth()+
+        # make a new "facet" for each value of `variable` (formerly column names), and 
+        # use a convenient x-scale instead of the same for all 3
+        facet_wrap(~Year, scales = 'free_x')+theme_bw()
+
+```
+
+```{r}
+TP_data_test=DH2020_2021%>%dplyr::select(taxa,SourcePLOT,Location,Family,Year,replication,PM_date,GE,GI,GE5,GI5,Day1Germ)%>% dplyr::select(-replication)%>%pivot_wider(names_from = c(PM_date), values_from = -names(.)[c(1:6)],values_fill=NA,values_fn =mean)
+```
+#plotting residuals
+```{r}
+#plot(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))
+
+#plot(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==19)))
+#Location significant
+#plot(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==47)))
+#Location significant
+#plot(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==96)))
+#replication significant
+#plot(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
+#all significant
+#DH 2020 GE
+#plot(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))
+#Location
+#plot(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==19)))
+#Location significant
+#plot(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==47)))
+#Location significant and rep
+#test<-lm(GE~scald+ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==96))
+summary(test)
+#DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==96)
+
+DH2020_2021%>%filter(Year=="2020",PM_date%in%c("47","96","152"))%>% ggplot(aes(PM_date,GE,group=taxa)) + 
+        # it sets bins intead of breaks, so add 1
+       geom_smooth(na.rm = TRUE,se=FALSE)
+        # make a new "facet" for each value of `variable` (formerly column names), and 
+        # use a convenient x-scale instead of the same for all 3
+    #    facet_wrap(~Year, scales = 'free_x')+theme_bw()
+
+#the GE values descending should most likely be removed
+ttt<-DH2020_2021%>%filter(Year=="2020",PM_date%in%c("47","96","152"))
+
+removal_2020_GE_GI<-ttt[ttt$PM_date=="152"&ttt$GE<0.85&!is.na(ttt$SourcePLOT),]$SourcePLOT%>%unique()
+
+
+#location and rep significant
+#plot(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
+#data modifications for 2020
+#remove outliers at later timepoints, my guess is that the seed was bad, it was sourced from a poor part of the Snyder field
+removal_2020_GE_GI
+
+
+DH2020_2021=DH2020_2021%>%filter(!SourcePLOT%in%c(removal_2020_GE_GI))
+```
+## 2021
+```{r}
+DH2020_2021$Family
+yu<-TP_data_test%>%filter(Year=="2021")%>%droplevels()%>%drop_na(GE_152,GE_96)
+yu$delta_1<-yu$GE_152-yu$GE_96
+yu%>%filter(delta_1<=-0.15)
+
+
+
+
+
+yu2<-TP_data%>%filter(Year=="2021")%>%droplevels()%>%drop_na(GE_47,GE_33)
+yu$delta_1<-yu$GE_47-yu$GE_33
+yu%>%filter(delta_1<=-0.3)
+#found 3, filter based on source plot
+remove_2021<-c("7127","7293","7394")
+DH2020_2021=DH2020_2021%>%filter(!SourcePLOT%in%c(remove_2021))
+DH2020_2021%>%filter(Year=="2021")%>% ggplot(aes(PM_date,GE,group=SourcePLOT,color=Check)) + 
+        # it sets bins intead of breaks, so add 1
+       geom_smooth(na.rm = TRUE,se=FALSE)
+        # make a new "facet" for each value of `variable` (formerly column names), and 
+        # use a convenient x-scale instead of the same for all 3
+      #facet_wrap(, scales = 'free_x')+theme_bw()
+
+```
+
+```{r}
+TP_data=DH2020_2021%>%dplyr::select(taxa,SourcePLOT,Location,Family,Year,replication,PM_date,GE,GI,GE5,GI5,Day1Germ)%>% dplyr::select(-replication)%>%pivot_wider(names_from = c(PM_date), values_from = -names(.)[c(1:6)],values_fill=NA,values_fn =mean)
+
+```
+
+## joining with field data
+```{r}
+
+#TP-data from earlier
+
+
+
 
 traits<-c(DH2020_field_trait_names,WBMaster21_trait_names)
 traits
 traits=traits[-c(1,2,7,12,30,31)]
-field_data=DH2020_2021%>%select(traits)%>%distinct()
+
+
+
+field_data=DH2020_2021%>%dplyr::select(all_of(traits))%>%distinct()
 DH2020_2021_wide<-full_join(field_data,TP_data,by=c("SourcePLOT","taxa","Family","Location","Year"))
 
 save(DH2020_2021, file="data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
