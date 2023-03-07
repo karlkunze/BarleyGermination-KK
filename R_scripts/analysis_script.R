@@ -10,9 +10,7 @@ library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
-
-#load("data/Winter_DH/WMB DH 2020 all data for analysis.RData")#old file
-#linear model analysis for germination traits
+load("data/Genotype_data/wmb_file.Rdata")
 
 
 
@@ -64,7 +62,7 @@ table(DH2020_2021$PM_date,DH2020_2021$Year)#add 12, 33, 68
 
 #scald associated with GI at timepoint 3.5 or so
 #scald associated with GE at timepoint 19,33, and 47
-anova(lm(GE~ taxa +Maturity_date:Location+scald, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==19)))
+anova(lm(GE~ taxa , DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==19)))
 #Location
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==12)))
 #Location
@@ -101,7 +99,7 @@ anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=
 
 anova(lm(GE~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==152)))
 anova(lm(GI~ taxa +Location+replication+spot_bloch,DH2020_2021%>% filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==96)))
-library(plyr)
+
 
 lm(GI~taxa + scald,DH2020_2021%>%filter(DH2020_2021$Year=="2021",DH2020_2021$PM_date ==12))
 
@@ -158,7 +156,7 @@ DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(tra
 DH2020_2021=DH2020_2021%>%dplyr::rename(rep=replication,year=Year)%>%mutate(PM_date=as.numeric(as.character((PM_date))))
 DH2020_2021=DH2020_2021 %>%filter(!Location=="Spring")
 
-BLUPH2 = function(trait.lm) {
+#BLUPH2 = function(trait.lm) {
   ses<- se.ranef(trait.lm)$'taxa' #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
   v_BLUP<- ses^2
   sigma2_g=VarCorr(trait.lm, comp="Variance")$'taxa'[1]
@@ -167,7 +165,49 @@ BLUPH2 = function(trait.lm) {
   return(H2)
 }
 
+BLUPH2_new = function(trait.lmer,d,AMat_geno) {
+
+  ses<- se.ranef(trait.lmer)$'taxa' 
+  #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
+  v_BLUP<- ses^2
+  vcov
+  vcov=as.data.frame(VarCorr(trait.lmer, comp="Variance"));sigmaG2<-vcov[vcov$grp=="taxa","vcov"];residualG2<-vcov[vcov$grp=="Residual","vcov"]
+  
+
+
+  r<-mean(table(d$taxa))
+
+
+  H2=round(sigmaG2/(sigmaG2+residualG2/r),3)
+  H2
+  v_BLUP<- ses^2
+  ses<- se.ranef(trait.lmer)$'taxa'
+  
+  Reliability<- 1- v_BLUP/ (2*sigmaG2)  #where sigma2_g is the genetic variance estimated
+  Cullis_H2<- round(mean(Reliability),3)
+  trait<-d$trait%>%unique()
+  PM<-d$PM_date%>%unique()
+  TP<-d$TP%>%unique()
+  Year<-d$year%>%unique()
+
+
+  d1<-as.data.frame(d)%>%filter(d$taxa%in%rownames(AMat_geno))
+
+  trait.GBLUP<-kin.blup(data=d1,geno = "taxa",pheno = "value",fixed=c("Location","rep"),K=AMat_geno,PEV=TRUE)
+  
+  ah2<-trait.GBLUP$Vg/(trait.GBLUP$Vg+trait.GBLUP$Ve)
+
+  
+  H2_both<-data.frame(trait.GBLUP$Vg,ah2,Cullis_H2,H2,trait,PM,TP,Year)
+  H2_both
+  
+  return(H2_both)
+}
+
+
+
 BlueBlupsH2_Location_rep_taxa <- function(d, groupvars) {
+#d<-d6%>%filter(year=="2020",trait=="GE",PM_date=="19",TP=="TP2")
 
     trait.lmer <- lmer(formula = value ~(1|taxa)+Location+rep, 
                        data = d)
@@ -184,25 +224,41 @@ BlueBlupsH2_Location_rep_taxa <- function(d, groupvars) {
               estimate = 0) %>% mutate(BLUE = estimate + Intercept) %>%
       transmute(taxa = gsub(pattern = 'taxa',replacement = '',x = term),
                 value = BLUE, type = 'BLUE')
-    H2 = BLUPH2(trait.lmer)
-    return(rbind(lineEf, lineBLUE) %>% add_row(value = H2, type = 'H2') %>% arrange(type, taxa) %>%
-             join(d %>% dplyr::select(taxa, Family) %>% unique()))
+    H2 = BLUPH2_new(trait.lmer,d,wmbGAPIT$A)
+
+   
+   df4= rbind(lineEf, lineBLUE) %>% arrange(type, taxa) %>%
+      join(d %>% dplyr::select(taxa,trait,PM_date,TP,year) %>% unique())
+
+    #H2_new=BLUPH2_new(trait.lmer,d=d2, wmbGAPIT$A)
+    dfList=list(df4, H2)
+    dfList
+    return(dfList)
+    
+    
+    
+    
+    
+    
   }
   
-d2 = DH2020_2021 %>%dplyr::select(taxa, rep, Location, TP, GE,GI,PM_date,year) %>% 
-    mutate(year = factor(year, levels = c('2021','2020'))) %>%
-    pivot_longer(cols = c(GE, GI), names_to = 'trait') %>% filter(TP == 'TP2', trait == 'GE')
-  
+#d6 = DH2020_2021 %>%dplyr::select(taxa, rep, Location, TP, GE,GI,PM_date,year,Family) %>% 
+ #   mutate(year = factor(year, levels = c('2021','2020'))) %>%
+ #   pivot_longer(cols = c(GE, GI), names_to = 'trait')# %>% filter(TP == 'TP2', trait == 'GE')
+
 BlueBlupsH2_Year_rep_taxa <- function(d2, groupvars) {
+  
+  #d2<-DHCombined %>% filter(TP == 'TP2', trait == 'GE')
+  length(unique(d2$year))
     if (length(unique(d2$year))==2) {
-      trait.lmer <- lmer(formula = value ~(1|taxa)+Location + rep, data = d2)
+      trait.lmer <- lmer(formula = value ~(1|taxa)+Location + rep+year, data = d2)
       # fixef(trait.lmer)[2]/need to think about this more. 
       
       Cept = (fixef(trait.lmer)[1]*4+sum(fixef(trait.lmer)[2:4]))/4
       lineEf = (ranef(trait.lmer)$taxa + Cept) %>% as.data.frame() %>% rownames_to_column('taxa') %>% 
         mutate(type = 'BLUP') %>% dplyr::rename(value = '(Intercept)')
       
-      trait.lm = broom::tidy(lm(value~ taxa+Location+ rep, data=d2))
+      trait.lm = broom::tidy(lm(value~ taxa+Location+ rep+year, data=d2))
       first_taxa = d2 %>% arrange(taxa) %>% slice_head( n = 1) %>% dplyr::select(taxa) %>% as.character()
       Intercept_list = trait.lm %>% filter(term == '(Intercept)'|substr(term,1,8)=='Location')
       Intercept = (Intercept_list$estimate[1]*4+sum(Intercept_list$estimate[2:4]))/4
@@ -212,88 +268,207 @@ BlueBlupsH2_Year_rep_taxa <- function(d2, groupvars) {
                 estimate = 0) %>% mutate(BLUE = estimate + Intercept) %>%
         transmute(taxa = gsub(pattern = 'taxa',replacement = '',x = term),
                   value = BLUE, type = 'BLUE')
-      H2 = BLUPH2(trait.lmer)
-      return(rbind(lineEf, lineBLUE) %>% add_row(value = H2, type = 'H2')%>% join(d2 %>% dplyr::select(taxa, Family)%>% unique()))
+      H2 = BLUPH2_new(trait.lmer,d=d2,wmbGAPIT$A)
+      
+      df4<-rbind(lineEf, lineBLUE) %>% arrange(type, taxa) %>%
+        join(d2 %>% dplyr::select(taxa,trait,PM_date,TP) %>% unique())
+      list5<-list(df4,H2)
+      return(list5)
     }
     else {
+    # #  tt<-DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI, PM_date,year,Family) %>% 
+    #     pivot_longer(cols = c(GE, GI), names_to = 'trait') #%>%
+    #     group_by(TP, PM_date, trait, year)
+    #     table(tt$trait)
+    #     tt<-tt%>%filter(TP=="TP2",PM_date=="19",trait=="GE",year=="2020")
+      #group_by(TP, PM_date, trait, year
+     # d2<-tt
       trait.lmer <- lmer(formula = value ~(1|taxa)+Location+rep, 
                          data = d2)
       lineEf = (ranef(trait.lmer)$taxa + fixef(trait.lmer)[1]) %>% as.data.frame() %>% rownames_to_column('taxa') %>% 
         mutate(type = 'BLUP') %>% dplyr::rename(value = '(Intercept)')
+      lineEf
       trait.lm = broom::tidy(lm(value~ taxa+Location+rep, data=d2))
-      
+      trait.lm 
       first_taxa = d2 %>% arrange(taxa) %>% slice_head( n = 1) %>% dplyr::select(taxa) %>% as.character()
       Intercept = trait.lm %>% filter(term == '(Intercept)') %>% dplyr::select(estimate) %>% as.numeric()
+      Intercept
       lineBLUE = trait.lm %>% filter(substr(term,1,4)=='taxa') %>% 
         add_row(term = paste0('taxa',first_taxa),
                 estimate = 0) %>% mutate(BLUE = estimate + Intercept) %>%
         transmute(taxa = gsub(pattern = 'taxa',replacement = '',x = term),
                   value = BLUE,type = 'BLUE')
-      H2 = BLUPH2(trait.lmer)
-      return(rbind(lineEf, lineBLUE) %>% add_row(value = H2, type = 'H2') %>% arrange(type, taxa) %>%
-               join(d2 %>% dplyr::select(taxa, Family) %>% unique()))
+      lineBLUE 
+      H2 = BLUPH2_new(trait.lmer,d=d2,wmbGAPIT$A)
+
+     df4<-rbind(lineEf, lineBLUE) %>% arrange(type, taxa) %>%
+               join(d2 %>% dplyr::select(taxa, trait,PM_date,TP,year) %>% unique())
+list5<-list(df4,H2)
+      return(list5)
     }
   }
 library(lme4)
 library(corrr)
 #phs section
-phs<-DH2020_2021%>%select(taxa,year,Location,SourcePLOT,phs)%>%unique
+phs<-DH2020_2021%>%dplyr::select(taxa,year,Location,SourcePLOT,phs)%>%unique
 table(phs$yea,phs$Location)
+
 480*2
 DH2020_2021%>%group_by(year,TP)%>%dplyr::summarize(correlate(GI, phs,use="pairwise.complete.obs"))
 DH2020_2021%>%group_by(year,TP)%>%as.matrix() 
 
 ###
 
-DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI, PM_date,year,Family) %>% 
+DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>% 
     pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
-    group_by(TP, PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()%>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))
+    group_by(TP, PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE)# %>% ungroup()%>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))
+
+DH2020Estimates
+
+DH2020_1<-DH2020Estimates[[1]][[1]]
+
+#env_n<-length(table(BSR.df$Env))
+for(i in 1:length(lengths(DH2020Estimates))-1){
+  
+  app<-DH2020Estimates[[c(i+1)]][[1]]
+  DH2020_1<- rbind(DH2020_1,app)
+}
+DH2020_1=DH2020_1%>%arrange(year,trait,PM_date)
+
+#H2
+DH2020_H2<-DH2020Estimates[[1]][[2]]
+DH2020_H2
+#env_n<-length(table(BSR.df$Env))
+for(i in 1:length(lengths(DH2020Estimates))-1){
+  
+  app<-DH2020Estimates[[c(1+i)]][[2]]
+
+  DH2020_H2<- rbind(DH2020_H2,app)
+}
+DH2020_H2=DH2020_H2%>%arrange(trait,PM)
+
+
+
+
 
 DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>% dplyr::select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family) %>% pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
-  group_by(TP,PM_date, trait, year) %>% group_modify(BlueBlupsH2_Location_rep_taxa) %>% ungroup()%>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))
+  group_by(TP,PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE) #%>% ungroup()%>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))
+DH2021Estimates
+
+
+DH2021_1<-DH2021Estimates[[1]][[1]]
+
+#env_n<-length(table(BSR.df$Env))
+for(i in 1:length(lengths(DH2021Estimates))-1){
+  
+  app<-DH2021Estimates[[c(i+1)]][[1]]
+  DH2021_1<- rbind(DH2021_1,app)
+}
+DH2021_1=DH2021_1%>%arrange(year,trait,PM_date)
+DH2021_1
+#H2
+DH2021_H2<-DH2021Estimates[[1]][[2]]
+DH2021_H2
+#env_n<-length(table(BSR.df$Env))
+for(i in 1:length(lengths(DH2021Estimates))-1){
+  
+  app<-DH2021Estimates[[c(1+i)]][[2]]
+  
+  DH2021_H2<- rbind(DH2021_H2,app)
+}
+DH2021_H2=DH2021_H2%>%arrange(trait,PM)
+
+
+
 
 #Both
-DHCombined = DH2020_2021%>%filter(year=="2020")%>% select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))%>%
-  rbind(., DH2020_2021%>%filter(year=="2021") %>% select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family) %>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))) %>% 
+DHCombined = DH2020_2021%>%filter(year=="2020")%>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))%>%
+  rbind(., DH2020_2021%>%filter(year=="2021") %>% dplyr::select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family) %>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))) %>% 
   mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
-  group_by(TP,PM_date, trait) %>%
-  group_modify(BlueBlupsH2_Year_rep_taxa)  %>% mutate(year = '2020/2021')
+  group_by(TP,PM_date, trait) %>%group_map(BlueBlupsH2_Year_rep_taxa,.keep=TRUE)  #%>% mutate(year = '2020/2021')
 str(DHCombined)
-#View(DHCombined)
-#View(DHCombined)
+DHcomb_1<-DHCombined[[1]][[1]]
+DHcomb_1$year<-"2020/2021"
+#env_n<-length(table(BSR.df$Env))
+for(i in 1:length(lengths(DHCombined))-1){
+  
+  app<-DHCombined[[c(i+1)]][[1]]
+  app$year<-"2020/2021"
+  DHcomb_1<- rbind(DHcomb_1,app)
+}
+DHcomb_1=DHcomb_1%>%arrange(year,trait,PM_date)%>%unique()
+DHcomb_1
+
+#H2
+DHComb_H2<-DHCombined[[1]][[2]]
+DHComb_H2$Year<-"2020/2021"
+#env_n<-length(table(BSR.df$Env))
+for(i in 1:length(lengths(DHCombined))-1){
+  
+  app<-DHCombined[[c(1+i)]][[2]]
+  app$Year<-"2020/2021"
+  DHComb_H2<- rbind(DHComb_H2,app)
+}
+DHComb_H2=DHComb_H2%>%arrange(trait,PM)%>%unique()%>%mutate(Year = if_else(str_detect(TP, "\\."), "2021", Year))
+
+
+
 #correlations
 
-DH2020Estimates %>% join(DH2021Estimates  %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
-  filter(!is.na(value2021), type =='BLUE') %>% filter(type !='H2') %>% group_by(type, TP, trait) %>%
+DH2020_1%>% join(DH2021_1 %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
+  filter(!is.na(value2021), type =='BLUE')  %>% group_by(type, TP, trait) %>%
   summarise(correlation = cor(value, value2021))
-AllDHBluesPerYear = rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>% ungroup()
-#load("")
+DHcomb_1
+AllDHBluesPerYear = rbind(DH2020_1,DH2021_1,DHcomb_1) %>% filter(type =='BLUE') %>% ungroup()%>%filter(!taxa%in%c("Endeavor","Charles"))%>%
+  mutate(taxa=toupper(taxa))
+AllDHBluesPerYear
+AllDHBluesPerYear[AllDHBluesPerYear$taxa=="SY_TEPEE",]$taxa<-"TEPEE"
+AllDHBluesPerYear[AllDHBluesPerYear$taxa=="DH130910",]$taxa<-"LIGHTNING"
+
+#going to change DH130910 to lightning now
+AllDHBluesPerYear
+
 #Heritabilities over both timepoints, both are high
-DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%
-  filter(type == 'H2') %>% ggplot(aes(x = TP, y = value, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
-  facet_wrap(vars(year), ncol = 1)+theme_bw()+labs(title= 'Broard sense heritability\nover time and datasets')
+DH_H2=rbind(DH2021_H2,DH2020_H2,DHComb_H2) 
+DH_H2
+DH_H2%>%
+   ggplot(aes(x = TP, y = ah2, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
+  facet_wrap(vars(Year), ncol = 1)+theme_bw()+labs(title= 'Narrow sense heritability\nover time and datasets')
+DH2020_H2%>% rbind(DH2021_H2, DHComb_H2) %>%
+  ggplot(aes(x = TP, y = H2, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
+  facet_wrap(vars(Year), ncol = 1)+theme_bw()+labs(title= 'Broad sense heritability\nover time and datasets')
 
 #other ideas to expand here, perhaps calculate narrow sense heritability, since we have the genotype info
 #adding genotype data
-AllDHBluesPerYear= rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>%mutate(PM_date=as.double(PM_date),year=as.character(year))%>%ungroup()
+
+table(AllDHBluesPerYear$taxa)
+#AllDHBluesPerYear= rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>%mutate(PM_date=as.double(PM_date),year=as.character(year))%>%ungroup()
 #load("/home/karl/git/TimeSeriesGermination/WinterBarley/Analysis/AllDHBluesPerYear.RData")
 dplyr::all_equal(AllDHBluesPerYear,AllDHBluesPerYear)
-AllDHBluesPerYear$taxa
-AllDHBluesPerYear0[AllDHBluesPerYear0$taxa%in%AllDHBluesPerYear$taxa,]
+
 #winterGD and WinterGM
-load('data/Genotype_data/myGM20_LDprune.Rdata')
-load('data/Genotype_data/myGD20_LDprune.Rdata')
-WinterGM=myGM20_prune;WinterGD=myGD20_prune
-rm(myGM20_prune);rm(myGD20_prune)
+#load('data/Genotype_data/myGM20_LDprune.Rdata')
+#load('data/Genotype_data/myGD20_LDprune.Rdata')
+
+WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
+#rm(myGM20_prune);rm(myGD20_prune)
 WinterGM = WinterGM %>% arrange(Chromosome, Position)
 #my taxa IDs have "-" instead of an underscore which I prefer
 #taxa = gsub(pattern = '-',replacement = '_',taxa)
-WinterGD = WinterGD %>%
+rownames(WinterGD)
+WinterGD$taxa<-rownames(WinterGD)
+
+str(WinterGD)
+WinterGD=WinterGD %>%relocate(taxa,.before = 1)%>%
+
   mutate(taxa = gsub(pattern = ' ', replacement = '_',taxa),
          taxa1 = taxa) %>% remove_rownames()%>% 
   column_to_rownames('taxa1')
+WinterGD[WinterGD$taxa=="DH130910",]$taxa<-"LIGHTNING"
+
 
 #summarise(taxa = "Endeavor",Qsd1 = 2)%>%bind_rows(WinterGD, .)%>%mutate(Qsd1=replace(Qsd1,Qsd1==1,2))
+WinterGD$taxa
 WinterGD[WinterGD$taxa=="Endeavor",]$Qsd1
 WinterGD[WinterGD$taxa=="Charles",]$Qsd1
 
@@ -302,18 +477,21 @@ sum(WinterGM$SNP == colnames(WinterGD[,-1]))
 # Make sure things are in the right order
 # Sum should = 8384
 dim(WinterGD)
+WinterGD$taxa
 table(substr(WinterGD$taxa,1,5))
-WinterRelationship = rrBLUP::A.mat(WinterGD[,-1]-1, impute.method = 'EM', return.imputed = F)
+WinterRelationship=wmbGAPIT$A
 WinterPCA = eigen(WinterRelationship)
+substr(WinterGD$taxa,1,3)
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
 data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
 winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
-  mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY ','Sca','Win',"End","Cha","Che"), 
-                            to = c('Flavia/DH130910','Scala/DH130910','SY_Tepee/DH130910','Wintmalt/DH130910',
-                                   'DH130910','Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910',"Check","Check","Check")),
+  
+  mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
+                            to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',
+                                   'Lightning','Flavia/Lightning','SY_Tepee/Lightning','Scala/Lightning','Wintmalt/Lightning',"Check","Check","Check")),
          taxa = WinterGD$taxa,
-         shapes = ifelse(taxa %in% c('DH130910', 'Flavia','SY_Tepee','Wintmalt','Scala'), taxa, 'Lines'),
-         size = ifelse(taxa %in% c('DH130910', 'Flavia','SY_Tepee','Wintmalt','Scala'), 3, 2))
+         shapes = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), taxa, 'Lines'),
+         size = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), 3, 2))
 
 winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point()+
   winterlinePCAvalues%>% ggplot(aes(x = X1, y = X3,color = family)) + geom_point()+
@@ -321,16 +499,17 @@ winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point
 
 winterlinePCAvalues %>% filter(family !=c('Check')) %>%
   ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(size = "none")+
-  xlab('PC1')+ylab('PC2')
+  xlab('PC1')+ylab('PC2')+ggtitle(lab="PCA by family of NY \n WMB DH population")
 
 
 setwd(rprojroot::find_rstudio_root_file())
 
 
 #Travis' Time series perspective
-DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data source') %>%
+AllDHBluesPerYear
+AllDHBluesPerYear  %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data source') %>%
   ggplot(aes(x = PM_date, y = value, group = taxa))+
-  geom_line()+facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_smooth()+facet_nested(trait~headerFacet+year, scales = 'free')+
   geom_vline(xintercept = c(12,33,68), color = 'red')+
   labs(title = 'GE and GI BLUEs over time with differeing datasets')+theme_bw()
 
