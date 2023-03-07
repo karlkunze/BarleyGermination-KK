@@ -587,19 +587,28 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
 
 dev.off()
-
+```
+```{r}
 library(GAPIT3)
 DF_OperationsV3 = function(df){
   df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
-                                           rank = c(1:length(df$SNP))) %>% arrange(Chromosome, as.numeric(Position)) %>%
+                                           rank = c(1:length(df$SNP))) %>% arrange(Chrom, as.numeric(Pos)) %>%
     mutate(log10PVal = -log10(P.value),ordinal = c(1:length(df$SNP)))
   return(df)
 }
 #I am assuming this is to help make manhattan plots
 
 GWA_MLMM_fortidyR = function(df, groupvars) {
-  GWAS = GAPIT(Y = df %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD, GM=WinterGM,PCA.total = 2,
+  fg<- DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
+   ungroup()%>%filter(year=="2020",TP=="TP1",trait=="GI")
+  fg
+  str(WinterGM$Position)
+  
+  # %>% group_by(year, TP, trait)
+  
+  GWAS = GAPIT(Y = fg%>% dplyr::select(taxa, value) %>% as.data.frame(),GD=WinterGD, GM=WinterGM,PCA.total = 2,
                Geno.View.output=F, model="MLMM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
+    GWAS 
   Out = DF_OperationsV3(GWAS$GWAS) %>% arrange(P.value) %>% slice_head(n=1000)
   return(Out)
 }
@@ -660,11 +669,56 @@ Add_DH130910_familyStructure = function(df3, groupvar){
 #SAVE THE RESULTS so that we dont have to run again
 print("MLMM GWA model ahead")
 
- WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
+
+
+ WinterPerTPGWAS = DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
    ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
-save(WinterPerTPGWAS,file="data/GWA_results/WinterPerTPGWAS.Rdata")
+save(WinterPerTPGWAS ,file="data/GWA_results/WinterPerTPGWAS.Rdata")
+
+```
+
+# Let's try sommer or GWASpoly
+```{r}
+library(GWASpoly)
+geno_example<-read.csv(file="data/example_data/new_potato_geno.csv")
+pheno_example<-read.csv(file="data/example_data/new_potato_pheno.csv")
+names(geno_example)
+View(pheno_example)
+#%>% rbind(DH2021_1, DHcomb_1)
+ t<-DH2020_1 %>%dplyr::select(!type)%>%filter(trait=="GE",TP=="TP2",year=="2020")
+View(t)
+names(DH2020_1)
+geno<-WinterGD
+rownames(geno)<-WinterGD$taxa
+geno=as.data.frame(t(geno[-1]))
+geno$SNP<-rownames(geno)
+geno=geno%>%relocate(SNP,.before=1)
+geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,chrom=Chromosome,bp=Position)
+geno
+dim(WinterGM)
+dim(geno_example)
+geno_example[1:5,1:5]
+dim(WinterGM)
+rownames(WinterGD)
+
+genofile <- system.file("extdata", "data/example_data/new_potato_geno.csv", package = "GWASpoly")
+phenofile <- system.file("extdata", "new_potato_pheno.csv", package = "GWASpoly")
+genofile
+pheno_1<-DH2020_1 %>% rbind(DH2021_1, DHcomb_1) 
+pheno_1
+library(GWASpoly)
+data <- read.GWASpoly(ploidy=4, pheno.file=phenofile, geno.file=genofile,
+                      format="numeric", n.traits=1, delim=",")
+
+data <- read.GWASpoly(ploidy=4, pheno.file=phenofile, geno.file=genofile,
+                      format="numeric", n.traits=1, delim=",")
+str(data)
+str(data@map)
+```
 
 
+## POST GWAS Analysis
+```{r}
   
 load("data/GWA_results/WinterPerTPGWAS.Rdata")#WinterPerTPGWAS
 
