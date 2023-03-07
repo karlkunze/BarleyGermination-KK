@@ -4,6 +4,12 @@ library(readr)
 library(readxl)
 library(stringr)
 library(dplyr)
+```
+
+```{r "setup", include=FALSE}
+knitr::opts_knit$set(root.dir = "/home/karl/git/BarleyGermination-KK")  # with something else than `getwd()`
+getwd()
+```
 #add AlaAT for DH population
 AlaT_markers<-read_excel("data/Genotype_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results');AlaT_markers[,c(1:12)];colnames(AlaT_markers)[12]<-"AlaT_Allele"
 AlaT_markers<-AlaT_markers[!is.na(AlaT_markers$AlaT_Allele),];colnames(AlaT_markers)[4]<-"GID"
