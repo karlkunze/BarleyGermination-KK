@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 #Genotype processing WMB
 ```{r}
 library(readr)
@@ -10,6 +15,8 @@ library(dplyr)
 knitr::opts_knit$set(root.dir = "/home/karl/git/BarleyGermination-KK")  # with something else than `getwd()`
 getwd()
 ```
+#add AlaAT
+```{r}
 #add AlaAT for DH population
 AlaT_markers<-read_excel("data/Genotype_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results');AlaT_markers[,c(1:12)];colnames(AlaT_markers)[12]<-"AlaT_Allele"
 AlaT_markers<-AlaT_markers[!is.na(AlaT_markers$AlaT_Allele),];colnames(AlaT_markers)[4]<-"GID"
@@ -27,11 +34,17 @@ rownames(AlaT_markers_1)<-NULL
 ```
 #input the new data
 ```{r}
+
+#data(hapmap_geno)
 wmb_gt<- read_delim("data/Genotype_data/all_filter.hmp.txt", 
                  delim = "\t", escape_double = FALSE, 
                 trim_ws = TRUE)
-str(wmb_gt)
 
+
+
+RIL_exclude<-colnames(wmb_gt)[grep("170",colnames(wmb_gt),invert = TRUE)]
+
+wmb_gt<-wmb_gt%>%dplyr::select(all_of(RIL_exclude))
 ### Processing
 
 #remove DH130910 and SY tepee duplicates since they were in the RIL pop, also remove lines not relevants
@@ -57,17 +70,33 @@ wmb_gt<-wmb_gt%>%add_row(AlaT_markers_1)%>%arrange(chrom,pos)
 #add morex positions
 
 #should be the correct alignment
-Morex2019<-read.delim("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",header = FALSE)
-#%>%as.data.frame()%>%dplyr::select(1,2,4,7,9)%>%
-Morex2019<-Morex2019%>%as.data.frame()%>%dplyr::select(1,2,4,7,9)%>%dplyr::rename(Chrom=1,Type=2,pos=3,strand=4,Marker=5)
+#read.gff(file, na.strings = c(".", "?"), GFF3 = TRUE)
+library(ape)
+Morex2019<-read.gff("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",GFF3 = TRUE)%>%as.data.frame()%>%dplyr::select(1,2,4,7,9)%>%dplyr::rename(Chrom=1,Type=2,pos=3,strand=4,Marker=5)
+MorexV3 <- read_excel("data/Genotype_data/SNPPositions_50k_on_MorexV3.xlsx")%>%dplyr::rename(SNP=1,Chrom=2,pos=3)%>%mutate(Chrom=str_split_fixed(Chrom,"r" , 2)[,2],SNP=gsub("-","_",SNP))
+table(wmb_gt$`rs#`%in%MorexV3$SNP)
+
 Morex2019$Chrom<-str_split_fixed(Morex2019$Chrom,"r" , 2)[,2]
 Morex2019$Marker<-str_split_fixed(Morex2019$Marker,"=" , 2)[,2]
 Morex2019=Morex2019%>%arrange(Chrom,pos)
-
+dim(Morex2019)
 #check for NAs
 table(Morex2019$Chrom,useNA = "ifany")
+#View(lisV2)
+
+wmb_gt$`rs#`<-gsub("-","_",wmb_gt$`rs#`)
+Morex2019$Marker<-gsub("-","_",Morex2019$Marker)
+
+
+wmb_gt[which(!wmb_gt$`rs#`%in%Morex2019$Marker),]$`rs#`
+
+str(wmb_gt$chrom)
+str(wmb_gt$pos)
+
 myGM20=data.frame(SNP=wmb_gt$`rs#`)
+myGM20
 myGM20[myGM20$SNP=="Qsd1",]
+myGM20$SNP
 myGM20$Chromosome = Morex2019$Chrom[match(myGM20$SNP, Morex2019$Marker)]; myGM20$Chromosome = substr(myGM20$Chromosome ,1,1)
 myGM20$Chromosome[which(myGM20$Chromosome=="U")]="8"
 myGM20$Position = as.character(Morex2019$pos[match(myGM20$SNP, Morex2019$Marker)])
@@ -76,35 +105,43 @@ myGM20[myGM20$SNP=="Qsd1",]
 myGM20[9002,]<-c("Qsd1","5",442160000)
 myGM20<-myGM20[with(myGM20, order(Chromosome,Position)),]
 
-library(GAPIT3)
 
+#dim(myGM20)
 wmb_gt$chrom<-as.numeric(sapply(str_split(wmb_gt$chrom,"H"),"[",1))
 wmb_gt[wmb_gt$chrom==0,]$chrom<-8
 wmb_gt$chrom<-as.integer(wmb_gt$chrom)
 wmb_gt$pos<-as.integer(wmb_gt$pos)
-wmb_gt=wmb_gt%>%arrange(chrom,pos)
+wmb_gt<-wmb_gt%>%arrange(chrom,pos)
+```
 
-#myG <- read.table("~/Downloads/GAPIT_Tutorial_Data/mdp_genotype_test.hmp.txt", head = TRUE)
-##myGAPIT <- GAPIT(G=myG, output.numerical=TRUE)
+
+```{r}
+myG <- read.table("~/Downloads/GAPIT_Tutorial_Data/mdp_genotype_test.hmp.txt", head = TRUE)
+yGAPIT <- GAPIT(G=myG, output.numerical=TRUE)
+yGAPIT$G
+#df change
 wmb_gt_t<-wmb_gt
-
+wmb_gt_t
+myGM20$Chrom[match(wmb_gt_t$`rs#`, myGM20$SNP)]
 wmb_gt_t$chrom = myGM20$Chrom[match(wmb_gt_t$`rs#`, myGM20$SNP)];wmb_gt_t$chrom<-as.integer(wmb_gt_t$chrom)
 
 wmb_gt_t$pos = myGM20$Position[match(wmb_gt_t$`rs#`, myGM20$SNP)];wmb_gt_t$pos<-as.numeric(wmb_gt_t$pos)            
-wmb_gt_t$pos 
-wmb_gt_t<-wmb_gt_t%>%tidyr::drop_na(chrom)%>%dplyr::arrange(chrom,pos)
 
-wmb_gt_t=wmb_gt_t%>%as.data.frame()%>%add_row(wmb_gt_t[1,],.before = 1)
-wmb_gt_t[1,]$"rs#"<-"JHI-Hv50k-2016-6205"
-wmb_gt_t[1,]$pos<-3470194-1
-library(GAPIT3)
-GAPIT_wmb<- GAPIT(G=wmb_gt_t%>%as.data.frame(), output.numerical=TRUE,file.output = FALSE)
 
-names(GAPIT_wmb$GD) <- gsub(x = names(GAPIT_wmb$GD), pattern = "\\.", replacement = "-")
 
+wmbGAPIT<- GAPIT(G=rbind(wmb_gt[1,],wmb_gt), output.numerical=TRUE)
+
+wmbGAPIT$GM<-wmb_gt_t%>%dplyr::select(`rs#`,chrom,pos)%>%rename(SNP=`rs#`,Chromosome=chrom,Position=pos)
+dim(wmbGAPIT$GM)
+dim(wmbGAPIT$GD)
+
+colnames(wmbGAPIT$GD)=gsub("\\.","_",colnames(wmbGAPIT$GD))
+wmbGAPIT$GD=wmbGAPIT$GD[-1]
+
+#we could do the imputation here
 library(rrBLUP)
-wmb_GD<-GAPIT_wmb$GD[-1];wmb_GD=as.data.frame(t(wmb_GD))
-wmb_GD=as.data.frame(apply(wmb_GD,1, function(x) { 
+
+wmb_G=as.data.frame(apply(wmbGAPIT$GD,1, function(x) { 
   x[which(x == 0)] = -1
   x[which(x == 1)] <- 0
   x[which(x == 2)] = 1
@@ -113,18 +150,40 @@ wmb_GD=as.data.frame(apply(wmb_GD,1, function(x) {
   
   x
 }))
-library(rrBLUP)
-wmb_GD=rrBLUP::A.mat(wmb_GD, return.imputed = T,impute.method = "EM")
 
-names(wmb_GD) <- gsub(x = names(wmb_GD), pattern = "\\.", replacement = "-") 
-wmb_GD_rr<-wmb_GD
+wmb_GD=rrBLUP::A.mat(t(wmb_G), return.imputed = T,impute.method = "EM")
+wmb_GD$imputed[1:5,1:5]
+#names(wmb_GD) <- gsub(x = names(wmb_GD), pattern = "\\.", replacement = "-") 
+Gi<-wmb_GD$imputed+1
+wmbGAPIT$GD<-Gi
+wmbGAPIT$A<-wmb_GD$A
+#rownames(wmb_GD_rr$A)<-toupper(rownames(wmb_GD_rr$A))
+#colnames(wmb_GD_rr$A)<-toupper(colnames(wmb_GD_rr$A))
+
+
+wmbGAPIT$GD[1:5,1:5]
+snpgdsCreateGeno("test3.gds", genmat = as.matrix(round(wmbGAPIT$GD,0)), sample.id=rownames(wmbGAPIT$GD), snp.id = colnames(wmbGAPIT$GD), snp.chromosome = names(wmbGAPIT$GM$Chromosome),
+                 snp.position = as.integer(wmbGAPIT$GM$Position), snpfirstdim =FALSE)
+(gdsfile <- snpgdsOpen("test3.gds"))
+
+snpset <- snpgdsLDpruning(gdsfile, ld.threshold=0.9,method="corr",slide.max.bp = 2000,maf = 0.05,remove.monosnp = TRUE)
+
+snpset_names=unlist(snpset)
+wmbGAPIT$GD=wmbGAPIT$GD[,c(1,which(colnames(wmbGAPIT$GD) %in% snpset_names))]
+
+wmbGAPIT$GM=wmbGAPIT$GM[which(wmbGAPIT$GM$SNP %in% colnames(wmbGAPIT$GD)),]
+str(wmbGAPIT$GM)
 
 
 
-Gi<-wmb_GD_rr$imputed
 
-rownames(wmb_GD_rr$A)<-toupper(rownames(wmb_GD_rr$A))
-colnames(wmb_GD_rr$A)<-toupper(colnames(wmb_GD_rr$A))
+save(wmbGAPIT,file="data/Genotype_data/wmb_file.Rdata")
+
+
+```
+
+# Pedigree analysis, H matrix
+```{r}
 library(pedigree)
 #were only using pedigree info here
 load("data/Phenotype_Data/Field_data_2020_2022.Rdata")
@@ -152,24 +211,13 @@ wmb_ped[grep("BS",wmb_ped$Ind),]$Population<-"Double_haploid"
 wmb_ped[grep(0,wmb_ped$Par1),]$Population<-"Parents"
 wmb_ped[grep("END",wmb_ped$Ind),]$Population<-"Check"
 wmb_ped[grep("CHA",wmb_ped$Ind),]$Population<-"Check"
-#Should do LD pruning here
-library(gdsfmt)
-library(SNPRelate)
-
-
-
-
-
-
-
-save(wmb_GD_rr,file="data/Genotype_data/wmb_GD_rrblup.Rdata")
-
-save(GAPIT_wmb,file = "data/Genotype_data/GAPIT_wmb.Rdata")
 save(wmb_ped,file="data/Genotype_data/wmb_pedigree.Rdata")
+```
 
 
 
-
+# PCa
+```{R}
 #snpgdsClose(gdsfile)
 
 
@@ -179,9 +227,9 @@ pc.percent <- pca$varprop*100
 head(round(pc.percent, 2))
 plot(1:10,pc.percent[1:10])
 
-rownames(wmb_GD)
+rownames()
 
-WinterRelationship = wmb_GD_rr$A
+WinterRelationship =wmbGAPIT$A
 #list_in<-wmb_ped%>%filter(!Population%in%c("Recombinant_inbred_lines"))# we are just doing the non RIL lines
 
 #WinterRelationship=WinterRelationship [rownames(WinterRelationship)%in%list_in$Ind,colnames(WinterRelationship)%in%list_in$Ind]
@@ -189,9 +237,9 @@ WinterPCA = eigen(WinterRelationship)
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
 data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
 
-wmb_GD$taxa<-rownames(wmb_GD)
+wmb_GD$taxa<-rownames(wmbGAPIT$GD)
 
-t<-wmb_GD$imputed%>%as.data.frame()%>%tibble::add_column(taxa=rownames(.),before=1)
+t<-wmbGAPIT$GD%>%as.data.frame()%>%tibble::add_column(taxa=rownames(.),before=1)
 
 #18-Scala x Tepee, 19 Scala x Wintmalt, 20 Scala x Flavia, 21 Scala x DH130910, 22, Tepee x Wintmalt
 #23 Flavia x SY Tepee 24 Tepee x DH130910, 25 Flavia x Wintmalt, 26 Wintmalt x DH130910, 27 Flavia x DH130910
@@ -213,13 +261,13 @@ winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>%
          size = ifelse(taxa %in% c('DH130910', 'FLAVIA','TEPEE','WINTMALT','SCALA','ENDEAVOR'), 4, 3))
 winterlinePCAvalues
 library(ggplot2)
-winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point()+
-  winterlinePCAvalues%>% ggplot(aes(x = X1, y = X3,color = family)) + geom_point()+
+winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point()
+  winterlinePCAvalues%>% ggplot(aes(x = X1, y = X3,color = family)) + geom_point()
   winterlinePCAvalues%>% ggplot(aes(x = X2, y = X3,color = family)) + geom_point()
 
 winterlinePCAvalues  %>%
   ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+
-  ggtitle(label ="Principal Component Analysis \n of the WMB Population")+
+  ggtitle(label ="Principal Component Analysis \n of the WMB Population")+guides(size="none")+
   xlab('PC1')+ylab('PC2')+
   
   theme_bw()

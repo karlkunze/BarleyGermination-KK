@@ -46,5 +46,6 @@ all_filter
 # exportGenotypeTable(parents_filter,file = "data/genotypes/parents_2019_filter",format = "hapmap")
 exportGenotypeTable(all_filter,file = "data/Genotype_data/all_filter",format = "hapmap")
 ?exportGenotypeTable()
+?exportGenotypeTable()
 str(RIL_filter)
 DH_filter
