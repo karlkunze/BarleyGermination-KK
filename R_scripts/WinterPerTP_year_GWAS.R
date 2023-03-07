@@ -1,29 +1,26 @@
 # Script for the analysis, time series, genomic prediction, etc... Of the
 # Cornell Winter Maling Barley DH families. 
 
-library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
+library(sommer);library(arm);library(lme4);library(Hmisc);library(readxl);
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
-library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr);
+library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
 setwd(rprojroot::find_rstudio_root_file())
-library(dplyr)
-library(tidyr)
-getwd()
-path_n<-"/home/karl/git/NY-winter-barley-analysis/"# change this based on the path for the neighboring git repo
-path_n<-"C:/Users/kars8/git/NY-winter-barley-analysis/"
-getwd()
-load(paste0(path_n,"data/genotypes/wmb_GD_rrblup.Rdata"))
-load(paste0(path_n,"data/genotypes/GAPIT_wmb.Rdata"))
-load(paste0(path_n,"data/genotypes/wmb_pedigree.Rdata"))
-load(paste0(path_n,"data/phenotypes/Field_data_2020_2022.Rdata"))
+
+
+
+#load(paste0(path_n,"data/genotypes/wmb_GD_rrblup.Rdata"))
+#load(paste0(path_n,"data/genotypes/GAPIT_wmb.Rdata"))
+load("data/Genotype_data/wmb_file.Rdata")#wmbGAPIT
+
+
+load("data/Genotype_data/wmb_pedigree.Rdata")
+
 
 dh_list<-wmb_ped%>%filter(!Population%in%c("Recombinant_inbred_lines"))
-wmb_dh_imputed<-wmb_GD_rr$imputed[rownames(wmb_GD_rr$imputed)%in%dh_list$Ind,]
-WinterGD_1=wmb_dh_imputed%>%as.data.frame()
 
-load('data/Genotype_data/WinterGD_ter.RData')
+#Travis' genetic data used
+#load('data/Genotype_data/WinterGD_ter.RData')
 
-WinterGM=GAPIT_wmb$GM%>%filter(SNP%in%colnames(WinterGD))
-#load('data/Genotype_data/WinterGM_ter.RData')
 WinterGD[1:5,1:5]
 WinterGD_1$taxa<-rownames(WinterGD_1)
 
