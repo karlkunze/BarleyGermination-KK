@@ -1,0 +1,38 @@
+[main] INFO net.maizegenetics.util.LoggingUtils - Log File: /home/karl/git/BarleyGermination-KK/rTASSEL_log
+[main] INFO net.maizegenetics.plugindef.AbstractPlugin - Starting net.maizegenetics.analysis.data.FileLoadPlugin: time: Mar 6, 2023 21:11:10
+[main] INFO net.maizegenetics.plugindef.AbstractPlugin - 
+FileLoadPlugin Parameters
+format: Make Best Guess
+sortPositions: false
+keepDepth: false
+
+[main] INFO net.maizegenetics.analysis.data.FileLoadPlugin - Start Loading File: data/Genotype_data/DH_RIL_parents.hmp.txt time: Mar 6, 2023 21:11:10
+[main] INFO net.maizegenetics.analysis.data.FileLoadPlugin - guessAtUnknowns: type: Hapmap
+[main] INFO net.maizegenetics.analysis.data.FileLoadPlugin - Finished Loading File: data/Genotype_data/DH_RIL_parents.hmp.txt time: Mar 6, 2023 21:11:10
+Genotype Table Name: DH_RIL_parents
+Number of Taxa: 655
+Number of Sites: 13451
+Sites x Taxa: 8810405
+Chromosomes...
+0: start site: 0 (0) last site: 2059 (0) total: 2060
+1H: start site: 2060 (5008667) last site: 3241 (558418541) total: 1182
+2H: start site: 3242 (26308) last site: 5325 (767940532) total: 2084
+3H: start site: 5326 (681033) last site: 7123 (696704241) total: 1798
+4H: start site: 7124 (50793) last site: 8358 (646215285) total: 1235
+5H: start site: 8359 (546242) last site: 10393 (668340990) total: 2035
+6H: start site: 10394 (338420) last site: 11588 (579297689) total: 1195
+7H: start site: 11589 (86682) last site: 13450 (656988497) total: 1862
+
+[main] INFO net.maizegenetics.plugindef.AbstractPlugin - Finished net.maizegenetics.analysis.data.FileLoadPlugin: time: Mar 6, 2023 21:11:10
+[main] INFO net.maizegenetics.plugindef.AbstractPlugin - Starting net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin: time: Mar 6, 2023 21:12:2
+[main] INFO net.maizegenetics.plugindef.AbstractPlugin - 
+FilterTaxaBuilderPlugin Parameters
+filterName: Filter
+minNotMissing: 0.5
+minHeterozygous: 0.0
+maxHeterozygous: 1.0
+includeTaxa: true
+taxaList: null
+
+[main] WARN net.maizegenetics.gui.DialogUtils - Genotype data unchanged after filtering: Datum
+[main] INFO net.maizegenetics.plugindef.AbstractPlugin - Finished net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin: time: Mar 6, 2023 21:12:2
