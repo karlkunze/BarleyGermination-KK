@@ -1,20 +1,27 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 
 #Workflow:Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
 #New workflow Winter_DH_data_consolidation.Rmd->analysis_script.R
 
 
 
-
+```{r}
 library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 load("data/Genotype_data/wmb_file.Rdata")
+```
 
 
 
-#DH 2020 GI
+#ANOVA analysis across year and GE, GI
+```{R}
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==5)))
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==19)))
 #Location significant
@@ -53,10 +60,10 @@ anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=
 #location and rep significant, scald significant for GE, not GI
 anova(lm(GI~ taxa +Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
 anova(lm(Day1Germ~ taxa +Maturity_date:Location+replication, DH2020_2021%>% filter(DH2020_2021$Year=="2020",DH2020_2021$PM_date ==152)))
-#field analysis 2020
+
+
 #Summation, we need to consider Maturity date in the model, it affects GE at all timepoints and GI for timepoints 1, 2 and 3
 #scald affected GE for timepoint 4
-##############2021 
 #2021 GI
 table(DH2020_2021$PM_date,DH2020_2021$Year)#add 12, 33, 68
 
@@ -131,7 +138,9 @@ anova(lm(GI~ taxa +Year%in%Location+replication+Year, DH2020_2021%>% filter(DH20
 anova(lm(GI~ taxa +Location%in%Year+replication+Year, DH2020_2021%>% filter(DH2020_2021$PM_date ==152)))
 #all significant
 #We should include rep, location within Year, and Year as effects for models
-
+```
+## Histogram Visualization of GE and GI for specific
+```{r}
 
 DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(trait =='GE') %>%
   ggplot(aes(x = value, fill = TP))+geom_density()+facet_nested(TP ~trait+Year, scales = 'free')+
@@ -152,18 +161,20 @@ DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(tra
   #affects germination OR that the resis/sucespt loci is closely associated with AlaAT
 #Need to look into the maturity date problem more  
 #####
+```
+#functions for analysis
+```{r}
 
-DH2020_2021=DH2020_2021%>%dplyr::rename(rep=replication,year=Year)%>%mutate(PM_date=as.numeric(as.character((PM_date))))
-DH2020_2021=DH2020_2021 %>%filter(!Location=="Spring")
 
+# 
 #BLUPH2 = function(trait.lm) {
-  ses<- se.ranef(trait.lm)$'taxa' #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
-  v_BLUP<- ses^2
-  sigma2_g=VarCorr(trait.lm, comp="Variance")$'taxa'[1]
-  Reliability<- 1- v_BLUP/ (2*sigma2_g)  #where sigma2_g is the genetic variance estimated
-  H2<- round(mean(Reliability),3)
-  return(H2)
-}
+  #ses<- se.ranef(trait.lm)$'taxa' #where 'm' is your model object from 'lmer' (replace 'genotypes' with whatever you call your individuals in the data)
+#  v_BLUP<- ses^2
+ # sigma2_g=VarCorr(trait.lm, comp="Variance")$'taxa'[1]
+ # Reliability<- 1- v_BLUP/ (2*sigma2_g)  #where sigma2_g is the genetic variance estimated
+ # H2<- round(mean(Reliability),3)
+#  return(H2)
+#}
 
 BLUPH2_new = function(trait.lmer,d,AMat_geno) {
 
@@ -307,9 +318,12 @@ list5<-list(df4,H2)
       return(list5)
     }
   }
-library(lme4)
-library(corrr)
-#phs section
+```
+## setting up
+```{r}
+DH2020_2021
+#dplyr::rename(rep=replication,year=Year
+DH2020_2021=DH2020_2021%>%mutate(PM_date=as.numeric(as.character((PM_date))))%>%filter(!Location=="Spring")
 phs<-DH2020_2021%>%dplyr::select(taxa,year,Location,SourcePLOT,phs)%>%unique
 table(phs$yea,phs$Location)
 
@@ -412,25 +426,37 @@ for(i in 1:length(lengths(DHCombined))-1){
 DHComb_H2=DHComb_H2%>%arrange(trait,PM)%>%unique()%>%mutate(Year = if_else(str_detect(TP, "\\."), "2021", Year))
 
 
+```
 
 #correlations
-
+```{r}
 DH2020_1%>% join(DH2021_1 %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
   filter(!is.na(value2021), type =='BLUE')  %>% group_by(type, TP, trait) %>%
   summarise(correlation = cor(value, value2021))
-DHcomb_1
+```
+# combine all results and change some naming
+```{r}
+#
+#H@
+DH_H2=rbind(DH2021_H2,DH2020_H2,DHComb_H2)
+#data frames
 AllDHBluesPerYear = rbind(DH2020_1,DH2021_1,DHcomb_1) %>% filter(type =='BLUE') %>% ungroup()%>%filter(!taxa%in%c("Endeavor","Charles"))%>%
   mutate(taxa=toupper(taxa))
 AllDHBluesPerYear
 AllDHBluesPerYear[AllDHBluesPerYear$taxa=="SY_TEPEE",]$taxa<-"TEPEE"
 AllDHBluesPerYear[AllDHBluesPerYear$taxa=="DH130910",]$taxa<-"LIGHTNING"
 
-#going to change DH130910 to lightning now
-AllDHBluesPerYear
+AllDHBluesPerYear=AllDHBluesPerYear%>%mutate(family = mapvalues(substr(taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
+                            to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',
+      
+                                                                'Lightning','Flavia/Lightning','SY_Tepee/Lightning','Scala/Lightning','Wintmalt/Lightning',"Check","Check","Check")))
+        
+AllDHBluesPerYear$family
 
-#Heritabilities over both timepoints, both are high
-DH_H2=rbind(DH2021_H2,DH2020_H2,DHComb_H2) 
-DH_H2
+ 
+```
+## H2 visualization
+```{r}
 DH_H2%>%
    ggplot(aes(x = TP, y = ah2, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
   facet_wrap(vars(Year), ncol = 1)+theme_bw()+labs(title= 'Narrow sense heritability\nover time and datasets')
@@ -444,8 +470,10 @@ DH2020_H2%>% rbind(DH2021_H2, DHComb_H2) %>%
 table(AllDHBluesPerYear$taxa)
 #AllDHBluesPerYear= rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>%mutate(PM_date=as.double(PM_date),year=as.character(year))%>%ungroup()
 #load("/home/karl/git/TimeSeriesGermination/WinterBarley/Analysis/AllDHBluesPerYear.RData")
-dplyr::all_equal(AllDHBluesPerYear,AllDHBluesPerYear)
+```
 
+## Genotype data
+```{r}
 #winterGD and WinterGM
 #load('data/Genotype_data/myGM20_LDprune.Rdata')
 #load('data/Genotype_data/myGD20_LDprune.Rdata')
@@ -461,24 +489,23 @@ WinterGD$taxa<-rownames(WinterGD)
 str(WinterGD)
 WinterGD=WinterGD %>%relocate(taxa,.before = 1)%>%
 
-  mutate(taxa = gsub(pattern = ' ', replacement = '_',taxa),
-         taxa1 = taxa) %>% remove_rownames()%>% 
-  column_to_rownames('taxa1')
+  mutate(taxa = gsub(pattern = ' ', replacement = '_',taxa)) %>% remove_rownames()
+
 WinterGD[WinterGD$taxa=="DH130910",]$taxa<-"LIGHTNING"
 
-
+WinterGD
 #summarise(taxa = "Endeavor",Qsd1 = 2)%>%bind_rows(WinterGD, .)%>%mutate(Qsd1=replace(Qsd1,Qsd1==1,2))
 WinterGD$taxa
-WinterGD[WinterGD$taxa=="Endeavor",]$Qsd1
-WinterGD[WinterGD$taxa=="Charles",]$Qsd1
+WinterGD[WinterGD$taxa=="ENDEAVOR",]$Qsd1
+WinterGD[WinterGD$taxa=="CHARLES",]$Qsd1
 
-
-sum(WinterGM$SNP == colnames(WinterGD[,-1]))
+dim(WinterGM)
+colnames(WinterGD)[!colnames(WinterGD)%in%WinterGM$SNP]
+dim(WinterGD)
 # Make sure things are in the right order
 # Sum should = 8384
 dim(WinterGD)
-WinterGD$taxa
-table(substr(WinterGD$taxa,1,5))
+
 WinterRelationship=wmbGAPIT$A
 WinterPCA = eigen(WinterRelationship)
 substr(WinterGD$taxa,1,3)
@@ -488,7 +515,8 @@ winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>%
   
   mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
                             to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',
-                                   'Lightning','Flavia/Lightning','SY_Tepee/Lightning','Scala/Lightning','Wintmalt/Lightning',"Check","Check","Check")),
+      
+                                                                'Lightning','Flavia/Lightning','SY_Tepee/Lightning','Scala/Lightning','Wintmalt/Lightning',"Check","Check","Check")),
          taxa = WinterGD$taxa,
          shapes = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), taxa, 'Lines'),
          size = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), 3, 2))
@@ -524,21 +552,23 @@ DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date
 #png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
 #2020
 table(AllDHBluesPerYear$PM_date,AllDHBluesPerYear$year)
-AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+
+AllDHBluesPerYear
+ filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('DH130910')) %>% filter(year %in% c('2020'))  %>%
+  filter(family %nin% c('Lightning')) %>% filter(year %in% c('2020'))  %>%
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+
  
-  geom_boxplot()+facet_nested(trait~Family, scales = 'free')+
+  geom_boxplot()+facet_nested(trait~family, scales = 'free')+
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2020 Year"))+
 theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
 
 #2021
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('DH130910')) %>% filter(year %in% c('2021'))  %>%
+  filter(Family %nin% c('Lightning')) %>% filter(year %in% c('2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
@@ -548,7 +578,7 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
 #2020/2021
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   join(AlaT[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('DH130910')) %>% filter(year %in% c('2020/2021'))  %>%
+  filter(Family %nin% c('Lightning')) %>% filter(year %in% c('2020/2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
@@ -611,8 +641,8 @@ GWA_MLMM_fortidyR = function(df, groupvars) {
 # }
 
 Add_DH130910_familyStructure = function(df3, groupvar){
-  DH130910_rows = df3 %>% filter(taxa == 'DH130910') %>% select(!Family)
-  df3= df3 %>% filter(taxa != 'DH130910') %>%
+  DH130910_rows = df3 %>% filter(taxa == 'Lightning') %>% select(!family)
+  df3= df3 %>% filter(taxa != 'Lightning') %>%
     rbind(DH130910_rows %>% mutate(Family='Flavia/DH130910'),
           DH130910_rows %>% mutate(Family='SY_Tepee/DH130910'),
           DH130910_rows %>% mutate(Family='Scala/DH130910'),
@@ -622,15 +652,17 @@ Add_DH130910_familyStructure = function(df3, groupvar){
   return(df3)
 }
 
-
+```
+# GWAS part
+```{r}
 #Per time point for MLMM
 ##takes some time
 #SAVE THE RESULTS so that we dont have to run again
 print("MLMM GWA model ahead")
 
-# WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
-#   ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
-# save(WinterPerTPGWAS,file="data/GWA_results/WinterPerTPGWAS.Rdata")
+ WinterPerTPGWAS = DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
+   ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
+save(WinterPerTPGWAS,file="data/GWA_results/WinterPerTPGWAS.Rdata")
 
 
   
@@ -2663,4 +2695,4 @@ ggplot(data=WDHmelt_P, aes(x=Timepoint, y=value, fill=Pedigree)) +
 
   theme(legend.position = "none")+
   xlab("Time point") + ylab("")
-
+```
