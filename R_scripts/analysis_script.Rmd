@@ -4,11 +4,11 @@ editor_options:
   chunk_output_type: console
 ---
 
-#Workflow:Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
-#New workflow Winter_DH_data_consolidation.Rmd->analysis_script.R
+# Workflow:Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
+# New workflow Winter_DH_data_consolidation.Rmd->analysis_script.R
 
 
-
+# read in packages
 ```{r}
 library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
@@ -238,7 +238,7 @@ BlueBlupsH2_Location_rep_taxa <- function(d, groupvars) {
     H2 = BLUPH2_new(trait.lmer,d,wmbGAPIT$A)
 
    
-   df4= rbind(lineEf, lineBLUE) %>% arrange(type, taxa) %>%
+   df4= lineBLUE %>% arrange(type, taxa) %>%
       join(d %>% dplyr::select(taxa,trait,PM_date,TP,year) %>% unique())
 
     #H2_new=BLUPH2_new(trait.lmer,d=d2, wmbGAPIT$A)
@@ -323,7 +323,8 @@ list5<-list(df4,H2)
 ```{r}
 DH2020_2021
 #dplyr::rename(rep=replication,year=Year
-DH2020_2021=DH2020_2021%>%mutate(PM_date=as.numeric(as.character((PM_date))))%>%filter(!Location=="Spring")
+DH2020_2021=DH2020_2021%>%mutate(PM_date=as.numeric(as.character((PM_date))))%>%filter(!Location=="Spring")%>%dplyr::rename(year=Year,rep=replication)
+names(DH2020_2021)
 phs<-DH2020_2021%>%dplyr::select(taxa,year,Location,SourcePLOT,phs)%>%unique
 table(phs$yea,phs$Location)
 
@@ -348,7 +349,7 @@ for(i in 1:length(lengths(DH2020Estimates))-1){
   DH2020_1<- rbind(DH2020_1,app)
 }
 DH2020_1=DH2020_1%>%arrange(year,trait,PM_date)
-
+table(DH2020_1$PM_date,DH2020_1$trait)
 #H2
 DH2020_H2<-DH2020Estimates[[1]][[2]]
 DH2020_H2
@@ -371,7 +372,7 @@ DH2021Estimates
 
 
 DH2021_1<-DH2021Estimates[[1]][[1]]
-
+dim(DH2021_1)
 #env_n<-length(table(BSR.df$Env))
 for(i in 1:length(lengths(DH2021Estimates))-1){
   
@@ -379,7 +380,7 @@ for(i in 1:length(lengths(DH2021Estimates))-1){
   DH2021_1<- rbind(DH2021_1,app)
 }
 DH2021_1=DH2021_1%>%arrange(year,trait,PM_date)
-DH2021_1
+table(DH2021_1$PM_date,DH2021_1$trait)
 #H2
 DH2021_H2<-DH2021Estimates[[1]][[2]]
 DH2021_H2
