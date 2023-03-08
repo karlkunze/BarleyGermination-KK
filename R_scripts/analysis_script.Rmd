@@ -4,7 +4,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Workflow:Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
+# Old Workflow:Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
 # New workflow Winter_DH_data_consolidation.Rmd->analysis_script.R
 
 
@@ -323,6 +323,7 @@ list5<-list(df4,H2)
 ```{r}
 DH2020_2021
 #dplyr::rename(rep=replication,year=Year
+
 DH2020_2021=DH2020_2021%>%mutate(PM_date=as.numeric(as.character((PM_date))))%>%filter(!Location=="Spring")%>%dplyr::rename(year=Year,rep=replication)
 names(DH2020_2021)
 phs<-DH2020_2021%>%dplyr::select(taxa,year,Location,SourcePLOT,phs)%>%unique
@@ -337,7 +338,7 @@ DH2020_2021%>%group_by(year,TP)%>%as.matrix()
 DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>% 
     pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
     group_by(TP, PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE)# %>% ungroup()%>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))
-
+save(DH2020Estimates,file="data/Phenotype_Data/DH2020Estimates.Rdata")
 DH2020Estimates
 
 DH2020_1<-DH2020Estimates[[1]][[1]]
@@ -353,8 +354,9 @@ table(DH2020_1$PM_date,DH2020_1$trait)
 #H2
 DH2020_H2<-DH2020Estimates[[1]][[2]]
 DH2020_H2
+lengths(DH2020Estimates)
 #env_n<-length(table(BSR.df$Env))
-for(i in 1:length(lengths(DH2020Estimates))-1){
+for(i in 2:length(lengths(DH2020Estimates))-1){
   
   app<-DH2020Estimates[[c(1+i)]][[2]]
 
@@ -366,20 +368,28 @@ DH2020_H2=DH2020_H2%>%arrange(trait,PM)
 
 
 
-DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>% dplyr::select(taxa, rep, Location, TP,phs, GE,GI,PM_date,year,Family) %>% pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
-  group_by(TP,PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE) #%>% ungroup()%>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))
-DH2021Estimates
-
+DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>%droplevels()%>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>% 
+    pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
+    group_by(TP, PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE) #%>% ungroup()%>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))
+save(DH2021Estimates,file="data/Phenotype_Data/DH2021Estimates.Rdata")
+lengths(DH2021Estimates)
+table(DH2021Estimates$trait,DH2021Estimates$PM_date)
 
 DH2021_1<-DH2021Estimates[[1]][[1]]
-dim(DH2021_1)
-#env_n<-length(table(BSR.df$Env))
-for(i in 1:length(lengths(DH2021Estimates))-1){
+dim(DH2020_1)
+DH2021Estimates[[1]][[1]]
+DH2021Estimates[[1]][[1]]
+length(lengths(DH2021Estimates))
+DH2021_1
+for(i in 2:length(lengths(DH2021Estimates))-1){
   
   app<-DH2021Estimates[[c(i+1)]][[1]]
   DH2021_1<- rbind(DH2021_1,app)
 }
+DH2021_1
 DH2021_1=DH2021_1%>%arrange(year,trait,PM_date)
+
+
 table(DH2021_1$PM_date,DH2021_1$trait)
 #H2
 DH2021_H2<-DH2021Estimates[[1]][[2]]
@@ -391,9 +401,9 @@ for(i in 1:length(lengths(DH2021Estimates))-1){
   
   DH2021_H2<- rbind(DH2021_H2,app)
 }
-DH2021_H2=DH2021_H2%>%arrange(trait,PM)
+DH2021_H2=DH2021_H2%>%arrange(trait,PM)%>%unique()
 
-
+DH2021_H2
 
 
 #Both
@@ -402,6 +412,7 @@ DHCombined = DH2020_2021%>%filter(year=="2020")%>% dplyr::select(taxa, rep, Loca
   mutate(year = factor(year, levels = c('2021','2020'))) %>%  pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
   group_by(TP,PM_date, trait) %>%group_map(BlueBlupsH2_Year_rep_taxa,.keep=TRUE)  #%>% mutate(year = '2020/2021')
 str(DHCombined)
+save(DHCombined,file="data/Phenotype_Data/DHCombined.Rdata")
 DHcomb_1<-DHCombined[[1]][[1]]
 DHcomb_1$year<-"2020/2021"
 #env_n<-length(table(BSR.df$Env))
@@ -424,7 +435,7 @@ for(i in 1:length(lengths(DHCombined))-1){
   app$Year<-"2020/2021"
   DHComb_H2<- rbind(DHComb_H2,app)
 }
-DHComb_H2=DHComb_H2%>%arrange(trait,PM)%>%unique()%>%mutate(Year = if_else(str_detect(TP, "\\."), "2021", Year))
+DHComb_H2=DHComb_H2%>%arrange(trait,PM)%>%unique()%>%mutate(Year = if_else(stringr::str_detect(TP, "\\."), "2021", Year))
 
 
 ```
