@@ -13,6 +13,7 @@ editor_options:
 library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
 library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
+library(GENESIS)
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 load("data/Genotype_data/wmb_file.Rdata")
@@ -339,12 +340,13 @@ DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep
     pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
     group_by(TP, PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE)# %>% ungroup()%>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))
 save(DH2020Estimates,file="data/Phenotype_Data/DH2020Estimates.Rdata")
+load("data/Phenotype_Data/DH2020Estimates.Rdata")
 DH2020Estimates
 
 DH2020_1<-DH2020Estimates[[1]][[1]]
 
 #env_n<-length(table(BSR.df$Env))
-for(i in 1:length(lengths(DH2020Estimates))-1){
+for(i in 2:length(lengths(DH2020Estimates))-1){
   
   app<-DH2020Estimates[[c(i+1)]][[1]]
   DH2020_1<- rbind(DH2020_1,app)
@@ -367,11 +369,15 @@ DH2020_H2=DH2020_H2%>%arrange(trait,PM)
 
 
 
-
+##takes time
 DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>%droplevels()%>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>% 
     pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
     group_by(TP, PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE) #%>% ungroup()%>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))
+
+
+
 save(DH2021Estimates,file="data/Phenotype_Data/DH2021Estimates.Rdata")
+load("data/Phenotype_Data/DH2021Estimates.Rdata")
 lengths(DH2021Estimates)
 table(DH2021Estimates$trait,DH2021Estimates$PM_date)
 
@@ -413,6 +419,7 @@ DHCombined = DH2020_2021%>%filter(year=="2020")%>% dplyr::select(taxa, rep, Loca
   group_by(TP,PM_date, trait) %>%group_map(BlueBlupsH2_Year_rep_taxa,.keep=TRUE)  #%>% mutate(year = '2020/2021')
 str(DHCombined)
 save(DHCombined,file="data/Phenotype_Data/DHCombined.Rdata")
+load("data/Phenotype_Data/DHCombined.Rdata")
 DHcomb_1<-DHCombined[[1]][[1]]
 DHcomb_1$year<-"2020/2021"
 #env_n<-length(table(BSR.df$Env))
@@ -689,6 +696,48 @@ save(WinterPerTPGWAS ,file="data/GWA_results/WinterPerTPGWAS.Rdata")
 
 ```
 
+```{r}
+geno<-WinterGD
+rownames(geno)<-WinterGD$taxa
+geno=as.data.frame(t(geno[-1]))
+geno$SNP<-rownames(geno)
+geno=geno%>%relocate(SNP,.before=1)
+geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,chrom=Chromosome,bp=Position)
+geno
+library(SNPRelate)
+
+snpgdsCreateGeno("test5.gds", genmat = as.matrix(round(WinterGD[-1],0)), sample.id=rownames(WinterGD$taxa), snp.id = colnames(WinterGD[-1]), snp.chromosome = names(WinterGM$Chromosome),
+                 snp.position = as.integer(WinterGM$Position), snpfirstdim =FALSE)
+(gdsfile <- snpgdsOpen("test4.gds"))
+
+
+gdsfile
+library(GWASTools)
+library(GENESIS)
+gdsfile3 <- system.file("extdata", "HapMap_ASW_MXL_geno.gds", package="GENESIS")
+# read in GDS data
+HapMap_geno <- GdsGenotypeReader(filename = "test5.gds")
+HapMap_geno <-GdsGenotypeReader(gdsfile3)
+gdsClose(gdsfile3)
+# load saved matrix of KING-robust estimates
+data("HapMap_ASW_MXL_KINGmat")
+
+# run PC-AiR
+mypcair <- pcair(HapMap_geno,
+                 kinobj = HapMap_ASW_MXL_KINGmat,
+                 divobj = HapMap_ASW_MXL_KINGmat,
+                 verbose = FALSE)
+mypcs <- mypcair$vectors[,1,drop=FALSE]
+
+# create a GenotypeBlockIterator object
+HapMap_genoData <- GenotypeBlockIterator(HapMap_genoData)
+# run PC-Relate
+mypcrel <- pcrelate(HapMap_genoData, pcs = mypcs,
+                    training.set = mypcair$unrels,
+                    BPPARAM = BiocParallel::SerialParam(),
+                    verbose = FALSE)
+
+```
 # Let's try sommer or GWASpoly
 ```{r}
 library(GWASpoly)
