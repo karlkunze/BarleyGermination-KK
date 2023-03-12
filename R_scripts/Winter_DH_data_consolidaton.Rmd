@@ -301,7 +301,7 @@ yu%>%filter(delta_1<=-0.15)
 
 
 
-yu2<-TP_data%>%filter(Year=="2021")%>%droplevels()%>%drop_na(GE_47,GE_33)
+#yu2<-TP_data%>%filter(Year=="2021")%>%droplevels()%>%drop_na(GE_47,GE_33)
 yu$delta_1<-yu$GE_47-yu$GE_33
 yu%>%filter(delta_1<=-0.3)
 #found 3, filter based on source plot
@@ -317,16 +317,20 @@ DH2020_2021%>%filter(Year=="2021")%>% ggplot(aes(PM_date,GE,group=SourcePLOT,col
 ```
 
 ```{r}
-TP_data=DH2020_2021%>%dplyr::select(taxa,SourcePLOT,Location,Family,Year,replication,PM_date,GE,GI,GE5,GI5,Day1Germ)%>% dplyr::select(-replication)%>%pivot_wider(names_from = c(PM_date), values_from = -names(.)[c(1:6)],values_fill=NA,values_fn =mean)
-
-```
+DH2020_2021
+DH2020_2021[DH2020_2021$taxa=="DH130910",]$taxa<-"Lightning"
+DH2020_2021[DH2020_2021$taxa=="SY_Tepee",]$taxa<-"Tepee"
+DH2020_2021$taxa<-gsub("_","-",DH2020_2021$taxa)
 
 ## joining with field data
+
+
+save(DH2020_2021, file="data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
+
+```
+## joining with field data
 ```{r}
-
-#TP-data from earlier
-
-
+TP_data=DH2020_2021%>%dplyr::select(taxa,SourcePLOT,Location,Family,Year,replication,PM_date,GE,GI,GE5,GI5,Day1Germ)%>% dplyr::select(-replication)%>%pivot_wider(names_from = c(PM_date), values_from = -names(.)[c(1:6)],values_fill=NA,values_fn =mean)
 
 
 traits<-c(DH2020_field_trait_names,WBMaster21_trait_names)
@@ -339,15 +343,11 @@ field_data=DH2020_2021%>%dplyr::select(all_of(traits))%>%distinct()
 ```
 
 ```{r}
-#going to rename DH130910 here
-TP_data[TP_data$taxa=="DH130910",]$taxa<-"Lightning"
-field_data[field_data$taxa=="DH130910",]$taxa<-"Lightning"
-TP_data[TP_data$taxa=="SY_Tepee",]$taxa<-"Tepee"
-field_data[field_data$taxa=="SY_Tepee",]$taxa<-"Tepee"
-TP_data$taxa
+
+
 DH2020_2021_wide<-full_join(field_data,TP_data,by=c("SourcePLOT","taxa","Family","Location","Year"))
 
-save(DH2020_2021, file="data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
+
 save(DH2020_2021_wide, file="data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 ```
 
