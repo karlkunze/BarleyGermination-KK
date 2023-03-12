@@ -703,181 +703,17 @@ geno=as.data.frame(t(geno[-1]))
 geno$SNP<-rownames(geno)
 geno=geno%>%relocate(SNP,.before=1)
 geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,chrom=Chromosome,bp=Position)
-rownames(geno)
-as.integer(geno$bp)
-geno <- MatrixGenotypeReader(genotype = as.matrix(geno[,-c(1:3)]), snpID = as.integer(rownames(geno)),
-                             chromosome = geno$chrom,position = geno$bp,
-                             scanID = colnames(geno)[-c(1:3)])
-genoData <- GenotypeData(geno)
-
-library(SNPRelate)
-WinterGD[1:3,1:10]
-wmbGAPIT$A[1:5,1:5]
-snpgdsCreateGeno("test6.gds", genmat = as.matrix(round(WinterGD[-1],0)), sample.id=rownames(WinterGD$taxa), snp.id = colnames(WinterGD[-1]), snp.chromosome = names(WinterGM$Chromosome),
-                 snp.position = as.integer(WinterGM$Position), snpfirstdim =FALSE)
-(gdsfile <- snpgdsOpen("test6.gds"))
-
-gdsfile
-# create a gds file
-with(hapmap_geno, snpgdsCreateGeno("test.gds", genmat=genotype,
-    sample.id=sample.id, snp.id=snp.id, snp.chromosome=snp.chromosome,
-    snp.position=snp.position, snp.allele=snp.allele, snpfirstdim=TRUE))
 
 
 
-library(GWASTools)
-library(GENESIS)
-library(SNPRelate)
-
-gdsfile <- system.file("extdata", "HapMap_ASW_MXL_geno.gds", package="GENESIS")
-gdsfile
-# read in GDS data
-showfile.gds(closeall=TRUE)
-HapMap_geno <- GdsGenotypeReader(filename = "test6.gds")
-HapMap_geno 
 # create a GenotypeData class object
 
-geno
-library(GWASdata)
-data(illumina_snp_annot)
-illumina_snp_annot
-anno<-geno%>%dplyr::select(marker,chrom,bp)%>%arrange(chrom,bp)
-anno$index<-1:nrow(anno)
-
-names(geno)[1:5]
-snpAnnot <- SnpAnnotationDataFrame(illumina_snp_annot)
-
-HapMap_genoData <- GenotypeData(HapMap_geno)
-?GenotypeData()
-# load saved matrix of KING-robust estimates
-data("HapMap_ASW_MXL_KINGmat")
-str(HapMap_ASW_MXL_KINGmat)
-str(HapMap_ASW_MXL_KINGmat[1:5,1:5])
-
-as.matrix(wmbGAPIT$A)
-# run PC-AiR
-str(HapMap_genoData)
-which(colnames(wmbGAPIT$A)%in%WinterGD$taxa)
-
-wmbGAPIT$A[-479,-479]
-View(wmbGAPIT$A)
-WinterGD$taxa
 rownames(wmbGAPIT$A)[479]<-"LIGHTNING"
 colnames(wmbGAPIT$A)[479]<-"LIGHTNING"
-str(wmbGAPIT$A)
-HapMap_genoData
-HapMap_genoData
-mypcair <- pcair(HapMap_genoData,
-                 kinobj = wmbGAPIT$A,
-                 divobj= wmbGAPIT$A,
-                 verbose = TRUE)
-rm(mypcair)
-mypcs <- mypcair$vectors[,1,drop=FALSE]
-
-# create a GenotypeBlockIterator object
-HapMap_genoData <- GenotypeBlockIterator(HapMap_genoData)
-# run PC-Relate
-mypcair$unrels
-mypcrel <- pcrelate(HapMap_genoData, pcs = mypcs,
-                    training.set = mypcair$unrels,
-                    BPPARAM = BiocParallel::SerialParam(),
-                    verbose = FALSE)
 
 
-### phenotype part
 
-# generate a phenotype
-set.seed(4)
-pheno <- 0.2*mypcs + rnorm(mypcair$nsamp, mean = 0, sd = 1)
 
-## -----------------------------------------------------------------------------
-# mypcair contains PCs from a previous PC-AiR analysis
-# pheno is a vector of Phenotype values
-
-# make a data.frame
-mydat <- data.frame(scanID = mypcair$sample.id, pc1 = mypcair$vectors[,1],
-                    pheno = pheno)
-head(mydat)
-
-# make ScanAnnotationDataFrame
-scanAnnot <- ScanAnnotationDataFrame(mydat)
-scanAnnot
-
-## ---- eval=FALSE--------------------------------------------------------------
-#  geno <- MatrixGenotypeReader(genotype = genotype, snpID = snpID,
-#                               chromosome = chromosome, position = position,
-#                               scanID = scanID)
-#  genoData <- GenotypeData(geno)
-
-## ---- eval=FALSE--------------------------------------------------------------
-#  geno <- GdsGenotypeReader(filename = "genotype.gds")
-#  genoData <- GenotypeData(geno)
-
-## ---- eval=FALSE--------------------------------------------------------------
-#  snpgdsBED2GDS(bed.fn = "genotype.bed",
-#                bim.fn = "genotype.bim",
-#                fam.fn = "genotype.fam",
-#                out.gdsfn = "genotype.gds")
-
-## ---- eval=FALSE--------------------------------------------------------------
-#  # read in GDS data
-#  gdsfile <- system.file("extdata", "HapMap_ASW_MXL_geno.gds", package="GENESIS")
-#  HapMap_geno <- GdsGenotypeReader(filename = gdsfile)
-
-## -----------------------------------------------------------------------------
-# create a GenotypeData class object with paired ScanAnnotationDataFrame
-HapMap_genoData <- GenotypeData(HapMap_geno, scanAnnot = scanAnnot)
-HapMap_genoData
-
-## -----------------------------------------------------------------------------
-# mypcrel contains Kinship Estimates from a previous PC-Relate analysis
-myGRM <- pcrelateToMatrix(mypcrel)
-myGRM[1:5,1:5]
-
-## -----------------------------------------------------------------------------
-# fit the null mixed model
-nullmod <- fitNullModel(scanAnnot, outcome = "pheno", covars = "pc1",
-                        cov.mat = myGRM, family = "gaussian")
-
-## ---- eval=FALSE--------------------------------------------------------------
-#  nullmod <- fitNullModel(scanAnnot, outcome = "pheno",
-#                          covars = c("pc1","pc2","sex","age"),
-#                          cov.mat = myGRM, family = "gaussian")
-
-## ---- eval=FALSE--------------------------------------------------------------
-#  nullmod <- fitNullModel(scanAnnot, outcome = "pheno", covars = "pc1",
-#                          cov.mat = list("GRM" = myGRM, "House" = H),
-#                          family = "gaussian")
-
-## ---- eval=FALSE--------------------------------------------------------------
-#  nullmod <- fitNullModel(scanAnnot, outcome = "pheno", covars = "pc1",
-#                          cov.mat = myGRM, family = "gaussian",
-#                          group.var = "study")
-
-## ---- eval=FALSE--------------------------------------------------------------
-#  nullmod <- fitNullModel(scanAnnot, outcome = "pheno", covars = "pc1",
-#                          cov.mat = myGRM, family = "binomial")
-
-## -----------------------------------------------------------------------------
-genoIterator <- GenotypeBlockIterator(HapMap_genoData, snpBlock=5000)
-
-## -----------------------------------------------------------------------------
-assoc <- assocTestSingle(genoIterator, null.model = nullmod,
-                         BPPARAM = BiocParallel::SerialParam())
-
-## ---- eval = FALSE------------------------------------------------------------
-#  # mysnps is a vector of snpID values for the SNPs we want to test
-#  genoIterator <- GenotypeBlockIterator(HapMap_genoData, snpInclude=mysnps)
-#  assoc <- assocTestSingle(genoIterator, null.model = nullmod)
-
-## -----------------------------------------------------------------------------
-head(assoc)
-
-## -----------------------------------------------------------------------------
-varCompCI(nullmod, prop = TRUE)
-
-## ---- echo=FALSE--------------------------------------------------------------
-close(genoIterator)
 
 ```
 # Let's try sommer or GWASpoly
@@ -885,6 +721,7 @@ close(genoIterator)
 library(GWASpoly)
 geno_example<-read.csv(file="data/example_data/new_potato_geno.csv")
 pheno_example<-read.csv(file="data/example_data/new_potato_pheno.csv")
+str(geno_example)
 names(geno_example)
 View(pheno_example)
 #%>% rbind(DH2021_1, DHcomb_1)
@@ -908,13 +745,29 @@ genofile <- system.file("extdata", "data/example_data/new_potato_geno.csv", pack
 phenofile <- system.file("extdata", "new_potato_pheno.csv", package = "GWASpoly")
 genofile
 pheno_1<-DH2020_1 %>% rbind(DH2021_1, DHcomb_1) 
-pheno_1
+table(pheno_1$PM_date)
+names(pheno_1)
+pheno=pheno_1%>%filter(trait=="GI",PM_date=="12",year=="2021")%>%dplyr::select(taxa,value)
+pheno[grep("DH",pheno$taxa),]$taxa<-"LIGHTNING"
+pheno$taxa<-toupper(pheno$taxa)
+library(GWASpoly)
+?GWASpoly.data()
+names(geno)[1:4]
+
+geno_m=as.matrix(geno[,-c(1:3)])
+geno
+map=geno[,c("marker","chrom","bp")]
+pheno_1%>%filter()
+genofile <- system.file("extdata", "new_potato_geno.csv", package = "GWASpoly")
+phenofile <- system.file("extdata", "new_potato_pheno.csv", package = "GWASpoly")
+
 library(GWASpoly)
 data <- read.GWASpoly(ploidy=4, pheno.file=phenofile, geno.file=genofile,
                       format="numeric", n.traits=1, delim=",")
+str(data)
 
-data <- read.GWASpoly(ploidy=4, pheno.file=phenofile, geno.file=genofile,
-                      format="numeric", n.traits=1, delim=",")
+GWASpoly.data(map=map,pheno,geno=geno_m,ploidy = 2)
+?GWASpoly.data()
 str(data)
 str(data@map)
 ```

@@ -175,7 +175,7 @@ wmbGAPIT$GM=wmbGAPIT$GM[which(wmbGAPIT$GM$SNP %in% colnames(wmbGAPIT$GD)),]
 str(wmbGAPIT$GM)
 
 
-
+getwd()
 
 save(wmbGAPIT,file="data/Genotype_data/wmb_file.Rdata")
 

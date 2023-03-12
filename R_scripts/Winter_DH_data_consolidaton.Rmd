@@ -336,6 +336,12 @@ traits=traits[-c(1,2,7,12,30,31)]
 
 
 field_data=DH2020_2021%>%dplyr::select(all_of(traits))%>%distinct()
+```
+
+```{r}
+#going to rename DH130910 her
+TP_data[TP_data$taxa=="DH130910",]$taxa<-"Lightning"
+field_data[field_data$taxa=="DH130910",]$taxa<-"Lightning"
 DH2020_2021_wide<-full_join(field_data,TP_data,by=c("SourcePLOT","taxa","Family","Location","Year"))
 
 save(DH2020_2021, file="data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021

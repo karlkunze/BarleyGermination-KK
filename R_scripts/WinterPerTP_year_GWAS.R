@@ -21,6 +21,8 @@ dh_list<-wmb_ped%>%filter(!Population%in%c("Recombinant_inbred_lines"))
 #Travis' genetic data used
 #load('data/Genotype_data/WinterGD_ter.RData')
 
+
+#load('data/Genotype_data/WinterGM_ter.RData')
 WinterGD[1:5,1:5]
 WinterGD_1$taxa<-rownames(WinterGD_1)
 
