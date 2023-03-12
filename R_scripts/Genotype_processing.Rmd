@@ -116,10 +116,13 @@ wmb_gt<-wmb_gt%>%arrange(chrom,pos)
 
 
 ```{r}
+library(GAPIT3)
 myG <- read.table("~/Downloads/GAPIT_Tutorial_Data/mdp_genotype_test.hmp.txt", head = TRUE)
 yGAPIT <- GAPIT(G=myG, output.numerical=TRUE)
 yGAPIT$G
 #df change
+wmb_gt<-wmb_gt%>%rename(LIGHTNING="DH130910")
+wmbGAPIT<- GAPIT(G=rbind(wmb_gt[1,],wmb_gt), output.numerical=TRUE)
 wmb_gt_t<-wmb_gt
 wmb_gt_t
 myGM20$Chrom[match(wmb_gt_t$`rs#`, myGM20$SNP)]
@@ -129,13 +132,13 @@ wmb_gt_t$pos = myGM20$Position[match(wmb_gt_t$`rs#`, myGM20$SNP)];wmb_gt_t$pos<-
 
 
 
-wmbGAPIT<- GAPIT(G=rbind(wmb_gt[1,],wmb_gt), output.numerical=TRUE)
 
+rownames(wmbGAPIT$GD)
 wmbGAPIT$GM<-wmb_gt_t%>%dplyr::select(`rs#`,chrom,pos)%>%rename(SNP=`rs#`,Chromosome=chrom,Position=pos)
 dim(wmbGAPIT$GM)
 dim(wmbGAPIT$GD)
 
-colnames(wmbGAPIT$GD)=gsub("\\.","_",colnames(wmbGAPIT$GD))
+colnames(wmbGAPIT$GD)=gsub("\\.","-",colnames(wmbGAPIT$GD))
 wmbGAPIT$GD=wmbGAPIT$GD[-1]
 
 #we could do the imputation here
@@ -156,15 +159,17 @@ wmb_GD$imputed[1:5,1:5]
 #names(wmb_GD) <- gsub(x = names(wmb_GD), pattern = "\\.", replacement = "-") 
 Gi<-wmb_GD$imputed+1
 wmbGAPIT$GD<-Gi
+
 wmbGAPIT$A<-wmb_GD$A
 #rownames(wmb_GD_rr$A)<-toupper(rownames(wmb_GD_rr$A))
 #colnames(wmb_GD_rr$A)<-toupper(colnames(wmb_GD_rr$A))
 
 
 wmbGAPIT$GD[1:5,1:5]
-snpgdsCreateGeno("test3.gds", genmat = as.matrix(round(wmbGAPIT$GD,0)), sample.id=rownames(wmbGAPIT$GD), snp.id = colnames(wmbGAPIT$GD), snp.chromosome = names(wmbGAPIT$GM$Chromosome),
+library(SNPRelate)
+snpgdsCreateGeno("test4.gds", genmat = as.matrix(round(wmbGAPIT$GD,0)), sample.id=rownames(wmbGAPIT$GD), snp.id = colnames(wmbGAPIT$GD), snp.chromosome = names(wmbGAPIT$GM$Chromosome),
                  snp.position = as.integer(wmbGAPIT$GM$Position), snpfirstdim =FALSE)
-(gdsfile <- snpgdsOpen("test3.gds"))
+(gdsfile <- snpgdsOpen("test4.gds"))
 
 snpset <- snpgdsLDpruning(gdsfile, ld.threshold=0.9,method="corr",slide.max.bp = 2000,maf = 0.05,remove.monosnp = TRUE)
 
@@ -176,7 +181,7 @@ str(wmbGAPIT$GM)
 
 
 getwd()
-
+rownames(wmbGAPIT$GD)
 save(wmbGAPIT,file="data/Genotype_data/wmb_file.Rdata")
 
 
@@ -189,6 +194,10 @@ library(pedigree)
 load("data/Phenotype_Data/Field_data_2020_2022.Rdata")
 
 ped<-all_pheno%>%dplyr::select(GID,family,Check)%>%unique()
+ped
+ped<- data.frame(lapply(ped, function(x) {
+                 gsub("DH130910", "Lightning", x)             }))
+ped
 ped[!ped$Check==0,]$family<-toupper(ped[!ped$Check==0,]$family)
 ped$parent1<-sapply(str_split(ped$family,"/"),`[`,1)
 ped$parent2<-sapply(str_split(ped$family,"/"),`[`,2)
@@ -227,7 +236,7 @@ pc.percent <- pca$varprop*100
 head(round(pc.percent, 2))
 plot(1:10,pc.percent[1:10])
 
-rownames()
+#rownames()
 
 WinterRelationship =wmbGAPIT$A
 #list_in<-wmb_ped%>%filter(!Population%in%c("Recombinant_inbred_lines"))# we are just doing the non RIL lines
@@ -240,7 +249,7 @@ data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col
 wmb_GD$taxa<-rownames(wmbGAPIT$GD)
 
 t<-wmbGAPIT$GD%>%as.data.frame()%>%tibble::add_column(taxa=rownames(.),before=1)
-
+wmbGAPIT$GD
 #18-Scala x Tepee, 19 Scala x Wintmalt, 20 Scala x Flavia, 21 Scala x DH130910, 22, Tepee x Wintmalt
 #23 Flavia x SY Tepee 24 Tepee x DH130910, 25 Flavia x Wintmalt, 26 Wintmalt x DH130910, 27 Flavia x DH130910
 
@@ -252,13 +261,16 @@ t$GID
 table(wmb_ped$Population)
 
 
+rownames(t)
+table(ped$GID)
+ped[ped$GID=="Lightning",]$GID<-"LIGHTNING"
 t<-t%>%mutate(Family=plyr::mapvalues(rownames(.),from = ped$GID,to=ped$family))
 t$Family
 winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
   mutate(family =t$Family,
          taxa = rownames(t),
-         shapes = ifelse(taxa %in% c('DH130910', 'FLAVIA','TEPEE','WINTMALT','SCALA'), taxa, 'Lines'),
-         size = ifelse(taxa %in% c('DH130910', 'FLAVIA','TEPEE','WINTMALT','SCALA','ENDEAVOR'), 4, 3))
+         shapes = ifelse(taxa %in% c('LIGHTNING', 'FLAVIA','TEPEE','WINTMALT','SCALA'), taxa, 'Lines'),
+         size = ifelse(taxa %in% c('LIGHTNING', 'FLAVIA','TEPEE','WINTMALT','SCALA','ENDEAVOR'), 4, 3))
 winterlinePCAvalues
 library(ggplot2)
 winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point()

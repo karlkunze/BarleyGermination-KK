@@ -10,12 +10,13 @@ editor_options:
 
 # read in packages
 ```{r}
-library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
+library(rrBLUP);library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
-library(drc);library(rrBLUP);library(tidyr);library(ggh4x);library(dplyr)
-library(GENESIS)
+library(drc);library(tidyr);library(ggh4x);library(dplyr)
+
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
+table(DH2020_2021$taxa)
 load("data/Genotype_data/wmb_file.Rdata")
 ```
 
@@ -336,9 +337,13 @@ DH2020_2021%>%group_by(year,TP)%>%as.matrix()
 
 ###
 
+
+load("data/Phenotype_Data/DH2020Estimates.Rdata")
+
 DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>% 
     pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
-    group_by(TP, PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE)# %>% ungroup()%>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))
+    group_by(TP, PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE)#%>% ungroup()%>%mutate(Family=ifelse(taxa=="Charles","Charles/Endeavor",Family))
+#saved at bottom
 save(DH2020Estimates,file="data/Phenotype_Data/DH2020Estimates.Rdata")
 load("data/Phenotype_Data/DH2020Estimates.Rdata")
 DH2020Estimates
@@ -369,7 +374,12 @@ DH2020_H2=DH2020_H2%>%arrange(trait,PM)
 
 
 
+```
+## DH 2021
+```{r}
 ##takes time
+tt<- DH2020_2021%>%filter(year=="2020")
+
 DH2021Estimates = DH2020_2021%>%filter(year=="2021") %>%droplevels()%>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>% 
     pivot_longer(cols = c(GE, GI), names_to = 'trait') %>%
     group_by(TP, PM_date, trait, year) %>% group_map(BlueBlupsH2_Location_rep_taxa,.keep=TRUE) #%>% ungroup()%>%mutate(Family=ifelse(taxa=="Endeavor","Charles/Endeavor",Family))
@@ -462,8 +472,8 @@ DH_H2=rbind(DH2021_H2,DH2020_H2,DHComb_H2)
 AllDHBluesPerYear = rbind(DH2020_1,DH2021_1,DHcomb_1) %>% filter(type =='BLUE') %>% ungroup()%>%filter(!taxa%in%c("Endeavor","Charles"))%>%
   mutate(taxa=toupper(taxa))
 AllDHBluesPerYear
-AllDHBluesPerYear[AllDHBluesPerYear$taxa=="SY_TEPEE",]$taxa<-"TEPEE"
-AllDHBluesPerYear[AllDHBluesPerYear$taxa=="DH130910",]$taxa<-"LIGHTNING"
+#AllDHBluesPerYear[AllDHBluesPerYear$taxa=="SY_TEPEE",]$taxa<-"TEPEE"
+#AllDHBluesPerYear[AllDHBluesPerYear$taxa=="DH130910",]$taxa<-"LIGHTNING"
 
 AllDHBluesPerYear=AllDHBluesPerYear%>%mutate(family = mapvalues(substr(taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
                             to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',
@@ -479,9 +489,6 @@ AllDHBluesPerYear$family
 DH_H2%>%
    ggplot(aes(x = TP, y = ah2, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
   facet_wrap(vars(Year), ncol = 1)+theme_bw()+labs(title= 'Narrow sense heritability\nover time and datasets')
-DH2020_H2%>% rbind(DH2021_H2, DHComb_H2) %>%
-  ggplot(aes(x = TP, y = H2, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
-  facet_wrap(vars(Year), ncol = 1)+theme_bw()+labs(title= 'Broad sense heritability\nover time and datasets')
 
 #other ideas to expand here, perhaps calculate narrow sense heritability, since we have the genotype info
 #adding genotype data
@@ -508,9 +515,8 @@ WinterGD$taxa<-rownames(WinterGD)
 str(WinterGD)
 WinterGD=WinterGD %>%relocate(taxa,.before = 1)%>%
 
-  mutate(taxa = gsub(pattern = ' ', replacement = '_',taxa)) %>% remove_rownames()
+  mutate(taxa = gsub(pattern = '\\ ', replacement = '_',taxa)) %>% remove_rownames()
 
-WinterGD[WinterGD$taxa=="DH130910",]$taxa<-"LIGHTNING"
 
 WinterGD
 #summarise(taxa = "Endeavor",Qsd1 = 2)%>%bind_rows(WinterGD, .)%>%mutate(Qsd1=replace(Qsd1,Qsd1==1,2))
@@ -540,9 +546,7 @@ winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>%
          shapes = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), taxa, 'Lines'),
          size = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), 3, 2))
 
-winterlinePCAvalues %>% ggplot(aes(x = X1, y = X2, color = family)) + geom_point()+
-  winterlinePCAvalues%>% ggplot(aes(x = X1, y = X3,color = family)) + geom_point()+
-  winterlinePCAvalues%>% ggplot(aes(x = X2, y = X3,color = family)) + geom_point()
+
 
 winterlinePCAvalues %>% filter(family !=c('Check')) %>%
   ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(size = "none")+
@@ -608,7 +612,7 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
 dev.off()
 ```
 ```{r}
-library(GAPIT3)
+#library(GAPIT3)
 DF_OperationsV3 = function(df){
   df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
                                            rank = c(1:length(df$SNP))) %>% arrange(Chrom, as.numeric(Pos)) %>%
@@ -618,10 +622,10 @@ DF_OperationsV3 = function(df){
 #I am assuming this is to help make manhattan plots
 
 GWA_MLMM_fortidyR = function(df, groupvars) {
-  fg<- DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
-   ungroup()%>%filter(year=="2020",TP=="TP1",trait=="GI")
-  fg
-  str(WinterGM$Position)
+  #fg<- DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
+  # ungroup()%>%filter(year=="2020",TP=="TP1",trait=="GI")
+
+  
   
   # %>% group_by(year, TP, trait)
   
@@ -691,85 +695,87 @@ print("MLMM GWA model ahead")
 
 
 # WinterPerTPGWAS = DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
- E  ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
+# E  ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
 save(WinterPerTPGWAS ,file="data/GWA_results/WinterPerTPGWAS.Rdata")
+
+```
+```{r}
+# 
+# geno<-WinterGD
+# rownames(geno)<-WinterGD$taxa
+# geno=as.data.frame(t(geno[-1]))
+# geno$SNP<-rownames(geno)
+# geno=geno%>%relocate(SNP,.before=1)
+# geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,chrom=Chromosome,bp=Position)
+# geno
 
 ```
 
 ```{r}
 geno<-WinterGD
-rownames(geno)<-WinterGD$taxa
-geno=as.data.frame(t(geno[-1]))
+rownames(geno)=geno$taxa
+
+geno=as.data.frame(apply(geno[-1],1, function(x) { 
+  x[which(x == 0)] = -1
+  x[which(x == 1)] <- 0
+  x[which(x == 2)] = 1
+  x
+}))
+geno
 geno$SNP<-rownames(geno)
 geno=geno%>%relocate(SNP,.before=1)
-geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,chrom=Chromosome,bp=Position)
-
-
-
-# create a GenotypeData class object
-
-rownames(wmbGAPIT$A)[479]<-"LIGHTNING"
-colnames(wmbGAPIT$A)[479]<-"LIGHTNING"
-
-
-
-
-
+geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,Chrom=Chromosome,bp=Position)%>%as.data.frame()
+rownames(geno)<-geno$marker
 ```
-# Let's try sommer or GWASpoly
+# Let's try sommer
 ```{r}
-library(GWASpoly)
-geno_example<-read.csv(file="data/example_data/new_potato_geno.csv")
-pheno_example<-read.csv(file="data/example_data/new_potato_pheno.csv")
-str(geno_example)
-names(geno_example)
-View(pheno_example)
+#phenotype
+
+fg<- DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
+   ungroup()%>%filter(year=="2020",TP=="TP2",trait=="GI")%>%rename(id=taxa)
+DT<-fg
+# unadjusted
+#genotype
+GT_1<-geno%>%as.data.frame()%>%select(any_of(DT$id))%>%t();A <- A.mat(GT_1) # additive relationship matrix
+#back to phenotypes
+DT<-DT%>%filter(id%in%rownames(A))%>%as.data.frame()
+
+dim(A);dim(GT_1);dim(DT)
+
+mix1 <- sommer::GWAS(value~1,random=~vsr(id,Gu=A),rcov=~units,data=DT, nIters=10,M=GT_1, gTerm = "u:id",
+verbose = TRUE,n.PC = 2,getPEV=TRUE)
+mix1
+pmix1lot(mix1 $scores[,1])
+names(which(mix1 $scores[,1]>5.5))
+
+View(mix1$VarU[[1]])
+mix1$sigmaSE
+hist(as.data.frame(str(mix1$VarU)))
+
+v<-mix1$VarU[[1]]
+dim(v)
+table(mix1$fitted)
+names(WinterPerTPGWAS)
+str(mix1)
+mix1$scores
+summary(mix1)
+names(WinterPerTPGWAS)
+ms <- as.data.frame(mix1$scores)
+ms$Locus <- rownames(ms)
+MP=geno%>%select(marker,Chrom,bp)%>%rename(Locus=marker,Position=bp)
+ms
+MP2 <- merge(MP,ms,by="Locus",all.x = TRUE);
+MP2
+MP2=MP2%>%arrange(Chrom,Position)%>%drop_na(Position)
+manhattan(MP2, PVCN = "value",pch=20,cex=.5,ylim=c(0,20))
+
 #%>% rbind(DH2021_1, DHcomb_1)
  t<-DH2020_1 %>%dplyr::select(!type)%>%filter(trait=="GE",TP=="TP2",year=="2020")
 View(t)
 names(DH2020_1)
-geno<-WinterGD
-rownames(geno)<-WinterGD$taxa
-geno=as.data.frame(t(geno[-1]))
-geno$SNP<-rownames(geno)
-geno=geno%>%relocate(SNP,.before=1)
-geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,chrom=Chromosome,bp=Position)
-geno
-dim(WinterGM)
-dim(geno_example)
-geno_example[1:5,1:5]
-dim(WinterGM)
-rownames(WinterGD)
 
-genofile <- system.file("extdata", "data/example_data/new_potato_geno.csv", package = "GWASpoly")
-phenofile <- system.file("extdata", "new_potato_pheno.csv", package = "GWASpoly")
-genofile
-pheno_1<-DH2020_1 %>% rbind(DH2021_1, DHcomb_1) 
-table(pheno_1$PM_date)
-names(pheno_1)
-pheno=pheno_1%>%filter(trait=="GI",PM_date=="12",year=="2021")%>%dplyr::select(taxa,value)
-pheno[grep("DH",pheno$taxa),]$taxa<-"LIGHTNING"
-pheno$taxa<-toupper(pheno$taxa)
-library(GWASpoly)
-?GWASpoly.data()
-names(geno)[1:4]
 
-geno_m=as.matrix(geno[,-c(1:3)])
-geno
-map=geno[,c("marker","chrom","bp")]
-pheno_1%>%filter()
-genofile <- system.file("extdata", "new_potato_geno.csv", package = "GWASpoly")
-phenofile <- system.file("extdata", "new_potato_pheno.csv", package = "GWASpoly")
-
-library(GWASpoly)
-data <- read.GWASpoly(ploidy=4, pheno.file=phenofile, geno.file=genofile,
-                      format="numeric", n.traits=1, delim=",")
-str(data)
-
-GWASpoly.data(map=map,pheno,geno=geno_m,ploidy = 2)
-?GWASpoly.data()
-str(data)
-str(data@map)
+getPEV
 ```
 
 
