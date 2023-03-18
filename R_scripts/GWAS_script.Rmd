@@ -3,6 +3,8 @@ title: "GWAS_analysis"
 author: "Karl Kunze"
 date: "2023-03-18"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
@@ -11,7 +13,7 @@ library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic
 library(drc);library(tidyr);library(ggh4x);library(dplyr)
 
 
-
+getwd()
 ```
 
 ```{r}

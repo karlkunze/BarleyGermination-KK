@@ -5,7 +5,7 @@ editor_options:
 ---
 
 # Old Workflow:Winter_DH_data_consolidation.Rmd ->analysis_script.R->WDH_GenotypeData_Processing.Rmd
-# New workflow Winter_DH_data_consolidation.Rmd->analysis_script.R
+# New workflow Winter_DH_data_consolidation.Rmd->phenotype_first_step_analysis.Rmd->GWAS_script.RMD
 
 
 # read in packages
@@ -176,6 +176,7 @@ DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(tra
 #  return(H2)
 #}
 
+
 BLUPH2_new = function(trait.lmer,d,AMat_geno) {
 
   ses<- se.ranef(trait.lmer)$'taxa' 
@@ -322,6 +323,7 @@ list5<-list(df4,H2)
 ## setting up
 ```{r}
 DH2020_2021
+
 #dplyr::rename(rep=replication,year=Year
 
 DH2020_2021=DH2020_2021%>%mutate(PM_date=as.numeric(as.character((PM_date))))%>%filter(!Location=="Spring")%>%dplyr::rename(year=Year,rep=replication)
