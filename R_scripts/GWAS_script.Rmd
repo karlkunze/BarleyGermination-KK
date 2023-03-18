@@ -1,0 +1,2405 @@
+---
+title: "GWAS_analysis"
+author: "Karl Kunze"
+date: "2023-03-18"
+output: html_document
+---
+
+#Addtional diagnostics
+```{r}
+AllDHBluesPerYear=AllDHBluesPerYear%>%mutate(family = mapvalues(substr(taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
+                            to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',
+      
+                                                                'Lightning','Flavia/Lightning','SY_Tepee/Lightning','Scala/Lightning','Wintmalt/Lightning',"Check","Check","Check")))
+        
+AllDHBluesPerYear$family
+
+ 
+```
+## H2 visualization
+```{r}
+DH_H2%>%
+   ggplot(aes(x = TP, y = ah2, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
+  facet_wrap(vars(Year), ncol = 1)+theme_bw()+labs(title= 'Narrow sense heritability\nover time and datasets')
+
+#other ideas to expand here, perhaps calculate narrow sense heritability, since we have the genotype info
+#adding genotype data
+
+table(AllDHBluesPerYear$taxa)
+#AllDHBluesPerYear= rbind(DH2020Estimates, DH2021Estimates,DHCombined) %>% filter(type =='BLUE') %>%mutate(PM_date=as.double(PM_date),year=as.character(year))%>%ungroup()
+#load("/home/karl/git/TimeSeriesGermination/WinterBarley/Analysis/AllDHBluesPerYear.RData")
+```
+
+## Genotype data
+
+```{r}
+geno<-WinterGD
+rownames(geno)=geno$taxa
+
+geno=as.data.frame(apply(geno[-1],1, function(x) { 
+  x[which(x == 0)] = -1
+  x[which(x == 1)] <- 0
+  x[which(x == 2)] = 1
+  x
+}))
+geno
+geno$SNP<-rownames(geno)
+geno=geno%>%relocate(SNP,.before=1)
+geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,Chrom=Chromosome,bp=Position)%>%as.data.frame()
+rownames(geno)<-geno$marker
+```
+#winterGD and WinterGM
+```{r}
+#load('data/Genotype_data/myGM20_LDprune.Rdata')
+#load('data/Genotype_data/myGD20_LDprune.Rdata')
+
+WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
+#rm(myGM20_prune);rm(myGD20_prune)
+WinterGM = WinterGM %>% arrange(Chromosome, Position)
+#my taxa IDs have "-" instead of an underscore which I prefer
+#taxa = gsub(pattern = '-',replacement = '_',taxa)
+rownames(WinterGD)
+WinterGD$taxa<-rownames(WinterGD)
+
+str(WinterGD)
+WinterGD=WinterGD %>%relocate(taxa,.before = 1)%>%
+
+  mutate(taxa = gsub(pattern = '\\ ', replacement = '_',taxa)) %>% remove_rownames()
+
+
+
+WinterGD
+#summarise(taxa = "Endeavor",Qsd1 = 2)%>%bind_rows(WinterGD, .)%>%mutate(Qsd1=replace(Qsd1,Qsd1==1,2))
+WinterGD$taxa
+WinterGD[WinterGD$taxa=="ENDEAVOR",]$Qsd1
+WinterGD[WinterGD$taxa=="CHARLES",]$Qsd1
+
+dim(WinterGM)
+colnames(WinterGD)[!colnames(WinterGD)%in%WinterGM$SNP]
+dim(WinterGD)
+# Make sure things are in the right order
+# Sum should = 8384
+dim(WinterGD)
+
+WinterRelationship=wmbGAPIT$A
+WinterPCA = eigen(WinterRelationship)
+substr(WinterGD$taxa,1,3)
+WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
+data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
+winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
+  
+  mutate(family = mapvalues(substr(WinterGD$taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
+                            to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',
+      
+                                                                'Lightning','Flavia/Lightning','SY_Tepee/Lightning','Scala/Lightning','Wintmalt/Lightning',"Check","Check","Check")),
+         taxa = WinterGD$taxa,
+         shapes = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), taxa, 'Lines'),
+         size = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), 3, 2))
+
+
+
+winterlinePCAvalues %>% filter(family !=c('Check')) %>%
+  ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(size = "none")+
+  xlab('PC1')+ylab('PC2')+ggtitle(lab="PCA by family of NY \n WMB DH population")
+
+
+setwd(rprojroot::find_rstudio_root_file())
+
+
+#Travis' Time series perspective
+AllDHBluesPerYear
+AllDHBluesPerYear  %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data source') %>%
+  ggplot(aes(x = PM_date, y = value, group = taxa))+
+  geom_smooth()+facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_vline(xintercept = c(12,33,68), color = 'red')+
+  labs(title = 'GE and GI BLUEs over time with differeing datasets')+theme_bw()
+
+DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+
+  geom_vline(xintercept = c(12,33,68), color = 'red')
+#filter(Family %nin% c('DH130910'))%>%
+
+#png('plots/Time_series/Sup_BluesByFamilyQsd1AllYears.png', 2400, 1500, res =120)
+
+
+
+#png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
+#2020
+table(AllDHBluesPerYear$PM_date,AllDHBluesPerYear$year)
+
+AllDHBluesPerYear
+ filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(family %nin% c('Lightning')) %>% filter(year %in% c('2020'))  %>%
+ # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+
+ 
+  geom_boxplot()+facet_nested(trait~family, scales = 'free')+
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2020 Year"))+
+theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+
+#2021
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('Lightning')) %>% filter(year %in% c('2021'))  %>%
+  filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot()+facet_nested(trait~Family, scales = 'free')+ 
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2021 Year"))+
+  theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+#2020/2021
+AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  join(AlaT[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  filter(Family %nin% c('Lightning')) %>% filter(year %in% c('2020/2021'))  %>%
+  filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
+  geom_boxplot()+facet_nested(trait~Family, scales = 'free_y')+
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for Combined 2020/2021 Years"))+
+  theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+
+dev.off()
+```
+```{r}
+#library(GAPIT3)
+DF_OperationsV3 = function(df){
+  df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
+                                           rank = c(1:length(df$SNP))) %>% arrange(Chrom, as.numeric(Pos)) %>%
+    mutate(log10PVal = -log10(P.value),ordinal = c(1:length(df$SNP)))
+  return(df)
+}
+#I am assuming this is to help make manhattan plots
+
+GWA_MLMM_fortidyR = function(df, groupvars) {
+  #fg<- DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
+  # ungroup()%>%filter(year=="2020",TP=="TP1",trait=="GI")
+
+  
+  
+  # %>% group_by(year, TP, trait)
+  
+  GWAS = GAPIT(Y = fg%>% dplyr::select(taxa, value) %>% as.data.frame(),GD=WinterGD, GM=WinterGM,PCA.total = 2,
+               Geno.View.output=F, model="MLMM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
+    GWAS 
+  Out = DF_OperationsV3(GWAS$GWAS) %>% arrange(P.value) %>% slice_head(n=1000)
+  return(Out)
+}
+#GWA MLMM per timepoint,
+# GWA_MLMM_fortidyR.perFamily = function(df, groupvars) {
+#   WinterGD_sub = WinterGD %>% filter(taxa %in% df$taxa)
+#   Out = tryCatch(
+#     {GWAS = suppressWarnings(GAPIT(Y = df %>%ungroup() %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD_sub, GM=WinterGM,PCA.total = 0,
+#                                    Geno.View.output=F, model="MLMM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05))
+#     DF_OperationsV3(GWAS$GWAS) %>%
+#       arrange(P.value) %>% slice_head(n = 100)
+#     }, error = function(e){data.frame() } )
+#   return(Out)
+# }
+#per family, I'm not going to worry about this one for now
+# GWA_MLM_fortidyR = function(df, groupvars) {
+#   GWAS = GAPIT(Y = df %>% ungroup() %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD, GM=WinterGM,PCA.total = 2,
+#                Geno.View.output=F, model="MLM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
+#   Out = (GWAS$GWAS) %>% arrange(P.value)  %>%
+#     mutate(logPercentileQQplot = -log10(c(1:length(GWAS$GWAS$SNP))/length(GWAS$GWAS$SNP)),
+#            rank = c(1:length(GWAS$GWAS$SNP))) %>% arrange(Chromosome, 'Position') %>%
+#     mutate(log10PVal = -log10(P.value), ordinal = c(1:length(GWAS$GWAS$SNP)))%>% 
+#     arrange(P.value) %>% slice_head(n = 1000)
+#   return(Out)
+# }
+#not going to worry about this one either for germination traits at least
+# GWA_MLM_fortidyR.perFamily = function(df, groupvars) {
+#   WinterGD_sub = WinterGD %>% filter(taxa %in% df$taxa)
+#   Out = tryCatch(
+#     {GWAS = suppressWarnings(GAPIT(Y = df %>% ungroup() %>% select(taxa, value) %>% as.data.frame(),GD=WinterGD_sub, GM=WinterGM,PCA.total = 0,
+#                                    Geno.View.output=F, model="MLM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05))
+#     (GWAS$GWAS) %>% arrange(P.value)  %>%
+#       mutate(logPercentileQQplot = -log10(c(1:length(GWAS$GWAS$SNP))/length(GWAS$GWAS$SNP)),
+#              rank = c(1:length(GWAS$GWAS$SNP))) %>%  arrange(Chromosome, 'Position') %>%
+#       mutate(log10PVal = -log10(P.value), ordinal = c(1:length(GWAS$GWAS$SNP)))%>% 
+#       arrange(P.value) %>% filter(P.value < 0.01)
+#     }, error = function(e){data.frame() } )
+#   return(Out)
+# }
+
+Add_DH130910_familyStructure = function(df3, groupvar){
+  DH130910_rows = df3 %>% filter(taxa == 'Lightning') %>% select(!family)
+  df3= df3 %>% filter(taxa != 'Lightning') %>%
+    rbind(DH130910_rows %>% mutate(Family='Flavia/DH130910'),
+          DH130910_rows %>% mutate(Family='SY_Tepee/DH130910'),
+          DH130910_rows %>% mutate(Family='Scala/DH130910'),
+          DH130910_rows %>% mutate(Family='Wintmalt/DH130910')
+    ) %>%
+    filter(Family %in% c('Flavia/DH130910','SY_Tepee/DH130910','Scala/DH130910','Wintmalt/DH130910'))
+  return(df3)
+}
+
+```
+# GWAS part
+```{r}
+#Per time point for MLMM
+##takes some time
+#SAVE THE RESULTS so that we dont have to run again
+print("MLMM GWA model ahead")
+
+
+
+# WinterPerTPGWAS = DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
+# E  ungroup() %>% group_by(year, TP, trait) %>% group_modify(GWA_MLMM_fortidyR)
+save(WinterPerTPGWAS ,file="data/GWA_results/WinterPerTPGWAS.Rdata")
+
+```
+```{r}
+# 
+# geno<-WinterGD
+# rownames(geno)<-WinterGD$taxa
+# geno=as.data.frame(t(geno[-1]))
+# geno$SNP<-rownames(geno)
+# geno=geno%>%relocate(SNP,.before=1)
+# geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,chrom=Chromosome,bp=Position)
+# geno
+
+```
+
+
+# Let's try sommer
+```{r}
+#phenotype
+
+fg<- DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
+   ungroup()%>%filter(year=="2020",TP=="TP2",trait=="GI")%>%rename(id=taxa)
+DT<-fg
+# unadjusted
+#genotype
+GT_1<-geno%>%as.data.frame()%>%select(any_of(DT$id))%>%t();A <- A.mat(GT_1) # additive relationship matrix
+#back to phenotypes
+DT<-DT%>%filter(id%in%rownames(A))%>%as.data.frame()
+
+dim(A);dim(GT_1);dim(DT)
+
+mix1 <- sommer::GWAS(value~1,random=~vsr(id,Gu=A),rcov=~units,data=DT, nIters=10,M=GT_1, gTerm = "u:id",
+verbose = TRUE,n.PC = 2,getPEV=TRUE)
+mix1
+pmix1lot(mix1 $scores[,1])
+names(which(mix1 $scores[,1]>5.5))
+
+View(mix1$VarU[[1]])
+mix1$sigmaSE
+hist(as.data.frame(str(mix1$VarU)))
+
+v<-mix1$VarU[[1]]
+dim(v)
+table(mix1$fitted)
+names(WinterPerTPGWAS)
+str(mix1)
+mix1$scores
+summary(mix1)
+names(WinterPerTPGWAS)
+ms <- as.data.frame(mix1$scores)
+ms$Locus <- rownames(ms)
+MP=geno%>%select(marker,Chrom,bp)%>%rename(Locus=marker,Position=bp)
+ms
+MP2 <- merge(MP,ms,by="Locus",all.x = TRUE);
+MP2
+MP2=MP2%>%arrange(Chrom,Position)%>%drop_na(Position)
+manhattan(MP2, PVCN = "value",pch=20,cex=.5,ylim=c(0,20))
+
+#%>% rbind(DH2021_1, DHcomb_1)
+ t<-DH2020_1 %>%dplyr::select(!type)%>%filter(trait=="GE",TP=="TP2",year=="2020")
+View(t)
+names(DH2020_1)
+
+
+getPEV
+```
+#asreml GWAS
+```{r}
+
+library("ASRgenomics")
+
+data(geno.pine655)
+geno.pine655[1:5, 1:5]
+M_filter <- qc.filtering(M = geno.pine655, base = FALSE, ref = NULL,
+marker.callrate = 0.2, ind.callrate = 0.2, maf = 0.05, heterozygosity = 0.95,
+Fis = 1, impute = FALSE, na.string = "-9", plots = TRUE)
+M_filter$M.clean[1:5, 1:5]
+dim(M_filter$M.clean)
+G <- G.matrix(M = M_filter$M.clean, method = "VanRaden", na.string = NA)$G
+#use Yang method for inbreds
+data(ped.pine)
+head(ped.pine)
+tail(ped.pine)
+A <- AGHmatrix::Amatrix(data = ped.pine)
+A
+A[601:605, 601:605]
+check_G <- kinship.diagnostics(K = G, diagonal.thr.small = 0.8,
+diagonal.thr.large = 1.2, duplicate.thr = 0.95)
+check_G$list.diagonal
+check_G$list.duplicate
+check_G$plot.diag
+check_G$plot.offdiag
+
+####
+G2A <- match.G2A(A = A, G = G, clean = TRUE, ord = TRUE, mism = TRUE,
+RMdiff = TRUE)
+G2A$Aclean
+G2A$Aclean[343:347, 343:347]
+G2A$Aclean[343:347, 343:347]
+G2A$plotG2A
+#clean up
+G_align <- G.tuneup(G = G2A$Gclean, A = G2A$Aclean, align = TRUE)$Gb
+
+Ga2A <- match.G2A(A = A, G = G_align, clean = TRUE, ord = TRUE,
+mism = TRUE, RMdiff = TRUE)
+dim(Ga2A$RM[Ga2A$RM$absdiff > 0.2, ])
+check_G_align <- kinship.diagnostics(K = G_align)
+check_G_align$plot.diag
+check_G_align$plot.offdiag
+#kinship
+kinship.heatmap(K = G_align, dendrogram = TRUE, row.label = FALSE,
+col.label = FALSE)
+
+pca_pine <- kinship.pca(K = G_align, ncp = 15)
+pca_pine$eigenvalues
+pca_pine$plot.scree
+pca_pine$plot.pca
+
+```
+#asreml actual GWAS
+```{r}
+library("ASRgwas")
+head(pheno.salmon)
+```
+## POST GWAS Analysis
+```{r}
+  
+load("data/GWA_results/WinterPerTPGWAS.Rdata")#WinterPerTPGWAS
+
+#moved results to end of logistics, can load the data 
+View(DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
+  ungroup() %>% group_by(year, TP, trait))
+table(DHCombined$TP,DHCombined$PM_date)
+WinterPerTPGWAS
+
+
+WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
+WinterPerTPGWAS %>% arrange(P.value) %>% view()
+#(P.value<5e-6)
+test$PM_date
+table(WinterPerTPGWAS$TP)
+WinterPerTPGWAS%>%mutate(PM_date=mapvalues(TP,from=c("TP1","TP1.5","TP2","TP2.5","TP3","TP3.5","TP4","TP5"),to=c(5,12,19,33,47,68,96,152)))%>%
+  mutate(Time_Point=paste0(TP,"(",PM_date,")"))%>%
+
+ggplot(aes(ordinal, log10PVal, color = Time_Point, shape = year))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ggtitle("Single Time Point GWA")+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
+  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+
+
+#I will worry about the other models for a d
+View(WinterPerTPGWAS%>%filter(P.value<5e-6)%>%group_by(SNP,Chromosome,Position))
+#data %>% group_by(factor1, factor2) 
+Sig_hitsW<-WinterPerTPGWAS%>%filter(P.value<5e-6)%>%group_by(SNP,Chromosome,Position)%>%dplyr::summarize(count=n(),.groups="keep")%>%
+  arrange(Chromosome,Position)
+table(Sig_hitsW$Chromosome)
+nrow(Sig_hitsW)
+#look at LD of these significant markers
+WinterGD[,c(1,3,4)]
+ld_heatmap=function(df){
+
+  ld <- as.matrix(round(df,0))
+  
+  if(c(-1,3,4) %in% ld){
+    ld[which(ld==3)]=2
+    ld[which(ld==4)]=2
+    ld[which(ld== -1)]=0
+  }
+  
+  LD <- LD.Measures(donnees=ld,  na.presence=F)
+  #LD$loc1=as.character(LD$loc1); LD$loc2=as.character(LD$loc2)
+  r2 <- matrix(0, nrow=ncol(df), ncol=ncol(df))
+  r2[lower.tri(r2, diag=FALSE)] <- LD$r2
+  r2 <- t(r2)
+  r2
+  r2 <- as.data.frame(round(r2, 4))
+  diag(r2) <- 1
+  r2[lower.tri(r2)] = NA
+
+  rownames(r2)=colnames(df); colnames(r2)=rownames(r2)
+  r_2=melt(as.matrix(r2), na.rm=T)
+  
+  graphic = ggplot(r_2, aes(Var2, Var1, fill = value,label = value))+
+    geom_tile(color = "white")+
+    geom_text(color = "black",size=3)+
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                         midpoint = 0.5, limit = c(0,1), space = "Lab", name="r2") +
+    theme_classic() +    ggtitle(paste("LD r2 from",colnames(r2)[1],"-", colnames(r2)[length(colnames(r2))], sep=" " ))
+  #return(print("The R2 is ",list(r_2)))
+  return(graphic)
+}
+#Chromosome 1
+Sig_hitsW%>%filter(Chromosome==1)
+grep("JHI-Hv50k-2016-8002", colnames(WinterGD))#2
+
+Sig_hitsW%>%filter(Chromosome==2)
+grep("JHI-Hv50k-2016-59425",colnames(WinterGD))#2
+
+grep("JHI-Hv50k-2016-101167",colnames(WinterGD))#3
+#no ld there
+Sig_hitsW%>%filter(Chromosome==3)
+
+grep("JHI-Hv50k-2016-165725",colnames(WinterGD))#2
+
+#Chromsome 4
+Sig_hitsW%>%filter(Chromosome==4)
+grep("JHI-Hv50k-2016-228126",colnames(WinterGD))
+
+Sig_hitsW%>%filter(Chromosome==4)
+grep("JHI-Hv50k-2016-273301",colnames(WinterGD))
+grep("JHI-Hv50k-2016-273434",colnames(WinterGD))
+grep("JHI-Hv50k-2016-276836",colnames(WinterGD))#24
+grep("JHI-Hv50k-2016-276836",colnames(WinterGD))
+grep("JHI-Hv50k-2016-276707",colnames(WinterGD))
+grep("JHI-Hv50k-2016-276688",colnames(WinterGD))
+grep("JHI-Hv50k-2016-276604",colnames(WinterGD))
+ld_heatmap(WinterGD[,c(4570,4571,4583:4588)])
+
+grep("JHI-Hv50k-2016-276836",colnames(WinterGD))
+#all but the first marker on Chr 4 are in high LD
+Sig_hitsW%>%filter(Chromosome==4)
+
+grep("Qsd1",colnames(WinterGD))#31
+grep("JHI-Hv50k-2016-308652",colnames(WinterGD))#13
+ld_heatmap(WinterGD[,c(5149,5150)])
+#high LD
+grep("JHI-Hv50k-2016-308712",colnames(WinterGD))#1<-this could be a genotyping error
+ld_heatmap(WinterGD[,c(5149,5151:5155)])
+#looks like there could be an independent LD block here
+#0.4348
+grep("JHI-Hv50k-2016-308899",colnames(WinterGD))#1
+grep("JHI-Hv50k-2016-309905",colnames(WinterGD))#1
+ld_heatmap(WinterGD[,c(5168,5219)])#0.4617
+grep("JHI-Hv50k-2016-311700",colnames(WinterGD))#4
+grep("JHI-Hv50k-2016-311908",colnames(WinterGD))#2
+grep("JHI-Hv50k-2016-312060",colnames(WinterGD))#2
+ld_heatmap(WinterGD[,c(5296,5305,5311)])#high LD here
+#This LD block I believe is real
+grep("JHI-Hv50k-2016-336814",colnames(WinterGD))#1
+grep("JHI-Hv50k-2016-337656",colnames(WinterGD))#1
+ld_heatmap(WinterGD[,c(5843,5866)])#low LD here
+Sig_hitsW%>%filter(Chromosome==7)
+grep("JHI-Hv50k-2016-507370",colnames(WinterGD))#2
+sig<-c("JHI-Hv50k-2016-8002","JHI-Hv50k-2016-59425","JHI-Hv50k-2016-101167","JHI-Hv50k-2016-165725",
+  "JHI-Hv50k-2016-228126","JHI-Hv50k-2016-276836","Qsd1","JHI-Hv50k-2016-311700","JHI-Hv50k-2016-337656","JHI-Hv50k-2016-507370")
+c<-WinterPerTPGWAS[WinterPerTPGWAS$SNP%in%sig,]%>%select(SNP,Chromosome,Position,year,TP,trait)%>%group_by(SNP,Chromosome,Position)%>%dplyr::summarize(count=n(),.groups="keep")%>%
+  arrange(Chromosome,Position)
+View(c)
+write.csv(c,"data/GWA_results/Significant_hits.csv")
+######
+
+######### Tinme series analysis
+FoldCVGPv2 = function(df, myGD=WinterGD, numfolds,datasplit, trait_name){
+  
+  # Phenotype is full vector of phenotypes
+  # myGD is a n taxa x N markers dataframe with -1,0,1 coding and no 'taxa' column in it
+  # numfolds is the number of folds to cv (ie 5 for five-fold cv)
+  # datasplit is the percentage as a decimal for the training/testing split.
+  
+  df = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+  myGD = myGD %>% filter(taxa %in% df$taxa) %>% arrange(taxa)
+  dim(df)
+  dim(myGD)
+  if(!length(unique(df$taxa))==sum(df$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  
+  TrueandPredicted = data.frame()
+  Phenotype = as.vector(df$value)
+  num_entries = length(Phenotype)
+  Training_size = round(datasplit*num_entries,0)
+  start_time <- Sys.time() 
+  set.seed(1)
+  
+  myGD = myGD[,-1]-1
+  for (i in 1:numfolds){
+    
+    trainingSet = sort(sample(1:num_entries,Training_size))
+    testingSet = setdiff(1:num_entries,trainingSet)
+    
+    y_train = Phenotype[trainingSet] 
+    y_test = Phenotype[testingSet]
+    
+    marker_train = myGD[trainingSet,]
+    marker_test = myGD[testingSet,]
+    
+    trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+    
+    PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+    print(cor(y_test,PredictedPheno))
+    
+    TrueandPredicted = rbind(TrueandPredicted, 
+                             data.frame(TruePheno = y_test,
+                                        PredPheno = PredictedPheno,
+                                        taxa = df$taxa[testingSet],
+                                        fold = i,
+                                        trait = trait_name,
+                                        correlation = cor(y_test,PredictedPheno)))
+  }
+  end_time <- Sys.time()
+  print(end_time-start_time)
+  return(TrueandPredicted)
+}
+
+FoldCVGPv2 = function(df, myGD=WinterGD, numfolds,datasplit, trait_name){
+  
+  # Phenotype is full vector of phenotypes
+  # myGD is a n taxa x N markers dataframe with -1,0,1 coding and no 'taxa' column in it
+  # numfolds is the number of folds to cv (ie 5 for five-fold cv)
+  # datasplit is the percentage as a decimal for the training/testing split.
+  
+  df = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+  myGD = myGD %>% filter(taxa %in% df$taxa) %>% arrange(taxa)
+  dim(df)
+  dim(myGD)
+  if(!length(unique(df$taxa))==sum(df$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  
+  TrueandPredicted = data.frame()
+  Phenotype = as.vector(df$value)
+  num_entries = length(Phenotype)
+  Training_size = round(datasplit*num_entries,0)
+  start_time <- Sys.time() 
+  set.seed(1)
+  
+  myGD = myGD[,-1]-1
+  for (i in 1:numfolds){
+    
+    trainingSet = sort(sample(1:num_entries,Training_size))
+    testingSet = setdiff(1:num_entries,trainingSet)
+    
+    y_train = Phenotype[trainingSet] 
+    y_test = Phenotype[testingSet]
+    
+    marker_train = myGD[trainingSet,]
+    marker_test = myGD[testingSet,]
+    
+    trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+    
+    PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+    print(cor(y_test,PredictedPheno))
+    
+    TrueandPredicted = rbind(TrueandPredicted, 
+                             data.frame(TruePheno = y_test,
+                                        PredPheno = PredictedPheno,
+                                        taxa = df$taxa[testingSet],
+                                        fold = i,
+                                        trait = trait_name,
+                                        correlation = cor(y_test,PredictedPheno)))
+  }
+  end_time <- Sys.time()
+  print(end_time-start_time)
+  return(TrueandPredicted)
+}
+
+
+GETP22020= FoldCVGPv2(df = DH2020Estimates %>% filter(TP=='TP2', trait == 'GE',type =='BLUE'),myGD = WinterGD, numfolds = 10,datasplit = .5,trait_name ='GE' )
+
+
+
+GETP22020= FoldCVGPv2(df = DH2020Estimates %>% filter(TP=='TP2', trait == 'GE',type =='BLUE'),myGD = WinterGD, numfolds = 10,datasplit = .5,trait_name ='GE' )
+# We are going to use our DH2020Estimates to fit time series. We need to GP the first TP of GE and GI values on the 
+# half of the DHs that were not phenotyped. 
+Taxacounts2020 = DH2020Estimates %>% filter(type == 'BLUE', trait == 'GE') %>% ungroup() %>% group_by(taxa) %>% 
+  summarise(count = n()) %>% mutate(DataC = ifelse(count == 4,'Pred','Full')) %>%
+  filter(taxa %in% WinterGD$taxa)
+Taxacounts2021 = DH2021Estimates %>% filter(type == 'BLUE', trait == 'GE') %>% ungroup() %>% group_by(taxa) %>% 
+  summarise(count = n()) %>%
+  filter(taxa %in% WinterGD$taxa)
+TaxacountsCombined = DHCombined %>% filter(type == 'BLUE', trait == 'GE') %>% ungroup() %>% group_by(taxa) %>% 
+  summarise(count = n()) %>%
+  filter(taxa %in% WinterGD$taxa)
+
+
+ 
+#everything has either 4 or 5 observations the ones with 4 need GP applied on them to get TP1 values. ######
+GE_TP1_2020 = DH2020Estimates %>% filter(TP == 'TP1', trait == 'GE', type == 'BLUE') 
+GE_TP1_2020_model_Train = mixed.solve(y = GE_TP1_2020 %>% arrange(taxa) %>% ungroup() %>%
+                                        select(value) %>% as.matrix(),
+                                      Z = WinterGD %>% filter(taxa%in%GE_TP1_2020$taxa)%>% arrange(taxa) %>%
+                                        select(!taxa) %>% as.matrix()-1,
+                                      K=NULL,
+                                      SE=FALSE)
+GE_TP1_2020_predValues = (as.matrix(WinterGD %>% filter(taxa %nin% GE_TP1_2020$taxa) %>% arrange(taxa) %>%
+                                      select(!taxa) %>% as.matrix()-1) %*% as.matrix(GE_TP1_2020_model_Train$u)+
+                            as.numeric(GE_TP1_2020_model_Train$beta)) %>% as.data.frame() %>%
+  rownames_to_column(var = 'taxa') %>% transmute(TP = 'TP1',PM_date = 5, trait = 'GE', taxa = taxa,
+                                                 value = V1,type = 'BLUE',
+                                                 Family = mapvalues(substr(taxa,1,3), 
+                                                                    from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win','KWS'), 
+                                                                    to = c('Flavia/DH130910','Scala/DH130910',
+                                                                           'SY_Tepee/DH130910','Wintmalt/DH130910',
+                                                                           'DH130910','Flavia','SY_Tepee','Scala','Wintmalt','Scala'))) %>%
+  filter(taxa %in% Taxacounts2020$taxa)%>% mutate(year = '2020')
+
+GI_TP1_2020 = DH2020Estimates %>% filter(TP == 'TP1', trait == 'GI', type == 'BLUE') 
+GI_TP1_2020_model_Train = mixed.solve(y = GI_TP1_2020 %>% arrange(taxa) %>% ungroup() %>%
+                                        select(value) %>% as.matrix(),
+                                      Z = WinterGD %>% filter(taxa%in%GI_TP1_2020$taxa)%>% arrange(taxa) %>%
+                                        select(!taxa) %>% as.matrix()-1,
+                                      K=NULL,
+                                      SE=FALSE)
+GI_TP1_2020_predValues = (as.matrix(WinterGD %>% filter(taxa %nin% GI_TP1_2020$taxa) %>% arrange(taxa) %>%
+                                      select(!taxa) %>% as.matrix()-1) %*% as.matrix(GI_TP1_2020_model_Train$u)+
+                            as.numeric(GI_TP1_2020_model_Train$beta)) %>% as.data.frame() %>%
+  rownames_to_column(var = 'taxa') %>% transmute(TP = 'TP1',PM_date = 5, trait = 'GI', taxa = taxa,
+                                                 value = V1, type = 'BLUE',
+                                                 Family = mapvalues(substr(taxa,1,3), 
+                                                                    from = c('BS6','BS7','BS8','BS9','DH1','Fla','SY_','Sca','Win','KWS'), 
+                                                                    to = c('Flavia/DH130910','Scala/DH130910',
+                                                                           'SY_Tepee/DH130910','Wintmalt/DH130910',
+                                                                           'DH130910','Flavia','SY_Tepee','Scala','Wintmalt','Scala'))) %>%
+  filter(taxa %in% Taxacounts2020$taxa) %>% mutate(year = '2020')
+# Now we have predictions for our 2020 dataset. Move to fitting ######
+# GE logfits #####
+DH2020Estimates$PM_date<-as.numeric(DH2020Estimates$PM_date)
+str(DH2020Estimates)
+detach("package:ggpubr", unload=TRUE)
+detach("package:reshape2", unload=TRUE)
+detach("package:dplyr", unload=TRUE)
+library(plyr)
+
+G2020.TSF.GE = DH2020Estimates%>% dplyr::ungroup() %>% rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
+  dplyr::filter(type == "BLUE", trait =="GE") %>%
+  join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
+  mutate(PM_date = PM_date-5,  year = '2020')
+
+
+hist(G2020.TSF.GE$value)
+str(G2020.TSF.GE$PM_date)
+#2021
+G2021.TSF.GE = DH2021Estimates%>% dplyr::ungroup() %>% 
+  dplyr::filter(type == "BLUE", trait =="GE") %>%
+  join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
+  mutate(PM_date = PM_date-5,  year = '2021')
+
+
+#combined
+DHCombined.TSF.GE = DHCombined%>% dplyr::ungroup() %>% 
+  dplyr::filter(type == "BLUE", trait =="GE") %>%
+  join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))%>% 
+  mutate(PM_date = PM_date-5,  year = '2020/2021')
+
+
+
+
+
+GE_logFits_trycatch = function(df, groupvars){
+  Out = tryCatch(
+    {suppressWarnings(broom::tidy(drm(value~PM_date, data = df,
+                                      fct=LL.4(fixed = c(NA, NA, 1, NA),
+                                               names = c('Rate','Lower','Upper','Centering'))))) %>%
+        add_row(.,term = 'TimeTo95',curve ='Derived',
+                estimate = as.double(exp(log((1-.[2,3])/(0.95-.[2,3])-1)/.[1,3]+log(.[3,3])))) %>%
+        add_row(.,term = 'rTimeTo95',curve ='Derived',
+                estimate = as.double(.[3,3]*exp(log((1-0.95)/0.95)/.[1,3])))
+    }, error = function(e){
+      data.frame()
+    }
+  )
+  return(Out)
+}
+library(dplyr)
+G2020.TSF.GE %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
+#G2020.TSF.GI %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
+
+#2021
+G2021.TSF.GE %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count<8)
+#G2021.TSF.GI %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count<8)
+#2020/2021
+DHCombined.TSF.GE %>%group_by(taxa) %>% summarise(count = n()) %>% filter(count<5)
+
+#logfits 2020
+DH2020_GE.logfits = G2020.TSF.GE %>% ungroup()  %>%
+  # rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
+   #      G2020_2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>% group_modify(GE_logFits_trycatch) %>% ungroup() 
+# There are a few that fail of course, but overall all looks really good. 
+
+
+TaxaToFilter2020GE = DH2020_GE.logfits %>% filter(year == '2020') %>% 
+  filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
+DH2020_GE.logfits %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
+# figure out what to set filters on for the 2021 and combined 2020/2021 data.sets
+
+
+#DH.GElogfitGWA.mlm = DHGE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
+# rename(value = estimate) %>%
+ # group_by(year,term) %>% group_modify(GWA_MLM_fortidyR)
+
+#2021 GE
+DH2021_GE.logfits = G2021.TSF.GE %>% ungroup()  %>%
+  # rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
+  #      G2020_2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>% group_modify(GE_logFits_trycatch) %>% ungroup() 
+# There are a few that fail of course, but overall all looks really good. 
+
+
+TaxaToFilter2021GE = DH2021_GE.logfits %>% filter(year == '2021') %>% 
+  filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
+DH2021_GE.logfits %>% filter(taxa %nin% TaxaToFilter2021GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
+###end 2021
+#Combined
+
+
+DHCombined_GE.logfits = DHCombined.TSF.GE %>% ungroup()  %>%
+  # rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
+  #      G2020_2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>% group_modify(GE_logFits_trycatch) %>% ungroup() 
+# There are a few that fail of course, but overall all looks really good. 
+
+DHCombined_GE.logfits
+TaxaToFilterCombinedGE = DHCombined_GE.logfits %>% filter(year == '2020/2021') %>% filter(estimate>3e-08)%>%
+  filter(term=='Centering' & estimate> 100 | term=='TimeTo95' & estimate>300)
+DHCombined_GE.logfits %>% filter(taxa %nin% TaxaToFilterCombinedGE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
+###end combined
+
+#####GWAS Logistics 2020 GWAS
+# DH2020.GElogfitGWA.mlmm = DH2020_GE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
+#   rename(value = estimate) %>%
+#   group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+# save(DH2020.GElogfitGWA.mlmm,file="data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")#DH2020.GElogfitGWA.mlmm
+load("data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")#DH2020.GElogfitGWA.mlmm
+#DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+DH2020.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+DH2020.GElogfitGWA.mlmm
+DH2020.GElogfitGWA.mlmm %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
+ facet_grid(scales = 'free_y')+theme_bw()
+
+
+
+#lets Plot the fitted 
+library(plyr)
+t = seq(1,150, by = 3)
+DH2020_GE.logestimates =  DH2020_GE.logfits  %>% dplyr::filter(term %in% c('Centering','Lower','Rate')) %>% dplyr::group_by(year,taxa) %>% 
+  dplyr::group_modify(~{data.frame(time = t,GE_est = .x$estimate[2]+(1-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[3])))))})
+DH2020_GE.logestimates %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
+
+#2021
+# DH2021.GElogfitGWA.mlmm = DH2021_GE.logfits %>% filter(!(year=='2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
+#   rename(value = estimate) %>%
+#   group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+# save(DH2021.GElogfitGWA.mlmm,file="data/GWA_results/DH2021.GElogfitGWA_mlmm.Rdata")
+load("data/GWA_results/DH2021.GElogfitGWA_mlmm.Rdata")#DH2021.GElogfitGWA.mlmm
+#DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+DH2021.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+DH2021.GElogfitGWA.mlmm %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
+  facet_grid(scales = 'free_y')+theme_bw()
+
+
+#lets Plot the fitted 
+t = seq(1,150, by = 3)
+
+DH2021_GE.logestimates =  DH2021_GE.logfits  %>% filter(term %in% c('Centering','Lower','Rate')) %>% group_by(year,taxa) %>% 
+  group_modify(~{data.frame(time = t,GE_est = .x$estimate[2]+(1-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[3])))))})
+DH2021_GE.logestimates %>% filter(taxa %nin% TaxaToFilter2021GE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
+
+
+#end 2021 GWAS GE
+#Combined GWAS logistics
+# DHCombined.GElogfitGWA.mlmm = DHCombined_GE.logfits %>% filter(!(year=='2020/2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
+#   rename(value = estimate) %>%
+#   group_by(year,term) %>%  group_modify(GWA_MLMM_fortidyR)
+#save(DHCombined.GElogfitGWA.mlmm,file="data/GWA_results/DHCombined.GElogfitGWA_mlmm.Rdata")
+
+
+load("data/GWA_results/DHCombined.GElogfitGWA_mlmm.Rdata")#DHCombined.GElogfitGWA.mlmm
+#DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+CombinedGE_GWA_hits=DHCombined.GElogfitGWA.mlmm %>% group_by(year, term)
+CombinedGE_GWA_hits%>%slice_head(n=5)%>%view()
+
+CombinedGE_GWA_hits %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
+  facet_grid(scales = 'free_y')+theme_bw()
+
+#lets Plot the fitted 
+t = seq(1,150, by = 3)
+DHCombined_GE.logestimates =  DHCombined_GE.logfits  %>% filter(term %in% c('Centering','Lower','Rate')) %>% group_by(year,taxa) %>% 
+  group_modify(~{data.frame(time = t,GE_est = .x$estimate[2]+(1-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[3])))))})
+DHCombined_GE.logestimates  %>% filter(taxa %nin% TaxaToFilterCombinedGE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
+
+DHCombined_GE.logestimates
+#end Combined GWAS GE
+
+
+
+
+# GI log fits #####
+G2020.TSF.GI = DH2020Estimates%>% ungroup() %>% rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
+  filter(type == 'BLUE', trait =='GI') %>% join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))
+
+G2021.TSF.GI = DH2021Estimates%>% ungroup()  %>% 
+  filter(type == 'BLUE', trait =='GI') %>% join(Taxacounts2021) %>% mutate(value = ifelse(value<0, 0, value))
+G20202021.TSF.GI = DHCombined%>% ungroup()  %>% 
+  filter(type == 'BLUE', trait =='GI') %>% join(TaxacountsCombined) %>% mutate(value = ifelse(value<0, 0, value))
+
+GI_logfits_trycatch = function(df, groupvars) {
+  Out = tryCatch(
+    {suppressWarnings(broom::tidy(drm(value~PM_date, data = df,
+                                      fct =LL.4(names = c('Rate','Lower','Upper','Centering'))))
+    ) %>%
+        add_row(.,term = 'TimeTo5.0',curve ='Derived',
+                estimate = ifelse(.[2,3] > 5.0, 0,as.double((((.[3,3]-.[2,3])/(5.0-.[2,3])-1)^(1/.[1,3]))*.[4,3])))
+    }, error = function(e){
+      data.frame()
+    }
+  )
+}
+#2020 GI log fits
+DH2020_GIlogfits = G2020.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2020') %>%
+  # rbind(G2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2021'),
+  #        G2020_2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>%
+  group_modify(GI_logfits_trycatch) %>% ungroup() 
+
+taxaToFilter2020GI = DH2020_GIlogfits  %>% filter(year=='2020') %>% 
+  filter(term == 'Centering' & estimate > 177 |
+           term == 'Lower' & estimate < 0 |
+           term == 'TimeTo5.0' & estimate > 250)
+
+# DH.GIlogfitGWA.mlm = DHGIlogfits %>% filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>% rename(value = estimate) %>%
+#   group_modify(GWA_MLM_fortidyR)
+# DH.GIlogfitGWA.mlm %>% group_by(term) %>% slice_head(n=10) %>% View()
+#GWAS model again
+# 
+# DH2020_GIlogfitGWA.mlmm = DH2020_GIlogfits  %>% 
+#   filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>%  rename(value = estimate) %>%
+#   group_modify(GWA_MLMM_fortidyR)
+# save(DH2020_GIlogfitGWA.mlmm,file="data/GWA_results/DH2020_GIlogfitGWA_mlmm.Rdata")
+
+load("data/GWA_results/DH2020_GIlogfitGWA_mlmm.Rdata")#DH2020_GIlogfitGWA.mlmm
+
+
+DHGI2020.logestimates = DH2020_GIlogfits  %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
+  group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
+
+#DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
+
+DH2020_GIlogfitGWA.mlmm  %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+DH2020_GIlogfitGWA.mlmm  %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
+  facet_grid(scales = 'free_y')+theme_bw()
+
+
+#write.csv(DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%filter(P.value<5e-5),file = "data/GWA_results/Signif_hits_time.csv")
+DH2020_GIlogfitGWA.mlmm  %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) + ggtitle("GWA for Logistic Time Models 2020")+
+#  facet_grid(rows = vars(trait), scales = 'free_y')+
+ theme_bw()
+#end 2020 GI logit fit
+
+
+#start 2021 log fit
+
+DH2021_GIlogfits = G2021.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2021') %>%
+  # rbind(G2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2021'),
+  #        G2020_2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>%
+  group_modify(GI_logfits_trycatch) %>% ungroup() 
+
+taxaToFilter2021GI = DH2021_GIlogfits  %>% filter(year=='2021') %>% 
+  filter(term == 'Centering' & estimate > 177 |
+           term == 'Lower' & estimate < 0 |
+           term == 'TimeTo5.0' & estimate > 250)
+
+# DH.GIlogfitGWA.mlm = DHGIlogfits %>% filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>% rename(value = estimate) %>%
+#   group_modify(GWA_MLM_fortidyR)
+# DH.GIlogfitGWA.mlm %>% group_by(term) %>% slice_head(n=10) %>% View()
+
+#GWAS model again
+# DH2021_GIlogfitGWA.mlmm = DH2021_GIlogfits %>% 
+#   filter(!(year == '2021' & taxa %in% taxaToFilter2021GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>%  rename(value = estimate) %>%
+#   group_modify(GWA_MLMM_fortidyR)
+# save(DH2021_GIlogfitGWA.mlmm ,file="data/GWA_results/DH2021_GIlogfitGWA_mlmm.Rdata")
+
+load("data/GWA_results/DH2021_GIlogfitGWA_mlmm.Rdata")#DH2021_GIlogfitGWA.mlmm
+
+DHGI2021.logestimates = DH2021_GIlogfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
+  group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
+
+#DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
+
+DH2021_GIlogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+
+
+
+#write.csv(DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%filter(P.value<5e-5),file = "data/GWA_results/Signif_hits_time.csv")
+DH2021_GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) + ggtitle("GWA for Logistic Time Models 2021")+
+  #  facet_grid(rows = vars(trait), scales = 'free_y')+
+  theme_bw()
+
+
+
+#end 2021 log fit
+
+#start 2020/2021 combined
+
+DH20202021_GIlogfits = G20202021.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2020/2021') %>%
+  # rbind(G2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2021'),
+  #        G2020_2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+  arrange(taxa, TP) %>% group_by(year, taxa) %>%
+  group_modify(GI_logfits_trycatch) %>% ungroup() 
+
+taxaToFilter20202021_GI = DH20202021_GIlogfits  %>% filter(year=='2020/2021') %>% 
+  filter(term == 'Centering' & estimate > 177 |
+           term == 'Lower' & estimate < 0 |
+           term == 'TimeTo5.0' & estimate > 250)
+
+# DH.GIlogfitGWA.mlm = DHGIlogfits %>% filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>% rename(value = estimate) %>%
+#   group_modify(GWA_MLM_fortidyR)
+# DH.GIlogfitGWA.mlm %>% group_by(term) %>% slice_head(n=10) %>% View()
+
+#GWAS model again
+# DH20202021_GIlogfitGWA.mlmm = DH20202021_GIlogfits %>% 
+#   filter(!(year == '2021' & taxa %in% taxaToFilter20202021_GI$taxa)) %>%
+#   # Add filtering steps here
+#   group_by(year,term) %>%  rename(value = estimate) %>%
+#   group_modify(GWA_MLMM_fortidyR)
+# save(DH20202021_GIlogfitGWA.mlmm,file="data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")
+
+load("data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")#DH20202021_GIlogfitGWA.mlmm
+DHGI20202021.logestimates = DHGI202021logfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
+  group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
+
+#DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
+DHGI20202021.logestimates 
+
+DH20202021_GIlogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
+
+
+
+
+#write.csv(DH.GIlogfitGWA.mlmm %>% group_by(year, term)%>%filter(P.value<5e-5),file = "data/GWA_results/Signif_hits_time.csv")
+DH20202021_GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10PVal, color = term))+geom_point()+
+  geom_vline(xintercept = WinterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = WinterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ggtitle(label="GWA for Logistic Time Models 2020/2021")
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) + ggtitle("GWA for Logistic Time Models 2020")+
+  #  facet_grid(rows = vars(trait), scales = 'free_y')+
+  theme_bw()
+
+#Going to get a table of all GWA markers together
+
+
+
+
+
+#end 2020/2021 combined
+
+
+# FPCA on the 2020 data. ######
+source('SpringBarley/Analysis/All_taxa/FPCA/Functions/FPCA_function.R')
+source('SpringBarley/Analysis/All_taxa/FPCA/Functions/pca_fun.R')
+source('SpringBarley/Analysis/All_taxa/FPCA/Functions/pca_score.R')
+source('SpringBarley/Analysis/All_taxa/FPCA/Functions/tuning_nointer.R')
+
+GI2020FPCA = G2020.TSF.GI %>% group_by(taxa) %>% dplyr::add_tally() %>% filter(n ==5) %>% ungroup() %>% 
+  transmute(taxa = taxa, time = PM_date, GI = value) %>%
+  FPCA_function(dfTaxaTraitTime = .,
+                Trait = 'GI', #Trait name must be entered as a character 
+                NumKnots = 0, # NumKnots is the number of interior knots to be fitted
+                order = 3, # Order is the dergree of the polynomial to be fit to the data.
+                NumObsevationsPerLine = 5)
+
+GE2020FPCA = G2020.TSF.GE %>% group_by(taxa) %>% dplyr::add_tally() %>% filter(n ==5) %>% ungroup() %>% 
+  transmute(taxa = taxa, time = PM_date, GE = value) %>%
+  FPCA_function(dfTaxaTraitTime = .,
+                Trait = 'GE', #Trait name must be entered as a character
+                NumKnots = 0, # NumKnots is the number of interior knots to be fitted
+                order = 3, # Order is the dergree of the polynomial to be fit to the data.
+                NumObsevationsPerLine = 5)
+GE2020FPCA$v1
+GI2020FPCA$v1
+GEGI2020FPCATimeTo = data.frame(time = GI2020FPCA$EstimatedAndEmpiricalMu$time[-c(1:5)]) %>% cbind(GI2020FPCA$RecoveredCurves)  %>% pivot_longer(cols = !time, names_to='taxa') %>%
+  group_by(taxa) %>% group_modify(~{.x %>% filter(value>5.0) %>% slice_head(n=1)}) %>% ungroup() %>% mutate(Param = 'fTimeTo5.0', year= '2020', trait = 'GI') %>%
+  rbind(data.frame(time = GE2020FPCA$EstimatedAndEmpiricalMu$time[-c(1:5)]) %>% cbind(GE2020FPCA$RecoveredCurves)  %>% pivot_longer(cols = !time, names_to='taxa') %>%
+          group_by(taxa) %>% group_modify(~{.x %>% filter(value>.95) %>% slice_head(n=1)}) %>% ungroup() %>% mutate(Param = 'fTimeTo95', year= '2020', trait= 'GE')) %>%
+  select(taxa, trait, year, Param, time) %>% rename(value=time)
+
+#GWA using the FPCs without interpolation and penalized spline fits to the data
+GWA2020.FPCA.GEGI = rbind(GI2020FPCA$PCs_withTaxa %>% select(taxa, FPC1,FPC2) %>% mutate(trait='GI', year= '2020') %>%
+                            pivot_longer(cols = c(FPC1,FPC2), values_to = 'value',names_to='Param'),
+                          GE2020FPCA$PCs_withTaxa %>% select(taxa, FPC1,FPC2) %>% mutate(trait='GE', year= '2020') %>%
+                            pivot_longer(cols = c(FPC1,FPC2), values_to = 'value',names_to='Param')) %>% rbind(GEGI2020FPCATimeTo) %>%
+  group_by(year,trait,Param) %>%
+  group_modify(GWA_MLMM_fortidyR)
+
+GWA2020.FPCA.GEGI %>% slice_head(n=5) %>%view()
+
+
+# Lets try to fit a penalized regression spline to our obsevations to try and interpolate between out points both ##############
+# to give FPCA more to chew on, but also so we have more balanced datasets to combine later in analysis when we have 
+tuning_nointer = function(lower, upper, Omega, Xmat, Y.vec, xlen){
+  lam.list=exp(seq(lower,upper,1))
+  gcv=rep(0,length(lam.list))
+  for(ii in 1:length(lam.list))
+  {
+    A <- solve(t(Xmat)%*%Xmat+adiag(Omega*lam.list[ii]))
+    Y.vec.hat <- (Xmat%*%A) %*% (t(Xmat)%*%Y.vec)
+    diag.mean <- sum(diag(t(Xmat)%*%Xmat%*%A))/(dim(Xmat)[1]) # the original mean(diag(Hmat))
+    gcv[ii] <- mean((Y.vec-Y.vec.hat)^2)/(1-diag.mean)^2
+  }
+  ind=which(gcv==min(gcv))
+  lam.list[ind]
+}
+PenalizedSplineFitting = function(df, groupvars, K.int = 2,order = 4 ) {
+  # K.int = number of interior knots
+  tt = df$PM_date	# evaluation points
+  J = length(tt)		# number of evaluation points
+  t.min = min(tt)
+  t.max = max(tt)
+  ### basis functions ###
+  # cubic splines, for second derivative, using order 6 rather than 4
+  knots = t.min + (t.max-t.min)*(1:K.int)/(1+K.int)
+  # knots = 45
+  K = length(knots) + order # number of basis functions
+  basis = create.bspline.basis(c(t.min,t.max),K,norder=order)
+  
+  # evaluate original, the first, and second derivatives of basis functions
+  BS = eval.basis(tt,basis,0)
+  BS1 = eval.basis(tt,basis,1)
+  BS2 = eval.basis(tt,basis,2)
+  
+  # penalty matrix
+  Omega = inprod(basis,basis,2,2)	# for second derivative, using 4 rather than 2
+  
+  # function for tuning parameter selection using GCV
+  
+  Y.vec = as.vector(df$value)
+  N = length(Y.vec)
+  # design matrix
+  Xmat = BS
+  
+  dim(t(Xmat)%*%Xmat)
+  
+  ### Penalized least squares estimates ###
+  lam = tuning_nointer(-10,15,Omega,Xmat,Y.vec,xlen)	# tunning parameter
+  # lam = 1000
+  # lam= diag(c(10000,10000,10000,10000,10000,10000,10000,10000,10000,10000))
+  bhat = solve(t(Xmat)%*%Xmat+adiag(Omega * lam))%*%t(Xmat)%*%Y.vec
+  n.eval = 50 #range(tt)[2]-range(tt)[1]	
+  t.eval = sort(c(seq(t.min,t.max,by=(t.max-t.min)/n.eval),7,14,28, 42,63, 91, 115, 144))
+  mu.eval = eval.basis(t.eval,basis,0)%*%bhat
+  y_lim = range(Y.vec)
+  
+  plot(t.eval,mu.eval)+points(x = df[,c('PM_date','value')], col= 'blue')
+  
+  return(data.frame(time = t.eval, value = mu.eval))
+}
+df = DH2020Estimates %>% ungroup() %>% group_by(taxa) %>%  rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
+  filter(type == 'BLUE')%>% dplyr::add_tally() %>% ungroup() %>% filter(n == 10)  %>% group_by(year, taxa, trait)%>%
+  mutate(PM_date=PM_date-5) %>% 
+  filter(taxa == 'DH130910', trait== 'GI')
+
+DH2020SplineFits = DH2020Estimates %>% ungroup() %>% group_by(taxa) %>%  rbind(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
+  filter(type == 'BLUE')%>% dplyr::add_tally() %>% ungroup() %>% filter(n ==10) %>% ungroup()  %>% group_by(year, taxa, trait)%>% mutate(PM_date=PM_date-5) %>%
+  group_modify(PenalizedSplineFitting)
+DH2020SplineFits %>% ggplot(aes( x= time, y= value, group = taxa)) +
+  geom_line()+facet_wrap(~trait, scales = 'free') +geom_hline(yintercept = 1, color = 'red')
+
+DH2020SplineFits%>%ungroup() %>%
+  join(DH2020Estimates %>%ungroup() %>% filter(type == 'BLUE') %>% transmute(taxa = taxa, trait = trait, time = PM_date-5, Tvalue = value)) %>%
+  filter(!(is.na(Tvalue))) %>% group_by(trait, time) %>% group_modify(~{data.frame(Cor = cor(.$value,.$Tvalue))})
+
+
+# FPCA on the b-spline fit stuff ######
+# each of these take about 25 minutes to run so be careful. I am going to comment them out to prevent accedental running
+# SplineFitFPCA.GE.2020 = DH2020SplineFits %>% ungroup() %>% group_by(taxa) %>% filter(trait=='GE') %>% add_tally() %>% filter(n==59) %>%
+#   ungroup() %>% transmute(taxa = taxa, time = time, GE=value) %>%
+#   FPCA_function(dfTaxaTraitTime = .,
+#                 Trait = 'GE', #Trait name must be entered as a character ie Trait = 'GE3'
+#                 NumKnots = 2, # NumKnots is the number of interior knots to be fitted
+#                 order = 3, # Order is the dergree of the polynomial to be fit to the data.
+#                 NumObsevationsPerLine = 59)
+# SplineFitFPCA.GE.2020$phi.fun.plot
+# 
+# start_time = Sys.time()
+# SplineFitFPCA.GI.2020 = DH2020SplineFits %>% ungroup() %>% group_by(taxa) %>% filter(trait=='GI') %>% add_tally() %>% filter(n==59) %>%
+#   ungroup() %>% transmute(taxa = taxa, time = time, GI=value) %>%
+#   FPCA_function(dfTaxaTraitTime = .,
+#                 Trait = 'GI', #Trait name must be entered as a character ie Trait = 'GE3'
+#                 NumKnots = 2, # NumKnots is the number of interior knots to be fitted
+#                 order = 3, # Order is the dergree of the polynomial to be fit to the data.
+#                 NumObsevationsPerLine = 59)
+# stoptime=Sys.time()
+print(stoptime-start_time)
+SplineFitFPCA.GE.2020$v1
+SplineFitFPCA.GI.2020$v1
+#first two PCs look like they explain the most. 
+GEGI2020FPCATimeTo.SplineFit = data.frame(time = SplineFitFPCA.GI.2020$EstimatedAndEmpiricalMu$time[-c(1:59)]) %>% cbind(SplineFitFPCA.GI.2020$RecoveredCurves)  %>% 
+  pivot_longer(cols = !time, names_to='taxa') %>%
+  group_by(taxa) %>% group_modify(~{.x %>% filter(value>4.5) %>% slice_head(n=1)}) %>% ungroup() %>% mutate(Param = 'fTimeTo5.0', year= '2020', trait = 'GI') %>%
+  rbind(data.frame(time = SplineFitFPCA.GE.2020$EstimatedAndEmpiricalMu$time[-c(1:59)]) %>% cbind(SplineFitFPCA.GE.2020$RecoveredCurves)  %>% pivot_longer(cols = !time, names_to='taxa') %>%
+          group_by(taxa) %>% group_modify(~{.x %>% filter(value>.95) %>% slice_head(n=1)}) %>% ungroup() %>% mutate(Param = 'fTimeTo95', year= '2020', trait= 'GE')) %>%
+  select(taxa, trait, year, Param, time) %>% rename(value=time)
+
+GEGI2020FPCATimeTo.SplineFit %>% ggplot(aes(x = value)) +facet_wrap(trait~Param) +geom_density()
+GEGI2020FPCATimeTo%>% ggplot(aes(x = value)) +facet_wrap(trait~Param) +geom_density()
+
+GWA2020.FPCA.GEGI.SplineFit = 
+  rbind(SplineFitFPCA.GI.2020$PCs_withTaxa %>% select(taxa, FPC1,FPC2) %>% mutate(trait='GI', year= '2020') %>%
+          pivot_longer(cols = c(FPC1,FPC2), values_to = 'value',names_to='Param'),
+        SplineFitFPCA.GE.2020$PCs_withTaxa %>% select(taxa, FPC1,FPC2) %>% mutate(trait='GE', year= '2020') %>%
+          pivot_longer(cols = c(FPC1,FPC2), values_to = 'value',names_to='Param')) %>% rbind(GEGI2020FPCATimeTo.SplineFit) %>%
+  group_by(year,trait,Param) %>%
+  group_modify(GWA_MLMM_fortidyR)
+
+GWA2020.FPCA.GEGI.SplineFit %>% slice_head(n=5) %>%view()
+# Now we have both the niave FPCA with only the 5 TP that we collected in 2020, and also the more advanced with interpolation according to
+# a penalized spline fit, followed by FPCA. We can check the GWAs for differences. etc. 
+# The next steps really can only take place once we have the 2021 data collection finished, as the log fits to the 2021 data need all timepoints
+# and the combined as needs all the timepoint values. 
+# What happens when we fit logistic models to the b-spline fitted data? would give us more interpreability than the fpcs? #####
+DHGE.logfits.Spline = DH2020SplineFits %>% ungroup()  %>% filter(trait=='GE')  %>% group_by(year, trait, taxa) %>%  rename(PM_date = time)%>%
+  group_modify(GE_logFits_trycatch) %>% ungroup() 
+DHGE.logfits.Spline.taxaToFilter = DHGE.logfits.Spline %>% filter(term =='Centering' &estimate > 200 |
+                                                                    term == 'TimeTo95' & estimate >250)
+DH.GElogfitGWA.mlm.Spline = DHGE.logfits.Spline %>% filter(taxa %nin% DHGE.logfits.Spline.taxaToFilter$taxa) %>% rename(value= estimate)%>% 
+  group_by(year, term) %>% group_modify(GWA_MLM_fortidyR) 
+DH.GElogfitGWA.mlmm.Spline = DHGE.logfits.Spline %>% filter(taxa %nin% DHGE.logfits.Spline.taxaToFilter$taxa)%>% rename(value= estimate) %>% 
+  group_by(year, term) %>% group_modify(GWA_MLMM_fortidyR) 
+
+DH.GElogfitGWA.mlmm.Spline %>% slice_head(n=5) %>%view()
+
+
+DHGI.logfits.Spline = DH2020SplineFits %>% ungroup() %>% filter(trait == 'GI') %>% group_by(year, trait, taxa) %>% rename(PM_date = time) %>%
+  group_modify(GI_logfits_trycatch)
+DHGI.logfits.Spline.taxaToFilter = DHGI.logfits.Spline %>% filter(term =='Centering' & estimate> 250 | term =='TimeTo5.0' & estimate > 300)
+
+DH.GIlogfitGWA.mlm.Spline = DHGI.logfits.Spline %>% filter(taxa %nin% DHGI.logfits.Spline.taxaToFilter$taxa) %>% rename(value= estimate) %>%
+  group_by(year, term) %>% group_modify(GWA_MLM_fortidyR) 
+DH.GIlogfitGWA.mlmm.Spline = DHGI.logfits.Spline %>% filter(taxa %nin% DHGI.logfits.Spline.taxaToFilter$taxa) %>% rename(value= estimate) %>% 
+  group_by(year, term) %>% group_modify(GWA_MLMM_fortidyR) 
+
+DH.GIlogfitGWA.mlmm.Spline %>% slice_head(n=5) %>%view()
+
+
+# Spline fits per PLOT and associted analysis 
+PenalizedSplineFitting.temp = function(df, groupvars, K.int = 1,order = 3 ) {
+  # K.int = number of interior knots
+  # print(groupvars)
+  tt = df$PM_date	# evaluation points
+  J = length(tt)		# number of evaluation points
+  t.min = min(tt)
+  t.max = max(tt)
+  ### basis functions ###
+  # cubic splines, for second derivative, using order 6 rather than 4
+  knots = t.min + (t.max-t.min)*(1:K.int)/(1+K.int)
+  # knots = 45
+  K = length(knots) + order # number of basis functions
+  basis = create.bspline.basis(c(t.min,t.max),K,norder=order)
+  
+  # evaluate original, the first, and second derivatives of basis functions
+  BS = eval.basis(tt,basis,0)
+  BS1 = eval.basis(tt,basis,1)
+  BS2 = eval.basis(tt,basis,2)
+  
+  # penalty matrix
+  Omega = inprod(basis,basis,2,2)	# for second derivative, using 4 rather than 2
+  
+  # function for tuning parameter selection using GCV
+  
+  Y.vec = as.vector(df$value)
+  N = length(Y.vec)
+  # design matrix
+  Xmat = BS
+  
+  ### Penalized least squares estimates ###
+  lam = 50000#
+  # lam = tuning_nointer(-10,15,Omega,Xmat,Y.vec,xlen)	# tunning parameter
+  bhat = solve(t(Xmat)%*%Xmat+adiag(Omega*lam))%*%t(Xmat)%*%Y.vec
+  # n.eval = 50 #range(tt)[2]-range(tt)[1]	
+  t.eval = sort(c(seq(t.min,t.max,by=1))) #,7,14,28, 42,63)) #, 91, 115, 144))
+  mu.eval = eval.basis(t.eval,basis,0)%*%bhat
+  y_lim = range(Y.vec)
+  
+  # plot(t.eval,mu.eval)+points(x = df[,c('PM_date','value')], col= 'blue')
+  return(data.frame(time = t.eval, value = mu.eval))
+}
+
+test.taxa = sample(unique(DHs2020$taxa),size = 20)
+
+# we are going to take all the GE and GI predictions for TP1 2020 and use them in our model.
+PerPlot.SplineFit = DHs2020 %>% select(year, Family, taxa, Location, PLOT, PM_date, GE, GI) %>%
+  rbind(DHs2021 %>% rename(PLOT = SourcePLOT) %>% select(year, Family, taxa, Location,PLOT, PM_date, GE, GI)) %>%
+  pivot_longer(cols = c(GE,GI), names_to = 'trait', values_to = 'value') %>% 
+  rbind(rbind(GE_TP1_2020_predValues,GI_TP1_2020_predValues) %>% select(year, Family, taxa, trait, value, PM_date) %>%
+          join(DHs2020 %>% filter(PM_date==19) %>% mutate(PM_date=5)%>% select(taxa, Location, PLOT, PM_date)) %>%
+          select(year, Family, taxa, Location, PLOT, PM_date,trait, value))  %>%
+  mutate(PM_date = PM_date -5) %>%
+  group_by(year, Family, Location,taxa, PLOT, trait) %>% filter(!is.na(value) )%>% add_tally() %>% filter(n>6) %>%
+  group_modify(PenalizedSplineFitting.temp)
+
+PerPlot.SplineFit %>%# mutate(value = ifelse(trait =='GE' & value > 1,1,value)) %>%# filter(time %% 5 == 0) %>%
+  ggplot(aes( x= time, y= value, group = PLOT)) + geom_hline(yintercept = 1, color = 'red')+
+  geom_line()+facet_wrap(~trait,scales = 'free')
+
+PerPlot.SplineFitTimeTo = PerPlot.SplineFit %>% group_modify(~{.x %>% filter(value>4.5) %>% slice_head(n=1)}) %>% 
+  rbind(PerPlot.SplineFit %>% filter(trait == 'GE') %>% group_modify(~{.x %>% filter(value>.95) %>% slice_head(n=1)}))
+BLUPH2(lmer(time~(1|taxa)+Location, data = PerPlot.SplineFitTimeTo %>% filter(trait == 'GI')))
+BLUPH2(lmer(time~(1|taxa)+Location, data = PerPlot.SplineFitTimeTo %>% filter(trait == 'GE')))
+
+BLUE_BLUPs.Spline.tests <- function(d, groupvars) {
+  trait.lmer <- lmer(formula = value ~(1|taxa)+Location, 
+                     data = d)
+  
+  lineEf = (ranef(trait.lmer)$taxa + fixef(trait.lmer)[1]) %>% as.data.frame() %>% rownames_to_column('taxa') %>% 
+    mutate(type = 'BLUP') %>% rename(value = '(Intercept)')
+  trait.lm = broom::tidy(lm(value~ taxa+Location, data=d))
+  
+  first_taxa = d %>% arrange(taxa) %>% slice_head( n = 1) %>% select(taxa) %>% as.character()
+  Intercept = trait.lm %>% filter(term == '(Intercept)') %>% select(estimate) %>% as.numeric()
+  lineBLUE = trait.lm %>% filter(substr(term,1,4)=='taxa') %>% 
+    add_row(term = paste0('taxa',first_taxa),
+            estimate = 0) %>% mutate(BLUE = estimate + Intercept) %>%
+    transmute(taxa = gsub(pattern = 'taxa',replacement = '',x = term),
+              value = BLUE,
+              type = 'BLUE')
+  H2 = BLUPH2(trait.lmer)
+  return(rbind(lineEf, lineBLUE) %>% add_row(value = H2, type = 'H2') %>% arrange(type, taxa))
+}
+DH2020SplineFits %>% ggplot(aes( x= time, y= value, group = taxa)) +
+  geom_line()+facet_wrap(~trait, scales = 'free')
+
+spline.taxaBLH2 = PerPlot.SplineFit %>% ungroup() %>% mutate(value = ifelse(trait =='GE' & value > 1,1,value))%>% filter(time %% 5 == 0) %>%
+  group_by(time, trait) %>% group_modify(BLUE_BLUPs.Spline.tests )
+spline.taxaBLH2 %>% filter(type == 'H2') %>% ggplot(aes(time, value))+geom_line()+facet_wrap(~trait, scales = 'free')
+spline.taxaBLH2 %>% filter(type == 'BLUE') %>% ggplot(aes(time, value, group = taxa)) +geom_line() + facet_wrap(~trait, scales = 'free')
+
+df = PerPlot.SplineFit %>% filter(PLOT == 'a11450', trait == 'GI')
+
+df = DHs2020 %>% select(year, Family, taxa, Location, PLOT, PM_date, GE, GI) %>%
+  # rbind(DHs2021 %>% rename(PLOT = SourcePLOT) %>% select(year, Family, taxa, Location,PLOT, PM_date, GE, GI)) %>%
+  pivot_longer(cols = c(GE,GI), names_to = 'trait', values_to = 'value') %>% mutate(PM_date = PM_date -5) %>%
+  group_by(year, Family, Location, PLOT, trait) %>% tally()
+
+df$n %>% table()
+filter(PLOT == '6011', trait =='GE')#%>% group_modify(PenalizedSplineFitting)
+# Genomic Prediction ################################################################
+#All will use the data from DHCombined for the non .5 TP. 
+WinterGPdata = DHCombined %>% filter(TP %in% c('TP1','TP2','TP3','TP4','TP5')) %>% filter(type == 'BLUE',Family != 'Cha')
+# Question can we reduce SNP numbers? #######
+# Based on Dans paper: yes ~3k gives a prediction platue within 7 families. What about ours?
+dim(WinterGD)
+MarkerNumberRandonTrainingTestingrrBLUP = function(df, groupvars,GD=WinterGD, numfolds = 50){ 
+  Phenotype = df %>% filter(taxa %in% GD$taxa) %>% arrange(taxa) 
+  myGD = GD %>% filter(taxa %in% Phenotype$taxa) %>% arrange(taxa)
+  if(!length(unique(Phenotype$taxa))==sum(Phenotype$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  start_time <- Sys.time() 
+  set.seed(1)
+  Qsd1 = myGD$Qsd1
+  myGDrr = myGD[,-1]-1 
+  Y = as.vector(Phenotype$value)
+  num_entries = nrow(Phenotype)
+  Num_train = .8*num_entries
+  TrueandPredicted = data.frame()
+  for (ii in c(.05,.1,.2,.3,.4,.5,.6,.7,.8,.9,1)){
+    for (i in 1:numfolds){
+      trainingSet = sort(sample(1:num_entries,Num_train))
+      testingSet = setdiff(1:num_entries,trainingSet)
+      
+      fam_test = Phenotype$Family[testingSet]
+      fam_train = Phenotype$Family[trainingSet]
+      
+      y_train = Y[trainingSet] 
+      y_test = Y[testingSet]
+      # Qsd1 is 5148
+      MarkerSet = sort(c(sample(x = 1:8384,size =round(8384*ii), replace = F),5148))
+      marker_train = myGDrr[trainingSet,MarkerSet]
+      marker_test = myGDrr[testingSet,MarkerSet]
+      
+      trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+      
+      PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+      print(cor(y_test,PredictedPheno))
+      
+      pred = data.frame(Family = fam_test, Predicted = PredictedPheno, TrueValue = y_test, Qsd1 = 'AllAlleles') %>% 
+        rbind(data.frame(Family = fam_test, Predicted = PredictedPheno, TrueValue = y_test, Qsd1 = Qsd1[testingSet])) %>%
+        rbind(data.frame(Family = 'Overall', Predicted = PredictedPheno, TrueValue = y_test, Qsd1 = Qsd1[testingSet])) %>%
+        rbind(data.frame(Family = 'Overall', Predicted = PredictedPheno, TrueValue = y_test, Qsd1 = 'AllAlleles')) %>%
+        filter(Qsd1 != '1', Family != 'DH130910') %>%
+        group_by(Family, Qsd1) %>%
+        summarize(correlation = cor(Predicted, TrueValue),n_test = n()) %>%
+        ungroup() %>%
+        join(as.data.frame(table(Phenotype$Family[trainingSet])) %>%
+               rename(Family= Var1, n_train =Freq) %>% filter(Family!='DH130910') %>%
+               add_row(Family = 'Overall',n_train = Num_train)) %>% mutate(fold = i, MarkerProportion = ii)
+      TrueandPredicted = rbind(TrueandPredicted, pred)
+      
+    }
+  }
+  return(TrueandPredicted)
+}
+start_time <- Sys.time() 
+MarkerReductionTests = WinterGPdata %>% group_modify(MarkerNumberRandonTrainingTestingrrBLUP)
+Sys.time() - start_time
+MarkerReductionTests %>% ungroup() %>% filter(Family == 'Overall') %>%
+  ggplot(aes(x = MarkerProportion, y = correlation, fill = as.factor(MarkerProportion)))+geom_boxplot()+
+  facet_grid(trait~TP)
+MarkerReductionTests 
+# save(MarkerReductionTests, file = 'WinterBarley/Analysis/MarkerReductionTests.RData')
+
+# Question: Which model to use for our germination data? ######
+# rrblup, rrblup+fixed effect for Qsd1, Bayesian LASSO, BayesA, BayesB, BayesC, RKHS.
+library(BGLR)
+
+variousModelPAdetermination = function(df, groupvars, GD = WinterGD, numfolds = 50){
+  setwd(rprojroot::find_rstudio_root_file())
+  Phenotype = df %>% filter(taxa %in% GD$taxa) %>% arrange(taxa) 
+  myGD = GD %>% filter(taxa %in% Phenotype$taxa) %>% arrange(taxa)
+  if(!length(unique(Phenotype$taxa))==sum(Phenotype$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  start_time <- Sys.time() 
+  set.seed(1)
+  Qsd1 = myGD$Qsd1
+  myGDrr = myGD[,-1]-1 
+  Y = as.vector(Phenotype$value)
+  num_entries = nrow(Phenotype)
+  PredictionsA = data.frame()
+  for (ii in c(40,70,100,150,200,250,300,350,0.5,0.75,0.9)) {
+    if(ii<1){
+      Num_train = round(num_entries*ii,0)
+    } else{
+      Num_train = ii
+    }
+    for (i in 1:numfolds){
+      trainingSet = sort(sample(1:num_entries,Num_train, replace = FALSE))
+      testingSet = setdiff(1:num_entries,trainingSet)
+      yNA = Y
+      yNA[testingSet] <- NA
+      
+      # BRR
+      ETA_RR = list(list(X=myGDrr, model = 'BRR'))
+      RR = BGLR(y = yNA,ETA = ETA_RR,saveAt ='WinterBarley/Analysis/BGLROutput/') 
+      #BRR+fixed effect of Qsd1
+      ETA_RR_qsd1Fixed = list(list(X=Qsd1, model = 'FIXED'),list(X=myGDrr, model = 'BRR'))
+      RR_qsd1_fixed = BGLR(y = yNA,ETA = ETA_RR_qsd1Fixed,saveAt ='WinterBarley/Analysis/BGLROutput/') 
+      #LASSO
+      ETA_LASSO = list(list(X = myGDrr, model = 'BL'))
+      BL = BGLR(y = yNA,ETA = ETA_LASSO,saveAt ='WinterBarley/Analysis/BGLROutput/') 
+      # LASSE with Qsd1
+      ETA_LASSO_qsd1Fixed = list(list(X = Qsd1, model = "FIXED"), list(X = myGDrr, model = 'BL'))
+      BL_qsd1_fixed = BGLR(y = yNA,ETA = ETA_LASSO_qsd1Fixed,saveAt ='WinterBarley/Analysis/BGLROutput/') 
+      #BayesB
+      ETA_BayesB = list(list(X = myGDrr, model = 'BayesB'))
+      BayesB = BGLR(y = yNA, ETA = ETA_BayesB,saveAt ='WinterBarley/Analysis/BGLROutput/')
+      #BayesB with Qsd1 Fixed
+      ETA_BayesB_Qsd1Fixed = list(list(X = Qsd1, model = "FIXED"),list(X = myGDrr, model = 'BayesB'))
+      BayesB_Qsd1Fixed = BGLR(y = yNA, ETA = ETA_BayesB_Qsd1Fixed,saveAt ='WinterBarley/Analysis/BGLROutput/')
+      #BayesC
+      ETA_BayesC = list(list(X = myGDrr, model = 'BayesC'))
+      BayesC = BGLR(y = yNA, ETA = ETA_BayesC,saveAt ='WinterBarley/Analysis/BGLROutput/')
+      #BayesC with Qsd1 Fixed
+      ETA_BayesC_Qsd1Fixed = list(list(X = Qsd1, model = "FIXED"),list(X = myGDrr, model = 'BayesC'))
+      BayesC_Qsd1Fixed = BGLR(y = yNA, ETA = ETA_BayesC_Qsd1Fixed,saveAt ='WinterBarley/Analysis/BGLROutput/')
+      
+      results = data.frame(Family= 'Overall',True = Y[testingSet], Qsd1Status = 'AllAlleles',
+                           BRR = RR$yHat[testingSet], BRR_Qsd1_Fixed = RR_qsd1_fixed$yHat[testingSet],
+                           LASSO = BL$yHat[testingSet], LASSO_Qsd1_Fixed = BL_qsd1_fixed$yHat[testingSet],
+                           BayesB = BayesB$yHat[testingSet], BayesB_Qsd1_Fixed = BayesB_Qsd1Fixed$yHat[testingSet],
+                           BayesC = BayesC$yHat[testingSet], BayesC_Qsd1_Fixed = BayesC_Qsd1Fixed$yHat[testingSet]) %>%
+        rbind(data.frame(Family= 'Overall',True = Y[testingSet], Qsd1Status = Qsd1[testingSet],
+                         BRR = RR$yHat[testingSet], BRR_Qsd1_Fixed = RR_qsd1_fixed$yHat[testingSet],
+                         LASSO = BL$yHat[testingSet], LASSO_Qsd1_Fixed = BL_qsd1_fixed$yHat[testingSet],
+                         BayesB = BayesB$yHat[testingSet], BayesB_Qsd1_Fixed = BayesB_Qsd1Fixed$yHat[testingSet],
+                         BayesC = BayesC$yHat[testingSet], BayesC_Qsd1_Fixed = BayesC_Qsd1Fixed$yHat[testingSet])) %>%
+        rbind(data.frame(Family= Phenotype$Family[testingSet],True = Y[testingSet],Qsd1Status = 'AllAlleles',
+                         BRR = RR$yHat[testingSet], BRR_Qsd1_Fixed = RR_qsd1_fixed$yHat[testingSet],
+                         LASSO = BL$yHat[testingSet], LASSO_Qsd1_Fixed = BL_qsd1_fixed$yHat[testingSet],
+                         BayesB = BayesB$yHat[testingSet], BayesB_Qsd1_Fixed = BayesB_Qsd1Fixed$yHat[testingSet],
+                         BayesC = BayesC$yHat[testingSet], BayesC_Qsd1_Fixed = BayesC_Qsd1Fixed$yHat[testingSet]))%>%
+        rbind(data.frame(Family= Phenotype$Family[testingSet],True = Y[testingSet],Qsd1Status = Qsd1[testingSet],
+                         BRR = RR$yHat[testingSet], BRR_Qsd1_Fixed = RR_qsd1_fixed$yHat[testingSet],
+                         LASSO = BL$yHat[testingSet], LASSO_Qsd1_Fixed = BL_qsd1_fixed$yHat[testingSet],
+                         BayesB = BayesB$yHat[testingSet], BayesB_Qsd1_Fixed = BayesB_Qsd1Fixed$yHat[testingSet],
+                         BayesC = BayesC$yHat[testingSet], BayesC_Qsd1_Fixed = BayesC_Qsd1Fixed$yHat[testingSet])) %>%
+        pivot_longer(cols = !c('Family','True', Qsd1Status), names_to = 'Model', values_to = 'Predicted') %>%
+        filter(Family!='DH130910') %>%
+        group_by(Family, Model, Qsd1Status) %>%
+        summarise(correlation = cor(True,Predicted), n_test = n()) %>% ungroup() %>%
+        join(as.data.frame(table(Phenotype$Family[trainingSet])) %>%
+               rename(Family= Var1, n_train =Freq) %>% filter(Family!='DH130910') %>%
+               add_row(Family = 'Overall',n_train = Num_train)) %>% 
+        mutate(fold = i, trainingProportion = ii)
+      
+      PredictionsA = rbind(PredictionsA, results)     
+    }
+  }
+  return(PredictionsA)
+}
+# run on mac or other compter with multiple cores
+ModelFrameWorkTests = WinterGPdata %>% group_by(trait, TP)%>% group_modify(variousModelPAdetermination) %>% collect()
+
+
+# GP: RADOM TRAINING AND TEST SETS and grouped by Qsd1 ############
+df = DH2020Estimates %>% ungroup() %>% filter(TP=='TP2',trait=='GI',type=='BLUE')%>% filter(Family != 'Cha') 
+df$Family %>% table()
+
+FoldCVGP_tidy_randomTrainS = function(df, groupvars, myGD=WinterGD, numfolds = 5){
+  Phenotype = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+  myGD = myGD %>% filter(taxa %in% Phenotype$taxa) %>% arrange(taxa)
+  dim(Phenotype)
+  dim(myGD)
+  if(!length(unique(Phenotype$taxa))==sum(Phenotype$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  
+  TrueandPredicted = data.frame()
+  Qsd1 = myGD$Qsd1
+  start_time <- Sys.time() 
+  set.seed(1)
+  myGD = myGD[,-1]-1 
+  phenotype = as.vector(Phenotype$value)
+  num_entries = nrow(Phenotype)
+  
+  for (iii in c(40,70,100,150,200,250,300,350,0.5,0.75,0.9)){
+    if(iii<1){
+      Num_train = round(num_entries*iii,0)
+    } else{
+      Num_train = iii
+    }
+    
+    if( num_entries < iii){
+      next
+    }
+    
+    
+    for (i in 1:numfolds){
+      
+      trainingSet = sort(sample(1:num_entries,Num_train))
+      testingSet = setdiff(1:num_entries,trainingSet)
+      
+      fam_test = Phenotype$Family[testingSet]
+      fam_train = Phenotype$Family[trainingSet]
+      
+      y_train = phenotype[trainingSet] 
+      y_test = phenotype[testingSet]
+      
+      marker_train = myGD[trainingSet,]
+      marker_test = myGD[testingSet,]
+      
+      trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+      
+      PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+      print(cor(y_test,PredictedPheno))
+      
+      pred = data.frame(Family = fam_test, Predicted = PredictedPheno, TrueValue = y_test, Qsd1 = 'AllAlleles') %>% 
+        rbind(data.frame(Family = fam_test, Predicted = PredictedPheno, TrueValue = y_test, Qsd1 = Qsd1[testingSet])) %>%
+        rbind(data.frame(Family = 'Overall', Predicted = PredictedPheno, TrueValue = y_test, Qsd1 = Qsd1[testingSet])) %>%
+        rbind(data.frame(Family = 'Overall', Predicted = PredictedPheno, TrueValue = y_test, Qsd1 = 'AllAlleles')) %>%
+        filter(Qsd1 != '1', Family != 'DH130910') %>%
+        group_by(Family, Qsd1) %>%
+        summarize(correlation = cor(Predicted, TrueValue),n_test = n()) %>%
+        ungroup() %>%
+        join(as.data.frame(table(Phenotype$Family[trainingSet])) %>%
+               rename(Family= Var1, n_train =Freq) %>% filter(Family!='DH130910') %>%
+               add_row(Family = 'Overall',n_train = Num_train)) %>% mutate(fold = i, trainingProportion = iii)
+      
+      
+      TrueandPredicted = rbind(TrueandPredicted, pred)
+    }}
+  end_time <- Sys.time()
+  print(end_time-start_time)
+  return(TrueandPredicted)
+}
+
+DH2020_predictions = DH2020Estimates %>% filter(Family != 'Cha')%>% ungroup() %>% 
+  filter(!(trait =='GE' & TP %in% c('TP4','TP5'))) %>% 
+  filter(type =='BLUE') %>% group_by(year, TP, PM_date, trait)%>%
+  group_modify(FoldCVGP_tidy_randomTrainS) 
+
+DH2020_predictions_Qsd1Group = DH2020Estimates %>% filter(Family != 'Cha') %>% ungroup() %>% filter(!(trait =='GE' & TP %in% c('TP4','TP5'))) %>% 
+  join(WinterGD[,c('taxa','Qsd1')]) %>%
+  filter(Qsd1 != 1) %>%  filter(type =='BLUE') %>% group_by(year, TP, PM_date, trait, Qsd1)%>%
+  group_modify(FoldCVGP_tidy_randomTrainS) 
+
+# GP: Stratified random Sampling #####
+FoldCVGP_tidy_StratRandSampling = function(df, groupvars, myGD=WinterGD, numFolds = 50){
+  print(groupvars)
+  Phenotype = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+  myGD = myGD %>% filter(taxa %in% Phenotype$taxa) %>% arrange(taxa)
+  dim(Phenotype)
+  dim(myGD)
+  if(!length(unique(Phenotype$taxa))==sum(Phenotype$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  start_time <- Sys.time() 
+  set.seed(1)
+  myGD = myGD[,-1]-1
+  
+  TrueandPredicted = data.frame()
+  num_entries = nrow(Phenotype)
+  
+  Familycounts = Phenotype %>% group_by(Family) %>% select(Family) %>% tally() %>% filter(Family != 'DH130910') %>%
+    mutate(prop = n/num_entries)
+  
+  
+  for (iii in c(40,70,100,150,200,250,300,350)){
+    Num_train = iii-1
+    
+    if(num_entries < iii){
+      next
+    }
+    
+    Familycounts = Familycounts %>% mutate(NperFam = round(Familycounts$prop*Num_train,0))
+    
+    
+    for (i in 1:numFolds){
+      F1_t = sample(which(Phenotype$Family == 'Flavia/DH130910'),size = Familycounts$NperFam[1])
+      F2_t = sample(which(Phenotype$Family == 'Scala/DH130910'),size = Familycounts$NperFam[2])
+      F3_t = sample(which(Phenotype$Family == 'SY_Tepee/DH130910'),size = Familycounts$NperFam[3])
+      F4_t = sample(which(Phenotype$Family == 'Wintmalt/DH130910'),size = Familycounts$NperFam[4])
+      DH130910 = which(Phenotype$taxa=='DH130910')
+      training_set = sort(c(F1_t,F2_t,F3_t,F4_t,DH130910))
+      testing_set =setdiff(c(1:nrow(Phenotype)),training_set)
+      
+      y_train = Phenotype$value[training_set]
+      y_test = Phenotype$value[testing_set]
+      
+      fam_test = Phenotype$Family[testing_set]
+      fam_train = Phenotype$Family[training_set]
+      
+      marker_train = myGD[training_set,]
+      marker_test = myGD[testing_set,]
+      
+      trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+      
+      PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+      
+      print(cor(y_test,PredictedPheno))
+      
+      pred = data.frame(Family = fam_test, Predicted = PredictedPheno, TrueValue = y_test) %>% group_by(Family) %>%
+        add_tally() %>%
+        group_modify(~{data.frame(correlation =cor(.$Predicted,.$TrueValue),n_test = .$n[1])}) %>%ungroup() %>%
+        join(as.data.frame(table(fam_train)) %>% rename(Family= fam_train, n_train =Freq)) %>%
+        add_row(Family = 'Overall', correlation = cor(y_test,PredictedPheno),n_test = num_entries-Num_train, n_train = Num_train+1) %>%
+        mutate(fold = i, trainingProportion = iii)
+      
+      TrueandPredicted = rbind(TrueandPredicted,pred)
+      
+    }
+  }
+  return(TrueandPredicted)
+}
+
+DH2020StratRandomSam = DH2020Estimates %>% filter(Family != 'Cha') %>% filter(type=='BLUE') %>%
+  filter(!(trait =='GE' & TP %in% c('TP4','TP5'))) %>% ungroup() %>%
+  group_by(year, TP, trait) %>% group_modify(FoldCVGP_tidy_StratRandSampling)
+
+# GP: structured GBLUP #####
+
+# GP: CDmean Optimal training population #####
+size <- c(148, 197, 246, 295, 344, 394, 443, 492, 541, 590, 640, 689, 738, 787, 836, 886, 935, 983)
+
+
+# GP: Train with 3 families predict 1 #####
+FoldCVGP_tidy_ThreeFamilysPredictOne= function(df, groupvars, myGD=WinterGD, numFolds = 50){
+  print(groupvars)
+  Phenotype = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+  myGD = myGD %>% filter(taxa %in% Phenotype$taxa) %>% arrange(taxa)
+  dim(Phenotype)
+  dim(myGD)
+  if(!length(unique(Phenotype$taxa))==sum(Phenotype$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  start_time <- Sys.time() 
+  set.seed(1)
+  myGD = myGD[,-1]-1
+  
+  TrueandPredicted = data.frame()
+  for (ii in c("Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")){
+    training_set = which(Phenotype$Family != ii)
+    testing_set = which(Phenotype$Family == ii)
+    for (iii in c(40,70,100,150,200,250,300,0.5,0.75,0.9)){
+      if(iii<1){
+        Num_train = round(length(training_set)*iii,0)
+      } else{
+        Num_train = iii
+      }
+      
+      if(iii > length(training_set)){
+        next
+      }
+      
+      num_entries = nrow(Phenotype)
+      
+      for (i in 1:numFolds){
+        train_rows = sort(sample(training_set,Num_train, replace = F))
+        test_rows =sort(c(testing_set, setdiff(training_set,train_rows)))
+        
+        y_train = Phenotype$value[train_rows]
+        y_test = Phenotype$value[test_rows]
+        
+        fam_test = Phenotype$Family[test_rows]
+        fam_train = Phenotype$Family[train_rows]
+        
+        marker_train = myGD[train_rows,]
+        marker_test = myGD[test_rows,]
+        
+        trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+        
+        PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+        
+        print(cor(y_test,PredictedPheno))
+        
+        #DH130910 will always be excluded from the per family correlations, but included in the overall correlation. 
+        pred = data.frame(Family = fam_test, Predicted = PredictedPheno, TrueValue = y_test) %>% group_by(Family) %>%
+          add_tally() %>%
+          group_modify(~{data.frame(correlation =cor(.$Predicted,.$TrueValue),n_test = .$n[1])}) %>%ungroup() %>%
+          join(as.data.frame(table(fam_train)) %>% rename(Family= fam_train, n_train =Freq)) %>%
+          add_row(Family = 'Overall', correlation = cor(y_test,PredictedPheno),n_test = num_entries-Num_train, n_train = Num_train) %>%
+          mutate(fold = i, trainingProportion = iii, FamilyPredicted = ii)
+        
+        TrueandPredicted = rbind(TrueandPredicted,pred)
+      }
+    }
+  }
+  return(TrueandPredicted)
+}
+
+DH20203FamPred1 = DH2020Estimates %>% filter(Family != 'Cha') %>% filter(type=='BLUE') %>%
+  filter(!(trait =='GE' & TP %in% c('TP4','TP5'))) %>% ungroup() %>%
+  group_by(year, TP, trait) %>% group_modify(FoldCVGP_tidy_ThreeFamilysPredictOne)
+
+DH20203FamPred1 %>% filter(n_test>4) %>% filter(trainingProportion==.75) %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         yfacetlabel = 'Prediction accuracy for:') %>%
+  ggplot(aes(x =TP, y = correlation, fill = FamilyPredicted)) +geom_boxplot()+facet_nested(yfacetlabel+Family~trait, scales = 'free',space = 'free_x')+
+  geom_hline(yintercept = 0)+
+  labs(title = 'Train with three families, predict outgroup',fill = 'Family Excluded \nfrom training set')+
+  theme_bw()
+
+DH20203FamPred1 %>% filter(n_test>4) %>% filter(trainingProportion==70) %>% filter(trait =='GI',TP == 'TP2') %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         yfacetlabel = 'Prediction accuracy for:') %>% group_by(Family, FamilyPredicted) %>% summarize(correlation = mean(correlation)) %>%
+  ggplot(aes(x =Family, y = FamilyPredicted, fill = correlation)) +geom_tile()+ ylab('Family Excluded from training') +
+  labs(title = 'Train with three families, predict outgroup')+geom_text(aes(label = round(correlation,3)), color = 'white')+
+  theme_bw()
+
+
+# GP: Train with 2 families predict 2 #####
+Family_combos = combn(c("Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910"),2)
+FoldCVGP_tidy_twoFamilysPredictTwo = function(df, groupvars, myGD=WinterGD, numFolds = 50){
+  print(groupvars)
+  Phenotype = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+  myGD = myGD %>% filter(taxa %in% Phenotype$taxa) %>% arrange(taxa)
+  dim(Phenotype)
+  dim(myGD)
+  if(!length(unique(Phenotype$taxa))==sum(Phenotype$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  start_time <- Sys.time() 
+  set.seed(1)
+  myGD = myGD[,-1]-1
+  Family_combos = combn(c("Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910"),2)
+  
+  TrueandPredicted = data.frame()
+  for (ii in c(1:6)){
+    testing_set = which(Phenotype$Family %nin% Family_combos[,ii])
+    training_set = which(Phenotype$Family %in% Family_combos[,ii])
+    
+    for (iii in c(40,70,100,150,200,0.5,0.75,0.9)){
+      if(iii<1){
+        Num_train = round(length(training_set)*iii,0)
+      } else{
+        Num_train = iii
+      }
+      
+      if(iii > length(training_set)){
+        next
+      }
+      
+      for (i in 1:numFolds){
+        train_rows = sort(sample(training_set,Num_train, replace = F))
+        test_rows = sort(c(testing_set, setdiff(training_set,train_rows)))
+        
+        y_train = Phenotype$value[train_rows]
+        y_test = Phenotype$value[test_rows]
+        
+        marker_train = myGD[train_rows,]
+        marker_test = myGD[test_rows,]
+        
+        fam_train = Phenotype$Family[train_rows]
+        fam_test = Phenotype$Family[test_rows]
+        
+        trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+        
+        PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+        
+        #DH130910 will always be excluded from the per family correlations, but included in the overall correlation. 
+        pred = data.frame(Family = fam_test, Predicted = PredictedPheno, TrueValue = y_test) %>% group_by(Family) %>%
+          add_tally() %>%
+          group_modify(~{data.frame(correlation =cor(.$Predicted,.$TrueValue), n_test = .$n[1])}) %>%ungroup() %>%
+          join(as.data.frame(table(fam_train)) %>% rename(Family= fam_train, n_train =Freq)) %>%
+          add_row(Family = 'Overall', correlation = cor(y_test,PredictedPheno), n_train = Num_train, n_test = length(training_set)-Num_train) %>%
+          mutate(fold = i, trainingProportion = iii, FamilyTrain = ii)
+        
+        TrueandPredicted = rbind(TrueandPredicted,pred)
+        print(cor(y_test,PredictedPheno))
+      }
+    }
+  }
+  return(TrueandPredicted)
+}
+
+DH20202FamPred2 = DH2020Estimates %>% filter(Family != 'Cha') %>% filter(type=='BLUE') %>%
+  filter(!(trait =='GE' & TP %in% c('TP4','TP5'))) %>% ungroup() %>%
+  group_by(year, TP, trait) %>% group_modify(FoldCVGP_tidy_twoFamilysPredictTwo)%>%
+  mutate(trainingFamilies = mapvalues(FamilyTrain, from = c(1:6),
+                                      to = c(paste0(Family_combos[1,1],'\n', Family_combos[2,1]),
+                                             paste0(Family_combos[1,2],'\n', Family_combos[2,2]),
+                                             paste0(Family_combos[1,3],'\n', Family_combos[2,3]),
+                                             paste0(Family_combos[1,4],'\n', Family_combos[2,4]),
+                                             paste0(Family_combos[1,5],'\n', Family_combos[2,5]),
+                                             paste0(Family_combos[1,6],'\n', Family_combos[2,6]))))
+
+DH20202FamPred2 %>% ggplot(aes(x = TP, y = correlation, color = trainingFamilies))+geom_boxplot()+
+  facet_grid(trainingFamilies~trait, scales = 'free_x')+ylim(0,1)
+
+DH20202FamPred2 %>% filter(n_test>4) %>% filter(trainingProportion==.75) %>%
+  separate(trainingFamilies, into =c('TF1','TF2'), sep = '\n', remove = F) %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         yfacetlabel = 'Prediction accuracy for:',
+         IntrainingSet = (Family == TF1 |Family==TF2)) %>%
+  ggplot(aes(x =TP, y = correlation, fill =  IntrainingSet)) +geom_boxplot()+
+  facet_nested(yfacetlabel+Family~trait, scales = 'free',space = 'free_x')+
+  geom_hline(yintercept = 0)+
+  labs(title = 'Train with two families, predict other two', 
+       subtitle = 'Prediction accuracy per family along side facets',
+       fill = 'Family predicted\nin the training set?')+theme_bw()
+
+DH20202FamPred2 %>% filter(n_test>4) %>% filter(trainingProportion==.75) %>%
+  separate(trainingFamilies, into =c('TF1','TF2'), sep = '\n', remove = F) %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         yfacetlabel = 'Prediction accuracy for:',
+         IntrainingSet = (Family == TF1 |Family==TF2)) %>%
+  ggplot(aes(x =TP, y = correlation, fill =  trainingFamilies)) +geom_boxplot()+
+  facet_nested(yfacetlabel+Family~trait, scales = 'free',space = 'free_x')+
+  geom_hline(yintercept = 0)+theme_bw()+
+  labs(fill = 'Families in training set', title = 'Train on two families Predict other two')
+
+
+# GP: Train with 1 family   predict 3 #######
+FoldCVGP_tidy_OneFamilysPredictThree = function(df, groupvars, myGD=WinterGD, numFolds = 50){
+  print(groupvars)
+  Phenotype = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+  myGD = myGD %>% filter(taxa %in% Phenotype$taxa) %>% arrange(taxa)
+  dim(Phenotype)
+  dim(myGD)
+  if(!length(unique(Phenotype$taxa))==sum(Phenotype$taxa == myGD$taxa)){
+    stop('taxa lists are not correctly aligning')
+  }
+  start_time <- Sys.time() 
+  set.seed(1)
+  myGD = myGD[,-1]-1
+  
+  TrueandPredicted = data.frame()
+  for (ii in c("Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")){
+    testing_set = which(Phenotype$Family != ii)
+    training_set = which(Phenotype$Family == ii)
+    for (iii in c(40,70,100,0.5,0.75,0.9)){
+      if(iii<1){
+        Num_train = round(length(training_set)*iii,0)
+      } else{
+        Num_train = iii
+      }
+      
+      if(iii > length(training_set)){
+        next
+      }
+      
+      for (i in 1:numFolds){
+        train_rows = sort(sample(training_set,Num_train, replace = F))
+        test_rows = sort(c(testing_set, setdiff(training_set,train_rows)))
+        
+        y_train = Phenotype$value[train_rows]
+        y_test = Phenotype$value[test_rows]
+        
+        marker_train = myGD[train_rows,]
+        marker_test = myGD[test_rows,]
+        
+        fam_train = Phenotype$Family[train_rows]
+        fam_test = Phenotype$Family[test_rows]
+        
+        trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+        
+        PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+        
+        #DH130910 will always be excluded from the per family correlations, but included in the overall correlation. 
+        pred = data.frame(Family = fam_test, Predicted = PredictedPheno, TrueValue = y_test) %>% group_by(Family) %>%
+          add_tally() %>%
+          group_modify(~{data.frame(correlation =cor(.$Predicted,.$TrueValue), n_test = .$n[1])}) %>%ungroup() %>%
+          join(as.data.frame(table(fam_train)) %>% rename(Family= fam_train, n_train =Freq)) %>%
+          add_row(Family = 'Overall', correlation = cor(y_test,PredictedPheno), n_train = Num_train, n_test = length(training_set)-Num_train) %>%
+          mutate(fold = i, trainingProportion = iii, FamilyTrain = ii)
+        
+        TrueandPredicted = rbind(pred,TrueandPredicted)
+        
+        print(cor(y_test,PredictedPheno))
+      }
+    }
+  }
+  return(TrueandPredicted)
+}
+
+DH20201FamPred3 = DH2020Estimates %>% filter(Family != 'Cha') %>% filter(type=='BLUE') %>%
+  filter(!(trait =='GE' & TP %in% c('TP4','TP5'))) %>% ungroup() %>%
+  group_by(year, TP, trait) %>% group_modify(FoldCVGP_tidy_OneFamilysPredictThree)
+
+DH20201FamPred3 %>% filter(n_test>5) %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         yfacetLabel = 'Family used for training') %>% ggplot(aes(x = TP, y = correlation, fill = FamilyTrain))+
+  geom_boxplot()+theme_bw()+ labs(title = 'Train with one famliy predict other three', fill = 'Training Family')+
+  facet_nested(yfacetLabel + Family~trait, scales = 'free',space = 'free_x')+geom_hline(yintercept = 0)
+
+DH20201FamPred3 %>% ungroup()%>% filter(trait == 'GI', TP == 'TP2') %>% filter(trainingProportion == 70.00) %>% filter(Family != 'DH130910') %>%
+  group_by(year, TP, trait, Family, FamilyTrain) %>% summarise(correlation = mean(correlation)) %>%
+  mutate(Family = factor(Family, levels = c("Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910",'Overall'))) %>%
+  ggplot(aes(x = Family, y = FamilyTrain, fill = correlation, label = round(correlation,3)))+geom_tile()+geom_text()
+
+# GP Plotting of single timepoint and follow-up analysis ######
+# Combined Predictions stratified random sample and random sampling  plot
+RandSampleStratCombined = DH2020_predictions  %>% filter(Family %nin% c('Cha','DH130910')) %>% 
+  group_by(Family, trait, TP,trainingProportion) %>% 
+  summarise(correlation = mean(correlation,na.rm = T), stdev = sd(correlation, na.rm = T), n_train = mean(n_train)) %>%
+  filter(!(TP=='TP1' &trainingProportion==200)) %>% mutate(type = 'Random Sampling') %>%
+  rbind(DH2020StratRandomSam %>% group_by(Family, trait, TP, trainingProportion) %>% 
+          summarise(stdev = sd(correlation, na.rm = T),correlation = mean(correlation,na.rm = T), n_train = mean(n_train)) %>%
+          filter(!(TP=='TP1' &trainingProportion==200))%>% mutate(type = 'Stratified Sampling')) %>% 
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")))
+
+png('Presentations/Graphs/RandSample_vsStrat.png', 1400, 800, res =120)
+RandSampleStratCombined %>% ggplot(aes(x = n_train, y = correlation, color = TP, linetype = type)) +geom_line(size = 1) + 
+  geom_errorbar(aes(ymin = correlation - stdev, ymax = correlation+stdev))+theme_bw()+
+  facet_grid(trait~Family, scales = 'free_x')+theme_bw() +ylim(0,1) +xlab('Number of training taxa within group') +
+  scale_x_continuous(sec.axis = sec_axis(~./max(.)*(400*1.045), name = 'Total training population size') )+
+  labs(linetype = 'Sampling type', color = 'Timepoint')+geom_hline(yintercept = 0)
+dev.off()
+
+DH2020_predictions %>% filter(Family %nin% c('Cha','DH130910')) %>% 
+  group_by(trait, TP, Family, Qsd1, trainingProportion) %>%
+  summarise(correlation = mean(correlation, na.rm = T), n_train = mean(n_train))%>% filter(trait=='GI') %>%
+  ggplot(aes(x = n_train, y = correlation, color = Qsd1))+geom_line()+
+  facet_grid(trait+TP~Family, scales = 'free_x')+theme_bw() +ylim(0,1) +xlab('Number of training taxa within group')
+
+
+# Predictions within Qsd1 grouping. Dormant is more predictable group. 
+png('Presentations/Graphs/Qsd1GroupingPredictions.png', 1400, 800, res =120)
+DH2020_predictions_Qsd1Group %>% group_by(Family, trait, TP,trainingProportion, Qsd1) %>% filter(trainingProportion<149) %>%
+  summarise(correlation = mean(correlation,na.rm = T), stdev = sd(correlation, na.rm = T), n_train = mean(n_train)) %>%
+  filter(!(TP=='TP1' &trainingProportion==200)) %>% filter(Family != 'DH130910') %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         Qsd1lab = ifelse(Qsd1 == 0, 'Non Dormant', 'Dormant'),
+         training = 'Qsd1Specific') %>%
+  ggplot(aes(x = n_train, y = correlation, color = TP)) +geom_line(aes(linetype = Qsd1lab), size = 1) + 
+  facet_nested(trait~Family, scales = 'free_x')+theme_bw() +geom_hline(yintercept = 0)+theme_bw()+
+  labs(linetype = 'Qsd1 status', color = 'Timepoint')+xlab('Number of training taxa within group')+
+  scale_x_continuous(sec.axis = sec_axis(~./max(.)*(250*1.045), name = 'Total training population size'))+
+  ylim(0,1)
+dev.off()
+
+
+
+png('Presentations/Graphs/RandSampleVsQsd1Strat.png', 1400, 800, res =120)
+DH2020_predictions_Qsd1Group %>% group_by(Family, trait, TP,trainingProportion, Qsd1) %>% filter(trainingProportion<149) %>%
+  summarise(correlation = mean(correlation,na.rm = T), stdev = sd(correlation, na.rm = T), n_train = mean(n_train)) %>%
+  filter(!(TP=='TP1' &trainingProportion==200)) %>% filter(Family != 'DH130910') %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         Qsd1lab = ifelse(Qsd1 == 0, 'Non Dormant', 'Dormant')) %>%select(!Qsd1) %>%
+  rbind(RandSampleStratCombined %>% filter(type == 'Random Sampling') %>% rename(Qsd1lab = type)) %>%
+  filter(TP %in% c('TP2','TP3')) %>%
+  ggplot(aes(x = n_train, y = correlation, color = TP)) +geom_line(aes(linetype = Qsd1lab), size = 1) + 
+  facet_nested(trait~Family, scales = 'free_x')+theme_bw() +geom_hline(yintercept = 0)+theme_bw()+
+  labs(linetype = 'Qsd1 status', color = 'Timepoint')+xlab('Number of training taxa within group')+
+  scale_x_continuous(sec.axis = sec_axis(~./max(.)*(250*1.045), name = 'Total training population size'))+
+  ylim(0,1)
+dev.off()
+
+GITP22020= FoldCVGPv2(df = DH2020Estimates %>% filter(TP=='TP2', trait == 'GI',type =='BLUE'),myGD = WinterGD, numfolds = 10,datasplit = .5,trait_name ='GE' )
+bysd1 = GITP22020 %>% join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1 != 1) %>% group_by(Qsd1) %>% summarise(cor = round(cor(TruePheno, PredPheno),3))
+overall = GITP22020 %>% join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1 != 1) %>% summarise(cor = round(cor(TruePheno, PredPheno),3))
+png('Presentations/Graphs/ExampleGroupPredictions.png', 1400, 800, res =120)
+GITP22020 %>% join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1 != 1) %>% mutate(Qsd1 = ifelse(Qsd1==0,'NonDormant','Dormant')) %>%
+  ggplot(aes(x = TruePheno, y = PredPheno, color = as.factor(Qsd1)))+geom_point()+theme_bw() +
+  labs(color = 'Qsd1 Status', title = 'GI TP2, 2020 data predictions, training size = 200')+
+  annotate(geom='text',x = 1, y = 6, label = paste('Overall:', overall,'\nQsd1 Dormant:',bysd1$cor[2], '\nQsd1 Non-Dormant:',bysd1$cor[1]))
+dev.off()  
+
+# three families predicting one plot
+DH20203FamPred1 %>% filter(n_test>4) %>% filter(trainingProportion==.75) %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         yfacetlabel = 'Prediction accuracy for:') %>%
+  ggplot(aes(x =TP, y = correlation, fill = FamilyPredicted)) +geom_boxplot()+facet_nested(yfacetlabel+Family~trait, scales = 'free',space = 'free_x')+
+  geom_hline(yintercept = 0)+
+  labs(title = 'Train with three families, predict outgroup',fill = 'Family Excluded \nfrom training set')+
+  theme_bw()
+
+DH20203FamPred1 %>% filter(n_test>4) %>% filter(trainingProportion %in% c(40,70,100,150)) %>% filter(trait =='GI') %>% 
+  filter(TP %in% c('TP1','TP3','TP5')) %>%
+  mutate(Family = factor(Family, levels = c('Overall',"Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910")),
+         yfacetlabel = 'Training Size', xfacetlabel = 'Correlation within grouping for GI prediction') %>% 
+  ggplot(aes(x = TP, y = correlation, fill = FamilyPredicted))+geom_boxplot()+facet_nested(yfacetlabel + trainingProportion~ xfacetlabel+Family)+
+  labs(fill = 'Family excluded from\nthe training population')+ylim(0,1)+geom_hline(yintercept = c(0,0.5), color = 'black')
+
+png('Presentations/Graphs/PAThreeFamiliesPredictOne.png', 1400, 800, res =120)
+DH20203FamPred1 %>% filter(n_test>7) %>% filter(trainingProportion %in% c(70,100,150, 200)) %>% filter(trait =='GI') %>% 
+  group_by(trait,trainingProportion, TP, Family, FamilyPredicted) %>% summarize(correlation = mean(correlation)) %>%
+  mutate(yfacetlabel = 'Training Size', xfacetlabel = 'Correlation within grouping for GI prediction',
+         Family = gsub(Family, pattern = '/DH130910', replacement = ''),
+         Family = factor(Family, levels = c('Overall',"Flavia", "Scala", "SY_Tepee", "Wintmalt")),
+         FamilyPredicted = gsub(FamilyPredicted, pattern = '/DH130910',replacement = ''),
+         Box = ifelse(FamilyPredicted == Family, 'Y','N')) %>% 
+  ggplot(aes(x = Family,  y= FamilyPredicted, fill = correlation))+
+  geom_tile(aes(color = Box), height = .9, width = .9, size = 1)+
+  scale_color_manual(values = c('white','black'), guide = 'none')+ 
+  facet_nested(yfacetlabel+trainingProportion~TP)+theme_bw()+
+  scale_fill_gradient2(limits=c(0,1),low = 'blue',high = 'red', midpoint =.5)+  
+  geom_text(aes(label = round(correlation,2)), size = 2.5)+theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))+
+  labs(y = 'Family excluded from model training', x = 'Family Predicted', title = 'Train on three families predict the other') 
+dev.off()
+# Two Families predict two 
+
+DH20202FamPred2 %>% filter(n_test>4) %>% filter(trainingProportion %in% c(70,100,150)) %>% filter(trait == 'GI') %>%
+  group_by(trait,trainingProportion, TP, Family, trainingFamilies) %>% summarize(correlation = mean(correlation)) %>%
+  mutate(trainingFamilies= gsub(trainingFamilies, pattern = '/DH130910',replacement = '')) %>%
+  separate(trainingFamilies, into =c('TF1','TF2'), sep = '\n', remove = F) %>%
+  mutate(Family = gsub(Family, pattern = '/DH130910', replacement = ''),
+         Family = factor(Family, levels = c('Overall',"Flavia", "Scala", "SY_Tepee", "Wintmalt")),
+         yfacetlabel = 'Training population size',
+         IntrainingSet = (Family == TF1 | Family==TF2),
+         Box = ifelse(IntrainingSet==TRUE,'Y','N')) %>%
+  ggplot(aes( x= Family, y =trainingFamilies, fill = correlation))+
+  geom_tile(aes(color = Box), height = .9, width = .9, size = 1.5)+
+  scale_color_manual(values = c('white','black'), guide = 'none')+ 
+  facet_nested(yfacetlabel+trainingProportion~TP)+theme_bw()+
+  scale_fill_gradient2(limits=c(0,1),low = 'blue',high = 'red', midpoint =.5)+  
+  geom_text(aes(label = round(correlation,2)), size = 3)+theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))
+
+
+# one family train predict the other three
+png('Presentations/Graphs/PAOneFamiliyPredictthree.png', 1400, 800, res =120)
+DH20201FamPred3 %>% filter(n_test>4) %>% filter(trainingProportion %in% c(40,70,100)) %>% filter(trait =='GI') %>% 
+  group_by(trait,trainingProportion, TP, Family, FamilyTrain) %>% summarize(correlation = mean(correlation)) %>%
+  mutate(yfacetlabel = 'Training Size', xfacetlabel = 'Correlation within grouping for GI prediction',
+         Family = gsub(Family, pattern = '/DH130910', replacement = ''),
+         Family = factor(Family, levels = c('Overall',"Flavia", "Scala", "SY_Tepee", "Wintmalt")),
+         FamilyTrain = gsub(FamilyTrain, pattern = '/DH130910',replacement = ''),
+         Box = ifelse(FamilyTrain == Family, 'Y','N')) %>%
+  ggplot(aes(x = Family,  y= FamilyTrain, fill = correlation))+
+  geom_tile(aes(color = Box), height = .9, width = .9, size = 1)+
+  scale_color_manual(values = c('white','black'), guide = 'none')+ 
+  facet_nested(yfacetlabel+trainingProportion~TP)+theme_bw()+
+  scale_fill_gradient2(limits=c(0,1),low = 'blue',high = 'red', midpoint =.5)+  
+  geom_text(aes(label = round(correlation,2)), size = 2.5)+theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))+
+  labs(y = 'Family model trained on', x = 'Family Predicted', title = 'Train on one family predict the others') 
+dev.off()
+
+# combine by training set 1->3 2->2, 3->1 and examine!
+DH20201FamPred3 %>% filter(n_test>4) %>% filter(trainingProportion %in% c(70)) %>% filter(trait =='GI') %>% 
+  group_by(trait,trainingProportion, TP, Family, FamilyTrain) %>% summarize(correlation = mean(correlation)) %>%
+  mutate(yfacetlabel = 'Training Size', xfacetlabel = 'Correlation within grouping for GI prediction',
+         Family = gsub(Family, pattern = '/DH130910', replacement = ''),
+         Family = factor(Family, levels = c('Overall',"Flavia", "Scala", "SY_Tepee", "Wintmalt")),
+         FamilyTrain = gsub(FamilyTrain, pattern = '/DH130910',replacement = ''),
+         Box = ifelse(FamilyTrain == Family, 'Y','N'),
+         predictionGroup = "1->3") %>%
+  select(Family,FamilyTrain, correlation, predictionGroup, Box,yfacetlabel,trainingProportion,TP) %>%
+  rbind(DH20202FamPred2 %>% filter(n_test>4) %>% filter(trainingProportion %in% c(70)) %>% filter(trait == 'GI') %>%
+          group_by(trait,trainingProportion, TP, Family, trainingFamilies) %>% summarize(correlation = mean(correlation)) %>%
+          mutate(trainingFamilies= gsub(trainingFamilies, pattern = '/DH130910',replacement = '')) %>%
+          separate(trainingFamilies, into =c('TF1','TF2'), sep = '\n', remove = F) %>%
+          mutate(Family = gsub(Family, pattern = '/DH130910', replacement = ''),
+                 Family = factor(Family, levels = c('Overall',"Flavia", "Scala", "SY_Tepee", "Wintmalt")),
+                 yfacetlabel = 'Training Size',
+                 IntrainingSet = (Family == TF1 | Family==TF2),
+                 Box = ifelse(IntrainingSet==TRUE,'Y','N'),
+                 FamilyTrain = trainingFamilies,
+                 predictionGroup = "2->2") %>%
+          select(Family, FamilyTrain,correlation, predictionGroup, Box, yfacetlabel, trainingProportion,TP)) %>%
+  rbind(DH20203FamPred1 %>% filter(n_test>7) %>% filter(trainingProportion %in% c(70)) %>% filter(trait =='GI') %>% 
+          group_by(trait,trainingProportion, TP, Family, FamilyPredicted) %>% summarize(correlation = mean(correlation)) %>%
+          mutate(yfacetlabel = 'Training Size', xfacetlabel = 'Correlation within grouping for GI prediction',
+                 Family = gsub(Family, pattern = '/DH130910', replacement = ''),
+                 Family = factor(Family, levels = c('Overall',"Flavia", "Scala", "SY_Tepee", "Wintmalt")),
+                 FamilyPredicted = gsub(FamilyPredicted, pattern = '/DH130910',replacement = ''),
+                 FamilyTrain = mapvalues(FamilyPredicted, from = c('Flavia','Wintmalt','Scala','SY_Tepee'), 
+                                         to = c('Wintmalt\nScala\nSY_Tepee', 
+                                                'Flavia\nScala\nSY_Tepee',
+                                                'Flavia\nWintmalt\nSY_Tepee',
+                                                'Flavia\nWintmalt\nScala')),
+                 Box = ifelse(FamilyPredicted == Family, 'N','Y'),
+                 predictionGroup = '3->1') %>%
+          select(Family, FamilyTrain,correlation, predictionGroup, Box, yfacetlabel, trainingProportion,TP)) %>%
+  ggplot(aes(x = Family,  y= FamilyTrain, fill = correlation))+
+  geom_tile(aes(color = Box), height = .9, width = .9, size = 1)+
+  scale_color_manual(values = c('white','black'), guide = 'none')+ 
+  facet_nested(yfacetlabel+predictionGroup+trainingProportion~TP, scales = 'free_y', space = 'free')+theme_bw()+
+  scale_fill_gradient2(limits=c(0,1),low = 'blue',high = 'red', midpoint =.5)+  
+  geom_text(aes(label = round(correlation,2)), size = 2.5)+theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))+
+  labs(y = 'Family model trained on', x = 'Family Predicted', title = 'Train on n families (see side facet) predict the others') 
+
+
+DH20203FamPred1 %>% filter(n_test>7) %>% filter(trainingProportion %in% c(70)) %>% filter(trait =='GI') %>% 
+  group_by(trait,trainingProportion, TP, Family, FamilyPredicted) %>% summarize(correlation = mean(correlation)) %>%ungroup() %>%
+  mutate(yfacetlabel = 'Training Size', xfacetlabel = 'Correlation within grouping for GI prediction',
+         Family = gsub(Family, pattern = '/DH130910', replacement = ''),
+         Family = factor(Family, levels = c('Overall',"Flavia", "Scala", "SY_Tepee", "Wintmalt")),
+         FamilyPredicted = gsub(FamilyPredicted, pattern = '/DH130910',replacement = ''),
+         FamilyTrain = mapvalues(FamilyPredicted, from = c('Flavia','Wintmalt','Scala','SY_Tepee'), 
+                                 to = c('Wintmalt\nScala\nSY_Tepee', 
+                                        'Flavia\nScala\nSY_Tepee',
+                                        'Flavia\nWintmalt\nSY_Tepee',
+                                        'Flavia\nWintmalt\nScala')),
+         Box = ifelse(FamilyPredicted == Family, 'Y','N'),
+         predictionGroup = '3->1') %>% select(FamilyTrain) %>% unique()
+
+
+
+# GP: Trait values over time? Need to think about that... ####
+# can run similar things to stratified random sampling etc to predict trait values, but not sure here at this point. 
+# Also - Should I bring in other traits since this is turning into a genomic prediction paper?
+# Plot of Relationship vs the trait value deviance. Also GBLUP vs RRBLUP #####
+WinterRelationship = rrBLUP::A.mat(WinterGD[,-1]-1, impute.method = 'EM', return.imputed = F)
+Trait_dev_Sample = DH2020Estimates %>% filter(Family != 'Cha') %>% filter(type=='BLUE') %>%
+  filter(!(trait =='GE' & TP %in% c('TP4','TP5'))) %>% ungroup() %>%
+  filter(TP=='TP2', trait == 'GI')%>% arrange(taxa) %>% ungroup()
+# We need one trait to examine trait deviance and the relationship. Use TP2, 2020, GI. 
+WinterRelationship[upper.tri(WinterRelationship,diag = TRUE)] <- NA
+
+DHrelation = WinterRelationship %>%  data.frame() %>% rownames_to_column(var = 'taxa') %>%
+  pivot_longer(cols = !taxa, names_to = 'taxa2', values_to = 'Kinship') %>% filter(taxa %in% Trait_dev_Sample$taxa) %>%
+  filter(taxa2 %in% Trait_dev_Sample$taxa)  %>% 
+  filter(!is.na(Kinship)) %>%
+  join(Trait_dev_Sample[,c('taxa','value', 'Family')]) %>%
+  join(Trait_dev_Sample %>% transmute(taxa2 = taxa, value2 = value, Family2 = Family)) %>% 
+  mutate(Family_comparisons = paste0(Family,'\n',Family2),
+         trait_dev = value-value2) %>% join(WinterGD[,c('taxa','Qsd1')])%>%
+  join(WinterGD[c('taxa','Qsd1')] %>% rename(taxa2 = taxa, Qsd1_2 = Qsd1))
+DHrelation %>% select(Family, Family2, Kinship) %>% group_by(Family,Family2) %>%
+  summarise(meanK = mean(Kinship))
+
+jpeg(file = 'Presentations/Graphs/TraitdevVkinship.jpg', 1200,900, res = 120)
+DHrelation %>% filter(Family %in% c("Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910"),
+                      Family2 %in% c("Flavia/DH130910", "Scala/DH130910", "SY_Tepee/DH130910", "Wintmalt/DH130910"))%>% 
+  mutate(Qsd1MonoMorph = Qsd1==Qsd1_2, trait_dev= abs(trait_dev)) %>%
+  ggplot(aes(Kinship, y = trait_dev))+geom_point(size = .01)+
+  facet_grid(Family~Family2, scales = 'free') +geom_smooth(method = 'lm')
+dev.off()
+
+# Lets look at prediction of 20% of the entire Trait_dev_Sample n.
+Model.RR = Trait_dev_Sample %>% group_by(year, trait, TP) %>% group_modify(FoldCVGP_tidy_randomTrainS)
+Model.RR %>% filter(TrainingPropor==.8) %>% summarise(mean(correlation), sd(correlation))
+
+library(qgg)
+
+K_use = rrBLUP::A.mat((WinterGD %>% filter(taxa%in%Trait_dev_Sample$taxa)%>% select(!taxa))-1, impute.method = 'EM', return.imputed = F)
+Trained.Model.GBLUP = mixed.solve(y = (Trait_dev_Sample %>% filter(taxa%in% WinterGD$taxa) %>% select(value) %>% as.matrix())[training_set] ,
+                                  K=K_use,
+                                  SE=FALSE)
+
+# PHS import and data processing. May need to run with ASREML.R #####
+
+DH_Sprout = read_excel('2021Phenotyping/Data/DHs_PHS_2021.xlsx') %>%
+  mutate(location = ifelse(PLOT>6999, 'Ketola','McGowan'), year = '2021') %>% 
+  # rbind(read_excel('WinterBarley/PhenotypeData/2020Harvest/2020WinterDH_PHS.xlsx')%>%
+  #         mutate(location = 'Ketola2020'), year = '2020')  #Not sure if this should be included as these were planed as facultatives. 
+  select(!Comment) %>% mutate(taxa = gsub(pattern = '-', replacement = '_',Entry),taxa = gsub(pattern = ' ', replacement = '_',taxa)) %>%
+  rename(score = `Sprout Score`) %>% 
+  separate(score, into =c('p0','p1','p2','p3','p4','p5'), sep = '') %>% select(!p0) %>% pivot_longer(cols = c(p1,p2,p3,p4,p5)) %>%
+  mutate(value = as.numeric(value)) %>%
+  group_by(taxa, location, Harv, year) %>% summarise(PHS = mean(value,na.rm = T))
+PHS.lmer = lmer(PHS ~ location +(1|location:Harv)+(1|taxa), DH_Sprout) 
+VarCorr(PHS.lmer)
+BLUPH2(PHS.lmer)
+DH.PHS = (ranef(PHS.lmer)$taxa + fixef(PHS.lmer)[1]) %>% as.data.frame() %>% rownames_to_column('taxa') %>% rename(PHS =`(Intercept)`)
+
+# Plot of TimeTo5.0/TimeTo95 vs TP1 GE/GI (with predicted values) and PHS? #####
+library(GGally)
+GEGIPHSTimeTo2020 = rbind(GE_TP1_2020_predValues,GI_TP1_2020_predValues, 
+                          DH2020Estimates %>% filter(TP == 'TP1',type == 'BLUE')) %>%
+  pivot_wider(values_from = value, names_from = trait) %>%
+  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1 != 1) %>%
+  join(DH.PHS) %>%
+  join(GEGI2020FPCATimeTo.SplineFit %>% pivot_wider(names_from =c('trait','Param'), values_from = 'value')) %>%
+  rename(GE_TP1 = GE, GI_TP1 = GI, fTimeTo5.0 = GI_fTimeTo5.0, fTimeTo95 = GE_fTimeTo95) %>% 
+  mutate(Qsd1 = ifelse(Qsd1==2,'Dormant','NonDormant'),
+         GE_TP1 = ifelse(GE_TP1<0,0,GE_TP1),
+         GI_TP1 = ifelse(GI_TP1<0,0,GI_TP1)) %>% filter(!is.na(fTimeTo5.0), !is.na(fTimeTo95))
+
+GEGIPHSTimeTo2020 %>% ggpairs(data = ., 
+                              columns = c('fTimeTo5.0','fTimeTo95','GE_TP1', 'GI_TP1', 'PHS'),
+                              ggplot2::aes(color = Qsd1))+theme_bw()+theme(axis.text = element_text(size = 6))
+
+# Genetic Correlations? #####
+DH2021Estimates %>% filter(taxa %nin% WinterGD$taxa) %>% select(taxa )%>% unique()
+DH2020Estimates%>% filter(taxa %nin% WinterGD$taxa) %>% select(taxa )%>% unique()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############
+
+
+
+
+
+
+
+
+
+
+
+#test for time point 1
+# *note we only did half the samples for this timepoint
+#all fac were retained
+#Entries were scored based on ranges, not reps so Travis(or Dan) 
+#scored plots 11001-11250 and I scored 11252-11543 for example
+c<-WDH20_pheno[WDH20_pheno$Timepoint=="1",]
+
+WDHge_1.lm=lm(GE~ Location + Entry + PM + UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
+anova(WDHge_1.lm) #location, #PM significant
+WDHgi_1.lm=lm(GI~ Location + Entry + PM + UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
+anova(WDHgi_1.lm) #all sign
+WDHgiScale_1.lm=lm(GIscale~ Location+ Entry + PM +UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
+anova(WDHgiScale_1.lm) # all sing
+# 5 day
+WDHge5D_1.lm=lm(GE_5D~ Location + Entry + PM +UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
+anova(WDHge5D_1.lm) #location, #PM significant
+
+WDHgi5D_1.lm=lm(GI_5D~ Location + Entry + PM +UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
+anova(WDHgi5D_1.lm)
+WDHgiScale5D_1.lm=lm(GIscale_5D~ Location+ Entry + PM +UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
+anova(WDHgiScale5D_1.lm)#all sign
+
+
+
+#Time point 2
+#for this and following time points the full sample amounts were used
+WDHge_2.lm=lm(GE~ Location+ Entry + PM + UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+anova(WDHge_2.lm) #all sing
+
+WDHgI_2.lm=lm(GI~ Location+ Entry + PM + UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+anova(WDHgI_2.lm) #PM:replication ns
+
+WDHgScale_2.lm=lm(GI~ Location+ Entry + PM + UserDay1, data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+anova(WDHgScale_2.lm) #PM:replication ns
+#5 Day
+WDHge5D_2.lm=lm(GE_5D~ Location+ Entry + PM + UserDay4, data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+anova(WDHge5D_2.lm)  #rep ns
+
+WDHgI5D_2.lm=lm(GI_5D~ Location+ Entry + PM + UserDay4, data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+anova(WDHgI5D_2.lm)  #rep ns
+
+WDHgScale5D_2.lm=lm(GIscale_5D~ Location+ Entry + PM + UserDay4, data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+anova(WDHgScale_2.lm)  #rep ns
+
+
+# Time point 3
+#scoring was done based on reps
+WDHge_3.lm=lm(GE~ Location + Entry + PM + replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+anova(WDHge_3.lm) #all significant, rep is significant, could be a problem
+
+WDHgI_3.lm=lm(GI~ Location+ Entry + PM + replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+anova(WDHgI_3.lm) #all factors signif, rep highly significant
+
+WDHgScale_3.lm=lm(GIscale~ Location+ Entry + PM + replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+anova(WDHgScale_3.lm) #all factors signif
+# 5 Day
+
+WDHge5D_3.lm=lm(GE_5D~ Location + Entry + PM + replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+anova(WDHge5D_3.lm) # PM ns, rep slightly significant
+
+WDHgI5D_3.lm=lm(GI_5D~ Location+ Entry + PM + replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+anova(WDHgI5D_3.lm) #rep slightly significnat
+
+WDHgScale5D_3.lm=lm(GIscale_5D~ Location+ Entry + PM + replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+anova(WDHgScale5D_3.lm) #all factors signif
+
+#Time point 4 
+WDHge_4.lm=lm(GE~ Location+ Entry + PM + replicaton, data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+anova(WDHge_4.lm) #PM:replication ns
+
+WDHge_4.lm=lm(GI~ Location+ Entry + PM + replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+anova(WDHge_4.lm)
+
+WDHgScale_4.lm=lm(GIscale~ Location+ Entry + PM + replication, data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+anova(WDHgScale_4.lm)
+# random effects
+
+WDHphs.lmer=lmer(phs~ PM + (1|Entry), data=WDH20_pheno)
+WDHphs.lmer
+WDHGE_TP1.lmer=lmer(GE~ Location + PM + (1|Entry), data=WDH20_pheno[WDH20_pheno$Timepoint=="1",])
+WDHGE_TP2.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+WDHGI_TP2.lmer=lmer(GIscale~  Location +PM + (1|Entry) + (1|PM:replication) , data=WDH20_pheno[WDH20_pheno$Timepoint=="2",])
+WDHGE_TP3.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+WDHGI_TP3.lmer=lmer(GIscale~  Location + PM + (1|Entry) + (1|PM:replication) , data=WDH20_pheno[WDH20_pheno$Timepoint=="3",])
+
+WDHGE_TP4.lmer=lmer(GE~  Location + PM+ (1|Entry) , data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+WDHGI_TP4.lmer=lmer(GIscale~  Location + PM + (1|Entry) + (1|PM:replication) , data=WDH20_pheno[WDH20_pheno$Timepoint=="4",])
+
+
+#plotting
+str(WDH20_pheno)
+WDH20_sub<-WDH20_pheno[,c("Entry","Pedigree","Location","Timepoint","phs","GE","GI","GIscale","GE_5D","GI_5D","GIscale_5D")]
+GEall_DH<-WDH20_sub[,c("Entry","Pedigree","Location","Timepoint","GE")]
+GIall_DH<-WDH20_sub[,c("Entry","Pedigree","Location","Timepoint","GIscale")]
+GE_5Dall_DH<-WDH20_sub[,c("Entry","Pedigree","Location","Timepoint","GE_5D")]
+GI_5Dall_DH<-WDH20_sub[,c("Entry","Pedigree","Location","Timepoint","GIscale_5D")]
+cor(GEall_DH$GE,GE_5Dall_DH$GE_5D,use = "complete.obs")
+cor(GIall_DH$GE,GI_5Dall_DH$GE_5D,use = "complete.obs")
+WDHmelt=rbind(melt(GEall_DH, id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
+              melt(GIall_DH, id.vars =c("Entry","Timepoint"), measure.vars = c("GIscale")),
+              melt(GE_5Dall_DH, id.vars =c("Entry","Timepoint"), measure.vars = c("GE_5D")),
+              melt(GI_5Dall_DH, id.vars =c("Entry","Timepoint"), measure.vars = c("GIscale_5D")))
+WDHmelt=WDHmelt[-c(which(is.na(WDHmelt$Timepoint))),]
+
+WDHmelt_Sny=rbind(melt(GEall_DH[GEall_DH$Location=="Snyder",], id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
+              melt(GIall_DH[GEall_DH$Location=="Snyder",], id.vars =c("Entry","Timepoint"), measure.vars = c("GIscale")),
+              melt(GE_5Dall_DH[GEall_DH$Location=="Snyder",], id.vars =c("Entry","Timepoint"), measure.vars = c("GE_5D")),
+              melt(GI_5Dall_DH[GEall_DH$Location=="Snyder",], id.vars =c("Entry","Timepoint"), measure.vars = c("GIscale_5D")))
+
+WDHmelt_Ket=rbind(melt(GEall_DH[GEall_DH$Location=="Ketola 5",], id.vars =c("Entry","Timepoint"), measure.vars = c("GE")),
+                  melt(GIall_DH[GIall_DH$Location=="Ketola 5",], id.vars =c("Entry","Timepoint"), measure.vars = c("GIscale")),
+                  melt(GE_5Dall_DH[GE_5Dall_DH$Location=="Ketola 5",], id.vars =c("Entry","Timepoint"), measure.vars = c("GE_5D")),
+                  melt(GI_5Dall_DH[GI_5Dall_DH$Location=="Ketola 5",], id.vars =c("Entry","Timepoint"), measure.vars = c("GIscale_5D")))
+WDHmelt_Sny$dataset<-"Snyder"
+WDHmelt_Ket$dataset<-"Ketola"
+WDH_melt_L=rbind(WDHmelt_Sny, WDHmelt_Ket)
+levels(WDHmelt$variable)= c("GE", "GI","5 Day GE", " 5 Day GI")
+levels(WDH_melt_L$variable)= c("GE", "GI","5 Day GE","5 Day GI")
+
+library(ggplot2)
+str(WDHmelt$Timepoint)
+
+ggplot(data=WDHmelt, aes(x=Timepoint, y=value)) +
+  geom_boxplot()+
+  facet_grid( scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle("Raw Germination pheno distributions")+
+  scale_fill_manual(values=c("#636363")) +
+  theme(legend.position = "none")+
+  xlab("Time point") + ylab("")
+  
+ggplot(data=WDHmelt, aes(x=Timepoint, y=value)) +
+  geom_boxplot()+
+  facet_grid( scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle("Raw Germination pheno distributions")+
+  scale_fill_manual(values=c("#636363")) +
+  theme(legend.position = "none")+
+  xlab("Time point") + ylab("")
+
+
+ggplot(data=WDH_melt_L, aes(x=Timepoint, y=value, fill=dataset)) +
+  geom_boxplot()+
+  facet_grid(cols=vars(dataset), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle("Germination phenotype distributions by location")+
+  scale_fill_manual(values=c("#cccccc", "#636363")) +
+  theme(legend.position = "none")+
+  xlab("Time point") + ylab("")
+str(WDHmelt)
+
+WDHmelt_P=rbind(melt(GEall_DH, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GE")),
+              melt(GIall_DH, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GIscale")),
+              melt(GE_5Dall_DH, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GE_5D")),
+              melt(GI_5Dall_DH, id.vars =c("Entry","Timepoint","Pedigree"), measure.vars = c("GIscale_5D")))
+WDHmelt_P=WDHmelt_P[-c(which(is.na(WDHmelt_P$Timepoint))),]
+
+WDHmelt_P[WDHmelt_P$Pedigree=="DH130910/Wintmalt",]$Pedigree<-"Wintmalt/DH130910"
+ggplot(data=WDHmelt_P, aes(x=Timepoint, y=value, fill=Pedigree)) +
+  geom_boxplot()+
+  facet_grid(cols=vars(Pedigree), scales="free", rows=vars(variable)) +
+  theme_bw() + 
+  ggtitle("Germination phenotype distributions by Pedigree")+
+
+  theme(legend.position = "none")+
+  xlab("Time point") + ylab("")
+```
