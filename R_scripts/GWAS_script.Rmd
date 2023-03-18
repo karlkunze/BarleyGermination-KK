@@ -6,21 +6,24 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-
+#packages
 ```{r}
 library(rrBLUP);library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
 library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
 library(drc);library(tidyr);library(ggh4x);library(dplyr)
 
 
-getwd()
-```
 
+```
+#data upload
 ```{r}
 load("data/Phenotype_Data/AllDHBluesPerYear_first_step.Rdata")
 load("data/Phenotype_Data/Heritability_first_step.Rdata")
 
 load("data/Genotype_data/wmb_file.Rdata")
+load("data/Genotype_data/numeric_raw.Rdata")
+load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
+
 
 
 ```
@@ -54,20 +57,25 @@ table(AllDHBluesPerYear$taxa)
 ## Genotype data
 
 ```{r}
-geno<-WinterGD
-rownames(geno)=geno$taxa
 
-geno=as.data.frame(apply(geno[-1],1, function(x) { 
-  x[which(x == 0)] = -1
-  x[which(x == 1)] <- 0
-  x[which(x == 2)] = 1
-  x
-}))
-geno
-geno$SNP<-rownames(geno)
-geno=geno%>%relocate(SNP,.before=1)
-geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,Chrom=Chromosome,bp=Position)%>%as.data.frame()
-rownames(geno)<-geno$marker
+
+# geno<-wmb_num$GD
+# 
+# geno=as.data.frame(apply(geno[-1],1, function(x) { 
+#   x[which(x == 0)] = -1
+#   x[which(x == 1)] <- 0
+#   x[which(x == 2)] = 1
+#   x
+# }))
+# geno
+# geno$SNP<-rownames(geno)
+# geno=geno%>%relocate(SNP,.before=1)
+
+genoD_raw<-wmb_num$GD
+genoM_raw<-wmb_num$GM
+
+#geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,Chrom=Chromosome,bp=Position)%>%as.data.frame()
+#rownames(geno)<-geno$marker
 ```
 #winterGD and WinterGM
 ```{r}
@@ -389,7 +397,55 @@ pca_pine$plot.pca
 #asreml actual GWAS
 ```{r}
 library("ASRgwas")
-head(pheno.salmon)
+
+head(pheno.apricot)
+head(DH2020_2021)
+DH2020_2021$PM_date
+GI_2021_5<-DH2020_2021%>%filter(Year=="2021",PM_date=="33")
+simple<-GI_2021_5%>%dplyr::select(SourcePLOT,GI,GE,taxa,Year,PM_date,replication,Location)
+simple<-simple%>%mutate(replication=as.factor(replication),Location=as.factor(Location),GID=toupper(taxa))
+
+geno.apricot[1:5,1:5]
+genoD<-genoD_raw
+dim(genoD)
+dim(genoM)
+
+library(dplyr)
+dim<-as.matrix(as.matrix(genoD))
+ dim              
+
+genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")%>%filter(marker%in%colnames(dim))
+genoM
+
+
+
+pre.apr <- pre.gwas(pheno.data = simple, indiv = "GID",
+resp = "GI", geno.data = dim, map.data = genoM,
+maf = 0.05, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = TRUE, Q.method = "K")
+
+gwasS <- gwas.asreml(pheno.data = pre.apr$pheno.data,fixedf = "replication",
+resp = "GI", gen = "GID", Kinv = pre.apr$Kinv,
+Q = pre.apr$Q, npc = 4, geno.data = pre.apr$geno.data,
+map.data = pre.apr$map, pvalue.thr = 5e-04,
+bonferroni = FALSE)
+library(asreml)
+library(ASRdata)
+library(ASRdata)
+head(pheno.trout)
+head(map)
+pre.apr <- pre.gwas(pheno.data = pheno.apricot, indiv = "Ind",
+resp = "Sucrose", geno.data = geno.apricot, map.data = map.apricot,
+maf = 0.05, marker.callrate = 0.4, ind.callrate = 0.4,
+method = "VanRaden", rename.markers = TRUE, heterozygosity = 0.8,
+Fis = 0.98, impute = FALSE, Q.method = "K")
+gwasAR <- gwas.asreml(pheno.data = pre.apr$pheno.data,
+resp = "Sucrose", gen = "Ind", Kinv = pre.apr$Kinv,
+Q = pre.apr$Q, npc = 5, geno.data = pre.apr$geno.data,
+map.data = pre.apr$map.data, pvalue.thr = 5e-04,
+bonferroni = FALSE, fixedf = "Lots", residual = "Lots")
+
+
 ```
 ## POST GWAS Analysis
 ```{r}
