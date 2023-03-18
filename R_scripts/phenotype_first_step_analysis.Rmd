@@ -14,6 +14,7 @@ editor_options:
 
 
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
+DH2020_2021$G
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 table(DH2020_2021$taxa)
 load("data/Genotype_data/wmb_file.Rdata")
