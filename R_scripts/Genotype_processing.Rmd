@@ -32,7 +32,7 @@ AlaT_markers
 AlaT_markers_1<-as.data.frame(t(as.matrix(AlaT_markers)));AlaT_markers_1<-AlaT_markers_1[-1,]
 
 AlaT_markers_1<-AlaT_markers_1%>%as.data.frame%>%tibble::add_column("rs#"="Qsd1","alleles"="G/C","chrom"="5H","pos"=442160000,"strand"="+",.before =1)
-View(AlaT_markers_1)
+#View(AlaT_markers_1)
 rownames(AlaT_markers_1)<-NULL
 ```
 #input the new data
@@ -67,7 +67,7 @@ wmb_gt <-wmb_gt[,!(names(wmb_gt) %in% cols_to_drop)];wmb_gt<-wmb_gt %>% dplyr::r
 duplicate_names<-colnames(wmb_gt[which(duplicated(colnames(wmb_gt)))]);duplicate_names
 
 AlaT_markers_2<-AlaT_markers_1[colnames(AlaT_markers_1)%in%colnames(wmb_gt)]
-View(AlaT_markers_2)
+
 wmb_gt<-wmb_gt%>%add_row(AlaT_markers_2)%>%arrange(chrom,pos)
 wmb_gt[wmb_gt$`rs#`=="Qsd1",]
 #add morex positions
@@ -75,6 +75,7 @@ wmb_gt[wmb_gt$`rs#`=="Qsd1",]
 #should be the correct alignment
 #read.gff(file, na.strings = c(".", "?"), GFF3 = TRUE)
 library(ape)
+
 Morex2019<-read.gff("data/Genotype_data/barley50kMarkerPositions_Morex2019Assembly.gff",GFF3 = TRUE)%>%as.data.frame()%>%dplyr::select(1,2,4,7,9)%>%dplyr::rename(Chrom=1,Type=2,pos=3,strand=4,Marker=5)
 MorexV3 <- read_excel("data/Genotype_data/SNPPositions_50k_on_MorexV3.xlsx")%>%dplyr::rename(SNP=1,Chrom=2,pos=3)%>%mutate(Chrom=str_split_fixed(Chrom,"r" , 2)[,2],SNP=gsub("-","_",SNP))
 table(wmb_gt$`rs#`%in%MorexV3$SNP)
@@ -112,7 +113,7 @@ wmb_gt$chrom<-as.integer(wmb_gt$chrom)
 wmb_gt$pos<-as.integer(wmb_gt$pos)
 wmb_gt<-wmb_gt%>%arrange(chrom,pos)
 wmb_gt[wmb_gt$`rs#`=="Qsd1",]
-save(wmb_gt,file="data/Genotype_data/hap_map_WMB_DH_Qd1.Rdata")
+
 ```
 
 
@@ -120,12 +121,13 @@ save(wmb_gt,file="data/Genotype_data/hap_map_WMB_DH_Qd1.Rdata")
 ### Making Numeric Matrix
 ```{r}
 library(GAPIT3)
-myG <- read.table("~/Downloads/GAPIT_Tutorial_Data/mdp_genotype_test.hmp.txt", head = TRUE)
-yGAPIT <- GAPIT(G=myG, output.numerical=TRUE)
+#myG <- read.table("~/Downloads/GAPIT_Tutorial_Data/mdp_genotype_test.hmp.txt", head = TRUE)
+#yGAPIT <- GAPIT(G=myG)
 yGAPIT
 #df change
-wmb_gt<-wmb_gt%>%rename(LIGHTNING="DH130910")
-wmbGAPIT<- GAPIT(G=rbind(wmb_gt[1,],wmb_gt), output.numerical=TRUE)
+wmb_gt<-wmb_gt%>%dplyr::rename(LIGHTNING="DH130910")
+
+wmbGAPIT<- GAPIT(G=rbind(wmb_gt[1,],wmb_gt),output.numerical = FALSE)
 
 wmb_gt_t<-wmb_gt
 
@@ -133,18 +135,15 @@ myGM20$Chrom[match(wmb_gt_t$`rs#`, myGM20$SNP)]
 wmb_gt_t$chrom = myGM20$Chrom[match(wmb_gt_t$`rs#`, myGM20$SNP)];wmb_gt_t$chrom<-as.integer(wmb_gt_t$chrom)
 
 wmb_gt_t$pos = myGM20$Position[match(wmb_gt_t$`rs#`, myGM20$SNP)];wmb_gt_t$pos<-as.numeric(wmb_gt_t$pos)            
-
-
-
-
-rownames(wmbGAPIT$GD)
 wmbGAPIT$GM<-wmb_gt_t%>%dplyr::select(`rs#`,chrom,pos)%>%rename(SNP=`rs#`,Chromosome=chrom,Position=pos)
-dim(wmbGAPIT$GM)
-dim(wmbGAPIT$GD)
 
 colnames(wmbGAPIT$GD)=gsub("\\.","-",colnames(wmbGAPIT$GD))
 wmbGAPIT$GD=wmbGAPIT$GD[-1]
-
+wmb_num<-wmbGAPIT
+save(wmb_num,file="data/Genotype_data/numeric_raw.Rdata")
+```
+#EM algorithm
+```{r}
 #we could do the imputation here
 library(rrBLUP)
 
