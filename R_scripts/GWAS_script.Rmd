@@ -5,7 +5,26 @@ date: "2023-03-18"
 output: html_document
 ---
 
-#Addtional diagnostics
+```{r}
+library(rrBLUP);library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
+library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
+library(drc);library(tidyr);library(ggh4x);library(dplyr)
+
+
+
+```
+
+```{r}
+load("data/Phenotype_Data/AllDHBluesPerYear_first_step.Rdata")
+load("data/Phenotype_Data/Heritability_first_step.Rdata")
+
+load("data/Genotype_data/wmb_file.Rdata")
+
+
+```
+
+
+
 ```{r}
 AllDHBluesPerYear=AllDHBluesPerYear%>%mutate(family = mapvalues(substr(taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
                             to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',

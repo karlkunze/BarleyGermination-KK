@@ -10,9 +10,7 @@ editor_options:
 
 # read in packages
 ```{r}
-library(rrBLUP);library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
-library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
-library(drc);library(tidyr);library(ggh4x);library(dplyr)
+
 
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
@@ -483,3 +481,4 @@ save(DH_H2,file = "data/Phenotype_Data/Heritability_first_step.Rdata")
 
 
 ```
+#Pease see GWAS Script for GWAS portion
