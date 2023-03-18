@@ -12,6 +12,7 @@ editor_options:
 ```{r}
 
 
+
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 load("data/WMB_DH_Germination_data2020_2021_wide_format.RData")#DH2020_2021_wide
 table(DH2020_2021$taxa)
@@ -240,7 +241,7 @@ BlueBlupsH2_Location_rep_taxa <- function(d, groupvars) {
 
    
    df4= lineBLUE %>% arrange(type, taxa) %>%
-      join(d %>% dplyr::select(taxa,trait,PM_date,TP,year) %>% unique())
+      plyr::join(d %>% dplyr::select(taxa,trait,PM_date,TP,year) %>% unique())
 
     #H2_new=BLUPH2_new(trait.lmer,d=d2, wmbGAPIT$A)
     dfList=list(df4, H2)
@@ -283,7 +284,7 @@ BlueBlupsH2_Year_rep_taxa <- function(d2, groupvars) {
       H2 = BLUPH2_new(trait.lmer,d=d2,wmbGAPIT$A)
       
       df4<-rbind(lineEf, lineBLUE) %>% arrange(type, taxa) %>%
-        join(d2 %>% dplyr::select(taxa,trait,PM_date,TP) %>% unique())
+        plyr::join(d2 %>% dplyr::select(taxa,trait,PM_date,TP) %>% unique())
       list5<-list(df4,H2)
       return(list5)
     }
@@ -314,7 +315,7 @@ BlueBlupsH2_Year_rep_taxa <- function(d2, groupvars) {
       H2 = BLUPH2_new(trait.lmer,d=d2,wmbGAPIT$A)
 
      df4<-rbind(lineEf, lineBLUE) %>% arrange(type, taxa) %>%
-               join(d2 %>% dplyr::select(taxa, trait,PM_date,TP,year) %>% unique())
+               plyr::join(d2 %>% dplyr::select(taxa, trait,PM_date,TP,year) %>% unique())
 list5<-list(df4,H2)
       return(list5)
     }
@@ -337,7 +338,9 @@ DH2020_2021%>%group_by(year,TP)%>%as.matrix()
 
 ###
 
-
+library(arm)
+library(rrBLUP)
+library(tid)
 load("data/Phenotype_Data/DH2020Estimates.Rdata")
 
 DH2020Estimates = DH2020_2021%>%filter(year=="2020") %>% dplyr::select(taxa, rep, Location,TP,phs, GE, GI,PM_date,year,Family) %>% 
@@ -459,7 +462,7 @@ DHComb_H2=DHComb_H2%>%arrange(trait,PM)%>%unique()%>%mutate(Year = if_else(strin
 
 #correlations
 ```{r}
-DH2020_1%>% join(DH2021_1 %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
+DH2020_1%>% plyr::join(DH2021_1 %>% dplyr::select(!year)%>% dplyr::rename(value2021 = value))  %>%
   filter(!is.na(value2021), type =='BLUE')  %>% group_by(type, TP, trait) %>%
   summarise(correlation = cor(value, value2021))
 ```
