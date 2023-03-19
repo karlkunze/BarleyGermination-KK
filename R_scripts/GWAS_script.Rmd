@@ -8,10 +8,10 @@ editor_options:
 ---
 #packages
 ```{r}
-library(rrBLUP);library(sommer);library(arm);library(lme4);library(Hmisc);library(plyr);library(readxl);
-library(tibble);library(patchwork);library(ggplot2);library(fda) ; library(magic); 
-library(drc);library(tidyr);library(ggh4x);library(dplyr)
-
+library(readxl);
+library(patchwork);library(ggplot2)
+library(dplyr)
+library(ASRgwas)
 
 
 ```
@@ -73,7 +73,8 @@ table(AllDHBluesPerYear$taxa)
 
 genoD_raw<-wmb_num$GD
 genoM_raw<-wmb_num$GM
-
+wmb_num$GM[wmb_num$GM$SNP=="Qsd1",]
+wmb_num$GD[,"Qsd1"]
 #geno<-WinterGM%>%full_join(geno,by="SNP")%>%arrange(Chromosome,Position)%>%dplyr::rename(marker=SNP,Chrom=Chromosome,bp=Position)%>%as.data.frame()
 #rownames(geno)<-geno$marker
 ```
@@ -82,9 +83,9 @@ genoM_raw<-wmb_num$GM
 #load('data/Genotype_data/myGM20_LDprune.Rdata')
 #load('data/Genotype_data/myGD20_LDprune.Rdata')
 
-WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
+#WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
 #rm(myGM20_prune);rm(myGD20_prune)
-WinterGM = WinterGM %>% arrange(Chromosome, Position)
+#WinterGM = WinterGM %>% arrange(Chromosome, Position)
 #my taxa IDs have "-" instead of an underscore which I prefer
 #taxa = gsub(pattern = '-',replacement = '_',taxa)
 rownames(WinterGD)
@@ -189,8 +190,9 @@ AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, lev
   theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
 
 dev.off()
-```
-```{r}
+#####
+
+
 #library(GAPIT3)
 DF_OperationsV3 = function(df){
   df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
@@ -263,9 +265,7 @@ Add_DH130910_familyStructure = function(df3, groupvar){
   return(df3)
 }
 
-```
-# GWAS part
-```{r}
+
 #Per time point for MLMM
 ##takes some time
 #SAVE THE RESULTS so that we dont have to run again
@@ -291,57 +291,8 @@ save(WinterPerTPGWAS ,file="data/GWA_results/WinterPerTPGWAS.Rdata")
 ```
 
 
-# Let's try sommer
-```{r}
-#phenotype
 
-fg<- DH2020_1 %>% rbind(DH2021_1, DHcomb_1) %>%  filter(type == 'BLUE') %>%
-   ungroup()%>%filter(year=="2020",TP=="TP2",trait=="GI")%>%rename(id=taxa)
-DT<-fg
-# unadjusted
-#genotype
-GT_1<-geno%>%as.data.frame()%>%select(any_of(DT$id))%>%t();A <- A.mat(GT_1) # additive relationship matrix
-#back to phenotypes
-DT<-DT%>%filter(id%in%rownames(A))%>%as.data.frame()
-
-dim(A);dim(GT_1);dim(DT)
-
-mix1 <- sommer::GWAS(value~1,random=~vsr(id,Gu=A),rcov=~units,data=DT, nIters=10,M=GT_1, gTerm = "u:id",
-verbose = TRUE,n.PC = 2,getPEV=TRUE)
-mix1
-pmix1lot(mix1 $scores[,1])
-names(which(mix1 $scores[,1]>5.5))
-
-View(mix1$VarU[[1]])
-mix1$sigmaSE
-hist(as.data.frame(str(mix1$VarU)))
-
-v<-mix1$VarU[[1]]
-dim(v)
-table(mix1$fitted)
-names(WinterPerTPGWAS)
-str(mix1)
-mix1$scores
-summary(mix1)
-names(WinterPerTPGWAS)
-ms <- as.data.frame(mix1$scores)
-ms$Locus <- rownames(ms)
-MP=geno%>%select(marker,Chrom,bp)%>%rename(Locus=marker,Position=bp)
-ms
-MP2 <- merge(MP,ms,by="Locus",all.x = TRUE);
-MP2
-MP2=MP2%>%arrange(Chrom,Position)%>%drop_na(Position)
-manhattan(MP2, PVCN = "value",pch=20,cex=.5,ylim=c(0,20))
-
-#%>% rbind(DH2021_1, DHcomb_1)
- t<-DH2020_1 %>%dplyr::select(!type)%>%filter(trait=="GE",TP=="TP2",year=="2020")
-View(t)
-names(DH2020_1)
-
-
-getPEV
-```
-#asreml GWAS
+#asreml GWAS example
 ```{r}
 
 library("ASRgenomics")
@@ -394,56 +345,124 @@ pca_pine$plot.scree
 pca_pine$plot.pca
 
 ```
+#example again
+```{r}
+library(ASRgenomics)
+head(pheno.salmon)
+head(geno.salmon)
+pre.salmonA <- pre.gwas(pheno.data = pheno.salmon,
+indiv = "ID", resp = "amoebic_load", geno.data = geno.salmon,
+Q.method = "K", maf = 0.05, marker.callrate = 0.2,
+ind.callrate = 0.2, method = "VanRaden", heterozygosity = 0.8,
+Fis = 0.98, impute = TRUE)
+
+pre.salmonD <- pre.gwas(pheno.data = pheno.salmon,
+indiv = "ID", resp = "amoebic_load", geno.data = geno.salmon,
+Q.method = "K", maf = 0.05, marker.callrate = 0.2,
+ind.callrate = 0.2, method = "Su", heterozygosity = 0.8,
+Fis = 0.98, impute = TRUE)
+
+pheno.AD<-pre.salmonD$pheno.data
+pheno.AD$IDA <- pheno.AD$ID
+pheno.AD$IDD <- pheno.AD$ID
+
+Ma <- round(pre.salmonA$geno.data, 0)
+Md <- round(pre.salmonD$geno.data, 0)
+colnames(Md) <- paste("D", colnames(Md), sep = "_")
+Md[Md == 2] <- 0
+dim(Ma)
+dim(Md)
+Mad <- cbind(Ma, Md)
+
+
+gwasS <- gwas.asreml(pheno.data = pheno.AD, resp = "amoebic_load",
+gen = c("IDA", "IDD"), Kinv = list(IDA = pre.salmonA$Kinv$ID,
+IDD = pre.salmonD$Kinv$ID), Q = pre.salmonA$Q,
+npc = 7, geno.data = Mad, map.data = NULL, pvalue.thr = 5e-04,
+bonferroni = FALSE, P3D = TRUE)
+
+summary(gwasS$mod)$varcomp
+gwasS$heritability
+gwasS$gwas.sel
+
+
+
+
+```
 #asreml actual GWAS
 ```{r}
 library("ASRgwas")
 
-head(pheno.apricot)
-head(DH2020_2021)
-DH2020_2021$PM_date
-GI_2021_5<-DH2020_2021%>%filter(Year=="2021",PM_date=="33")
-simple<-GI_2021_5%>%dplyr::select(SourcePLOT,GI,GE,taxa,Year,PM_date,replication,Location)
-simple<-simple%>%mutate(replication=as.factor(replication),Location=as.factor(Location),GID=toupper(taxa))
 
-geno.apricot[1:5,1:5]
 genoD<-genoD_raw
 dim(genoD)
-dim(genoM)
 
-library(dplyr)
-dim<-as.matrix(as.matrix(genoD))
- dim              
 
+
+dim<-as.matrix(genoD)
+dim[1:5,1:5]
 genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")%>%filter(marker%in%colnames(dim))
 genoM
+table(DH2020_2021$PM_date,DH2020_2021$Year)
+#marker effects
+df_begin<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")
+marker_ef<-dim%>%as.data.frame()%>%select("Qsd1")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1))
+marker_ef
+table(df_begin$PM_date,df_begin$Year)
 
+names(DH2020_2021)
 
+simple<-df_begin%>%mutate(GID=toupper(taxa))%>%left_join(marker_ef,by="GID")#%>%dplyr::filter(Year=="2021",PM_date=="47")
 
-pre.apr <- pre.gwas(pheno.data = simple, indiv = "GID",
-resp = "GI", geno.data = dim, map.data = genoM,
+simple<-simple%>%dplyr::select(SourcePLOT,GI,GE,GID,Year,PM_date,replication,Location,Check,Qsd1,Day1Germ,scald)
+
+simple<-simple%>%mutate(replication=as.factor(replication),Location=as.factor(Location),Check=as.factor(Check))
+simple<-simple%>%mutate(GE_binomial=(ifelse(GE>0.95,1,0)))
+simple$GE_binomial
+pre.aprA <- pre.gwas(pheno.data = simple, indiv = "GID",
+resp = "GE_binomial", geno.data = dim,map.data = genoM,
 maf = 0.05, marker.callrate = 0.2, ind.callrate = 0.2,
-method = "VanRaden", rename.markers = TRUE, impute = TRUE, Q.method = "K")
-
-gwasS <- gwas.asreml(pheno.data = pre.apr$pheno.data,fixedf = "replication",
-resp = "GI", gen = "GID", Kinv = pre.apr$Kinv,
-Q = pre.apr$Q, npc = 4, geno.data = pre.apr$geno.data,
-map.data = pre.apr$map, pvalue.thr = 5e-04,
-bonferroni = FALSE)
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+pre.aprA
 library(asreml)
-library(ASRdata)
-library(ASRdata)
-head(pheno.trout)
-head(map)
-pre.apr <- pre.gwas(pheno.data = pheno.apricot, indiv = "Ind",
-resp = "Sucrose", geno.data = geno.apricot, map.data = map.apricot,
-maf = 0.05, marker.callrate = 0.4, ind.callrate = 0.4,
-method = "VanRaden", rename.markers = TRUE, heterozygosity = 0.8,
-Fis = 0.98, impute = FALSE, Q.method = "K")
-gwasAR <- gwas.asreml(pheno.data = pre.apr$pheno.data,
-resp = "Sucrose", gen = "Ind", Kinv = pre.apr$Kinv,
-Q = pre.apr$Q, npc = 5, geno.data = pre.apr$geno.data,
-map.data = pre.apr$map.data, pvalue.thr = 5e-04,
-bonferroni = FALSE, fixedf = "Lots", residual = "Lots")
+?asreml()
+d3<-pre.aprA$pheno.data
+d3$PM_date_t<-as.numeric(as.character(d3$PM_date))
+d3$PM_date
+# model<-asreml(
+#   fixed = GI~ 1,
+#   random = ~GID+Year:dev(PM_date_t),
+#   sparse = ~NULL,
+#   residual = ~NULL,data=d3)
+# summary(model)$varcomp
+###
+pr
+pre.aprA$pheno.data$GE_binomial
+pre.aprA$pheno.data$GE_binomial
+gwasMTP <- gwas.asreml(pheno.data = pre.aprA$pheno.data,resp = "GE_binomial",family = "binomial",randomf = "PM_date",
+ gen = "GID", Kinv = pre.aprA$Kinv,
+Q = pre.aprA$Q, npc = 5, geno.data = pre.aprA$geno.data,
+map.data = pre.aprA$map.data, pvalue.thr = 5e-04,
+bonferroni = FALSE, fixedf =c("Year",("Year:PM_date"),"replication"))
+library(ASRgwas)
+###
+
+# gwasS <- gwas.asreml(pheno.data = pre.apr$pheno.data,
+# resp = "Day1Germ", gen = "GID", Kinv = pre.apr$Kinv,
+# Q = pre.apr$Q, npc = 4, geno.data = pre.apr$geno.data,
+# map.data = pre.apr$map, pvalue.thr = 5e-04,
+# bonferroni = FALSE)
+
+
+
+qq.plot(gwas.table = gwasMTP$gwas.all)
+manhattan.plot(gwas.table = gwasMTP$gwas.all, pvalue.thr = 5e-05,
+point.size = 1.2)
+summary(gwasMTP$mod)$varcomp
+summary(gwasMTP$mod)
+
+
+
 
 
 ```
