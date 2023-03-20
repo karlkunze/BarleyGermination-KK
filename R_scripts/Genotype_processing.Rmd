@@ -31,8 +31,11 @@ AlaT_markers
 AlaT_markers<-AlaT_markers%>%filter(Allele_bp%in%c("G","C"))%>%as.data.frame();row.names(AlaT_markers)<-AlaT_markers$GID
 AlaT_markers
 AlaT_markers_1<-as.data.frame(t(as.matrix(AlaT_markers)));AlaT_markers_1<-AlaT_markers_1[-1,]
+#REFERENCE 2
+# AlaT_markers_1<-AlaT_markers_1%>%as.data.frame%>%tibble::add_column("rs#"="Qsd1","alleles"="C/G","chrom"="5H","pos"=442160000,"strand"="+",.before =1)
+#REFERENCE 3
+AlaT_markers_1<-AlaT_markers_1%>%as.data.frame%>%tibble::add_column("rs#"="Qsd1","alleles"="C/G","chrom"="5H","pos"=435636564,"strand"="+",.before =1)
 
-AlaT_markers_1<-AlaT_markers_1%>%as.data.frame%>%tibble::add_column("rs#"="Qsd1","alleles"="C/G","chrom"="5H","pos"=442160000,"strand"="+",.before =1)
 #View(AlaT_markers_1)
 rownames(AlaT_markers_1)<-NULL
 AlaT_markers_1<-AlaT_markers_1%>%dplyr::select(!"unknown-omit")
@@ -111,8 +114,8 @@ myGM20$Chromosome = Morex2019$Chrom[match(myGM20$SNP, Morex2019$Marker)]; myGM20
 myGM20$Chromosome[which(myGM20$Chromosome=="U")]="8"
 myGM20$Position = as.character(Morex2019$pos[match(myGM20$SNP, Morex2019$Marker)])
 
-
-myGM20[myGM20$SNP=="Qsd1",2:3]<-c(5,442160000)
+#ref 3 is 435636564
+myGM20[myGM20$SNP=="Qsd1",2:3]<-c(5,435636564)
 wmb_gt$chrom<-as.numeric(sapply(str_split(wmb_gt$chrom,"H"),"[",1))
 wmb_gt[wmb_gt$chrom==0,]$chrom<-8
 wmb_gt$chrom<-as.integer(wmb_gt$chrom)
@@ -156,7 +159,7 @@ AlaT_markers$GID
 allele<-AlaT_markers%>%mutate(GID=toupper(GID))%>%filter(GID%in%correction)
 allele_C<-allele%>%filter(Allele_bp=="C")
 allele_G<-allele%>%filter(Allele_bp=="G")
-allele_C$
+
 
 wmb_num$GD[rownames(wmb_num$GD)%in%allele_C$GID,]$Qsd1<-0
 wmb_num$GD[rownames(wmb_num$GD)%in%allele_G$GID,]$Qsd1<-2
