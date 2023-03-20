@@ -1063,7 +1063,7 @@ print(paste0("data input: ",df$type%>%unique()))
 
 simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,JHI_Hv50k_2016_308762,GE,GI,GI_0)
 
-hist(simple$GI)
+hist(simple$GE)
 simple$ND<-as.character(simple$Check)
 
 pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",
