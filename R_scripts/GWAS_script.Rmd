@@ -2502,8 +2502,81 @@ save(GI_STP_combined,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_cpmbi
 ```{r}
 GE_all<-df_begin
 GE_all$Year
-##GI PM 96
+##GI PM 5
 simple<-GE_all%>%filter(PM_date=="5")
+simple
+gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+#View(simple)
+
+print(paste0("data input: ",GE_all$type%>%unique()))
+
+simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,ws_percent)#%>%mutate(GE_tr=abs(GE - mean(GE,na.rm = TRUE)))
+
+simple$ND<-as.character(simple$Check)
+
+
+
+pre.aprAA <- pre.gwas(pheno.data=simple%>%filter(!ND=="2")%>%droplevels(), indiv = "GID",
+resp = "GE", geno.data = gd,map.data = genoMp,
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+##
+
+
+
+
+random=NULL
+fixed=c("Year","Year:replication")
+resid="Year"
+table(pre.aprAA$pheno.data$Year)
+gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
+ gen = "GID", Kinv = pre.aprAA$Kinv,
+Q = pre.aprAA$Q, npc = 5, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
+map.data = pre.aprAA$map.data, pvalue.thr =5e-05,
+fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
+
+
+hist(gwasSTP$mod$residuals)
+summary(gwasSTP$mod)$varcomp
+
+wald.asreml(gwasSTP$mod)
+t3<-simple[,c("GE","Year","PM_date")]
+t3
+tr<-"GE";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
+tpm
+
+qq.plot(gwas.table = gwasSTP$gwas.all)
+manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = 5e-05,
+point.size = 1.2)
+sel.markers
+
+sel.markers <- gwasSTP$gwas.sel$marker
+sel.markers
+Msel <- pre.aprAA$geno.data[,sel.markers[c(1,7)], drop = FALSE]
+sel.markers 
+Msel 
+
+gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel,
+ref.vc = 1, pvalue.thr = 0.01, maxiter.update = 4)
+gwasFIN
+
+
+
+#change here
+
+paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
+
+GE_5<-gwasSTP
+GE_5$trait<-paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_5$trait
+table(GE_all$PM_date)
+```
+### GE 12
+```{r}
+GE_all<-df_begin
+GE_all$Year
+##GI PM 5
+simple<-GE_all%>%filter(PM_date=="12")
 simple
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 #View(simple)
@@ -2564,9 +2637,231 @@ gwasFIN
 
 #change here
 
-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
+paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
-GI_152<-gwasSTP
-GI_152$trait<-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
-GI_152$trait
+GE_12<-gwasSTP
+GE_12$trait<-paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_12$trait
+table(GE_all$PM_date)
+```
+### GE 47
+```{r}
+GE_all<-df_begin
+GE_all$Year
+##GI PM 5
+simple<-GE_all%>%filter(PM_date=="47")
+simple
+gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+#View(simple)
+
+print(paste0("data input: ",GE_all$type%>%unique()))
+
+simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,ws_percent)#%>%mutate(GE_tr=abs(GE - mean(GE,na.rm = TRUE)))
+
+simple$ND<-as.character(simple$Check)
+
+
+
+pre.aprAA <- pre.gwas(pheno.data=simple%>%filter(!ND=="2")%>%droplevels(), indiv = "GID",
+resp = "GE", geno.data = gd,map.data = genoMp,
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+##
+
+
+
+
+random=NULL
+fixed="Year"
+resid=NULL
+table(pre.aprAA$pheno.data$Year)
+gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
+ gen = "GID", Kinv = pre.aprAA$Kinv,
+Q = pre.aprAA$Q, npc = 5, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
+map.data = pre.aprAA$map.data, pvalue.thr =5e-05,
+fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
+
+
+hist(gwasSTP$mod$residuals)
+summary(gwasSTP$mod)$varcomp
+
+wald.asreml(gwasSTP$mod)
+t3<-simple[,c("GE","Year","PM_date")]
+t3
+tr<-"GE";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
+tpm
+
+qq.plot(gwas.table = gwasSTP$gwas.all)
+manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = 0.05/13401,
+point.size = 1.2)
+sel.markers
+
+sel.markers <- gwasSTP$gwas.sel$marker
+sel.markers
+Msel <- pre.aprAA$geno.data[,sel.markers[c(1,7)], drop = FALSE]
+sel.markers 
+Msel 
+
+gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel,
+ref.vc = 1, pvalue.thr = 0.01, maxiter.update = 4)
+gwasFIN
+
+
+
+#change here
+
+paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
+
+GE_47<-gwasSTP
+GE_47$trait<-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_47$trait
+table(GE_all$PM_date)
+```
+### GE 96
+```{r}
+GE_all<-df_begin
+GE_all$Year
+##GI PM 5
+simple<-GE_all%>%filter(PM_date=="96")
+simple
+gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+#View(simple)
+
+print(paste0("data input: ",GE_all$type%>%unique()))
+
+simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,ws_percent)%>%mutate(GE_tr=abs(GE - mean(GE,na.rm = TRUE)),GE_lam=GE^8)
+
+
+simple$ND<-as.character(simple$Check)
+pre.aprAA <- pre.gwas(pheno.data=simple%>%filter(!ND=="2")%>%droplevels(), indiv = "GID",
+resp = "GE_tr", geno.data = gd,map.data = genoMp,
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+##
+
+
+
+
+random=NULL
+fixed="Year:Location"
+resid="Year"
+table(pre.aprAA$pheno.data$Year)
+gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE_tr",
+ gen = "GID", Kinv = pre.aprAA$Kinv,
+Q = pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
+map.data = pre.aprAA$map.data, pvalue.thr =5e-05,
+fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
+
+
+hist(gwasSTP$mod$residuals)
+summary(gwasSTP$mod)$varcomp
+
+wald.asreml(gwasSTP$mod)
+t3<-simple[,c("GE","Year","PM_date")]
+t3
+tr<-"GE";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
+tpm
+
+qq.plot(gwas.table = gwasSTP$gwas.all)
+manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = 0.05/13401,
+point.size = 1.2)
+sel.markers
+
+sel.markers <- gwasSTP$gwas.sel$marker
+sel.markers
+Msel <- pre.aprAA$geno.data[,sel.markers[c(1,7)], drop = FALSE]
+sel.markers 
+Msel 
+
+gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel,
+ref.vc = 1, pvalue.thr = 0.01, maxiter.update = 4)
+gwasFIN
+
+
+
+#change here
+
+paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
+
+GE_96<-gwasSTP
+GE_96$trait<-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_96$trait
+table(GE_all$PM_date)
+```
+
+### GE 152
+```{r}
+GE_all<-df_begin
+GE_all$Year
+##GI PM 5
+simple<-GE_all%>%filter(PM_date=="152")
+simple
+gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+#View(simple)
+
+print(paste0("data input: ",GE_all$type%>%unique()))
+
+simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,ws_percent)%>%mutate(GE_tr=abs(GE - mean(GE,na.rm = TRUE)),GE_lam=GE^8)
+
+
+simple$ND<-as.character(simple$Check)
+pre.aprAA <- pre.gwas(pheno.data=simple%>%filter(!ND=="2")%>%droplevels(), indiv = "GID",
+resp = "GE", geno.data = gd,map.data = genoMp,
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+##
+
+
+
+
+random=NULL
+fixed="Year"
+resid="Year"
+table(pre.aprAA$pheno.data$Year)
+gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
+ gen = "GID", Kinv = pre.aprAA$Kinv,
+Q = pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
+map.data = pre.aprAA$map.data, pvalue.thr =5e-05,
+fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
+
+
+hist(gwasSTP$mod$residuals)
+summary(gwasSTP$mod)$varcomp
+
+wald.asreml(gwasSTP$mod)
+t3<-simple[,c("GE","Year","PM_date")]
+t3
+tr<-"GE";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
+tpm
+
+qq.plot(gwas.table = gwasSTP$gwas.all)
+manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = 0.05/13401,
+point.size = 1.2)
+sel.markers
+
+sel.markers <- gwasSTP$gwas.sel$marker
+sel.markers
+Msel <- pre.aprAA$geno.data[,sel.markers[c(1,7)], drop = FALSE]
+sel.markers 
+Msel 
+
+gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel,
+ref.vc = 1, pvalue.thr = 0.01, maxiter.update = 4)
+gwasFIN
+
+
+
+#change here
+
+paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
+
+GE_152<-gwasSTP
+GE_152$trait<-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_152$trait
+table(GE_all$PM_date)
+```
+#GE COMBINED
+```{r}
+GE_STP_combined=list(GE_5,GE_12,GE_47,GE_96,GE_152)
+save(GE_STP_combined,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")
 ```
