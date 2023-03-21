@@ -45,7 +45,8 @@ genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")
 
 #marker effects
 library(dplyr)
-marker_ef<-dim%>%as.data.frame()%>%select(c("Qsd1","JHI_Hv50k_2016_308762"))#%>%tibble::rownames_to_column()%>%dplyr::rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
+dim
+marker_ef<-genoD%>%as.data.frame()%>%select(c("Qsd1","JHI_Hv50k_2016_308762"))%>%tibble::rownames_to_column()%>%dplyr::rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
 marker_ef
 
 
@@ -64,13 +65,13 @@ df_begin
 
 #simple<-GI_2020%>%filter(PM_date=="5")
 #simple$PM_date
-gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 simple<-df_begin
-
-
+gd=genoD%>%as.matrix()
+gd[1:5,1:5]
 simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0)
 
-pre.aprM <- pre.gwas(pheno.data=simple%>%filter(!ND==2), indiv = "GID",
+pre.aprM <- pre.gwas(pheno.data=simple, indiv = "GID",
 resp = "GI", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
@@ -368,9 +369,7 @@ DHCombined.TSF.GE = DHCombined%>% dplyr::ungroup() %>%
 
 
 
-library(tibble)
-library(broom)
-library(drc)
+
 GE_logFits_trycatch = function(df, groupvars){
   Out = tryCatch(
     {broom::tidy(drm(value~PM_date, data = df,
@@ -656,6 +655,7 @@ DHCombined_GE.logestimates
 
 ## GI log fits #####
 ```{r}
+
 G2020.TSF.GI = DH2020Estimates%>% ungroup() %>% plyr::rbind.fill(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
   filter(type == 'BLUE', trait =='GI') %>% plyr::join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))
 
@@ -664,11 +664,15 @@ G2021.TSF.GI = DH2021Estimates%>% ungroup()  %>%
 G20202021.TSF.GI = DHCombined%>% ungroup()  %>% 
   filter(type == 'BLUE', trait =='GI') %>% plyr::join(TaxacountsCombined) %>% mutate(value = ifelse(value<0, 0, value))
 
+library(tibble)
+library(broom)
+library(drc)
+
 GI_logfits_trycatch = function(df, groupvars) {
   Out = tryCatch(
-    {suppressWarnings(broom::tidy(drm(value~PM_date, data = df,
-                                      fct =LL.4(names = c('Rate','Lower','Upper','Centering'))))
-    ) %>%
+    {supressWarnings(broom::tidy(drm(value~PM_date, data = df,
+                                      fct =drc::LL.4(names = c('Rate','Lower','Upper','Centering'))))
+      )%>%
         add_row(.,term = 'TimeTo5.0',curve ='Derived',
                 estimate = ifelse(.[2,3] > 5.0, 0,as.double((((.[3,3]-.[2,3])/(5.0-.[2,3])-1)^(1/.[1,3]))*.[4,3])))
     }, error = function(e){
@@ -677,11 +681,14 @@ GI_logfits_trycatch = function(df, groupvars) {
   )
 }
 #2020 GI log fits
+
+
+
 library(dplyr)
 DH2020_GIlogfits = G2020.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2020') %>%
 
   arrange(taxa, TP) %>% group_by(year, taxa)%>%group_modify(GI_logfits_trycatch) %>% ungroup() 
-DH2020_GIlogfits 
+
 taxaToFilter2020GI = DH2020_GIlogfits  %>% filter(year=='2020') %>% 
   dplyr::filter(term == 'Centering' & estimate > 177 |
            term == 'Lower' & estimate < 0 |
@@ -703,6 +710,17 @@ taxaToFilter2020GI = DH2020_GIlogfits  %>% filter(year=='2020') %>%
 
 load("data/GWA_results/DH2020_GIlogfitGWA_mlmm.Rdata")#DH2020_GIlogfitGWA.mlmm
 
+```
+
+```{r}
+DH2020_GIlogfitGWA.asreml = DH2020_GIlogfits  %>%
+  filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
+  # Add filtering steps here
+  group_by(year,term) %>%  rename(value = estimate) 
+
+
+```
+```{r}
 
 DHGI2020.logestimates = DH2020_GIlogfits  %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
   group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
@@ -803,6 +821,13 @@ taxaToFilter20202021_GI = DH20202021_GIlogfits  %>% filter(year=='2020/2021') %>
   filter(term == 'Centering' & estimate > 177 |
            term == 'Lower' & estimate < 0 |
            term == 'TimeTo5.0' & estimate > 250)
+
+GI.logfits=rbind(DH2021_GIlogfits,DH2020_GIlogfits,DH20202021_GIlogfits)
+GI.logfits$trait<-"GI"
+save(GI.logfits,file="data/Phenotype_Data/log_fits/GI_logfits.Rdata")
+TaxaToFilterGI=list(TaxaToFilter2020_GI,TaxaToFilter2021_GI,taxaToFilter20202021_GI)
+save(TaxaToFilterGE,file="data/Phenotype_Data/log_fits/GE_log_taxa_to_filter.Rdata")
+
 
 # DH.GIlogfitGWA.mlm = DHGIlogfits %>% filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
 #   # Add filtering steps here

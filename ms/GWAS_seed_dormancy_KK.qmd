@@ -70,7 +70,11 @@ Seed dormancy and pre harvest sprouting(PHS) are critical traits for the product
 
 Barley(*Hordeum vulagare L*) is grown worldwide for food consumption, animal feed and malt for brewing and distilling. A significant portion of barley acreage in United States and Canada is grown for malting and distilling purposes due to the high premiums compared to animal feed and food consumption. Winter malting barley, where the barley is sown in the fall, is becoming of greater interest to growers, malsters, and brewers. A coombination of factors such as climate change affecting traditional growing environments, increasing milder winters, and the demand for locally produced malting barley are incentivizing the increased production of winter malting barley either into regions where spring barley has been grown or into non traditional environments. Growing malting barley in novel environments however, introduces challenges such adaptation of varieties, disease pressure and the risk of PHS in envrionments where rain occurs at harvest. Characterizing the genetics of PHS resistance while also moderating the amount of seed dormancy for malting quality.
 
-The induction and release of seed dormancy in barley is regulated by a balance of abiscisic acid(ABA) and giberellic acid (GA). The ratio of ABA and GA in the embyro determines when dormancy is lost over time. Seed dormancy and PHS have been well characterized barley mapping populations, but there has been limited studies evaluating seed dormancy in a winter malting barley context.
+The induction and release of seed dormancy in barley is regulated by a ratio of abiscisic acid(ABA) and giberellic acid (GA), two major plant hormones that regulate development in plants. The ratio of ABA to GA in the embyro is a key factor in maintaining dormmancy and the decreased ratio of ABA/GA overtime releases seed dormancy. Environmental factors such as temperature during grain fill decrease dormancy and increase PHS risk.
+
+Seed dormancy and PHS have been well characterized barley mapping populations. Two major effect genes for seed dormancy, SD1 and SD2, have been well characterized for dormancy and PHS in a wide range of barley germplasm
+
+but there has been limited studies evaluating seed dormancy in a winter malting barley context.
 
 # Methods 
 
