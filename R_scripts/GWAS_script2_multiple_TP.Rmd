@@ -36,15 +36,16 @@ library("ASRgwas")
 
 library(dplyr)
 genoD<-genoD_raw
-dim<-as.matrix(genoD)
+#dim<-as.matrix(genoD)
 
-genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")%>%filter(marker%in%colnames(dim))
+genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")%>%filter(marker%in%colnames(genoD))
 
-table(DH2020_2021$PM_date,DH2020_2021$Year)
+#table(DH2020_2021$PM_date,DH2020_2021$Year)
 
 
 #marker effects
-marker_ef<-dim%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_308762")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
+library(dplyr)
+marker_ef<-dim%>%as.data.frame()%>%select(c("Qsd1","JHI_Hv50k_2016_308762"))#%>%tibble::rownames_to_column()%>%dplyr::rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
 marker_ef
 
 
@@ -184,57 +185,57 @@ myGD=myGD[-1]
   return(TrueandPredicted)
 }
 
-#FoldCVGPv2 = function(df, myGD=WinterGD, numfolds,datasplit, trait_name){
-  
-  # Phenotype is full vector of phenotypes
-  # myGD is a n taxa x N markers dataframe with -1,0,1 coding and no 'taxa' column in it
-  # numfolds is the number of folds to cv (ie 5 for five-fold cv)
-  # datasplit is the percentage as a decimal for the training/testing split.
-  
-  df = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
-  myGD = myGD %>% filter(taxa %in% df$taxa) %>% arrange(taxa)
-  dim(df)
-  dim(myGD)
-  if(!length(unique(df$taxa))==sum(df$taxa == myGD$taxa)){
-    stop('taxa lists are not correctly aligning')
-  }
-  
-  TrueandPredicted = data.frame()
-  Phenotype = as.vector(df$value)
-  num_entries = length(Phenotype)
-  Training_size = round(datasplit*num_entries,0)
-  start_time <- Sys.time() 
-  set.seed(1)
-  
-  myGD = myGD[,-1]-1
-  for (i in 1:numfolds){
-    
-    trainingSet = sort(sample(1:num_entries,Training_size))
-    testingSet = setdiff(1:num_entries,trainingSet)
-    
-    y_train = Phenotype[trainingSet] 
-    y_test = Phenotype[testingSet]
-    
-    marker_train = myGD[trainingSet,]
-    marker_test = myGD[testingSet,]
-    
-    trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
-    
-    PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
-    print(cor(y_test,PredictedPheno))
-    
-    TrueandPredicted = rbind(TrueandPredicted, 
-                             data.frame(TruePheno = y_test,
-                                        PredPheno = PredictedPheno,
-                                        taxa = df$taxa[testingSet],
-                                        fold = i,
-                                        trait = trait_name,
-                                        correlation = cor(y_test,PredictedPheno)))
-  }
-  end_time <- Sys.time()
-  print(end_time-start_time)
-  return(TrueandPredicted)
-}
+# FoldCVGPv2 = function(df, myGD=WinterGD, numfolds,datasplit, trait_name){
+#   
+#   # Phenotype is full vector of phenotypes
+#   # myGD is a n taxa x N markers dataframe with -1,0,1 coding and no 'taxa' column in it
+#   # numfolds is the number of folds to cv (ie 5 for five-fold cv)
+#   # datasplit is the percentage as a decimal for the training/testing split.
+#   
+#   df = df %>% filter(taxa %in% myGD$taxa) %>% arrange(taxa) 
+#   myGD = myGD %>% filter(taxa %in% df$taxa) %>% arrange(taxa)
+#   dim(df)
+#   dim(myGD)
+#   if(!length(unique(df$taxa))==sum(df$taxa == myGD$taxa)){
+#     stop('taxa lists are not correctly aligning')
+#   }
+#   
+#   TrueandPredicted = data.frame()
+#   Phenotype = as.vector(df$value)
+#   num_entries = length(Phenotype)
+#   Training_size = round(datasplit*num_entries,0)
+#   start_time <- Sys.time() 
+#   set.seed(1)
+#   
+#   myGD = myGD[,-1]-1
+#   for (i in 1:numfolds){
+#     
+#     trainingSet = sort(sample(1:num_entries,Training_size))
+#     testingSet = setdiff(1:num_entries,trainingSet)
+#     
+#     y_train = Phenotype[trainingSet] 
+#     y_test = Phenotype[testingSet]
+#     
+#     marker_train = myGD[trainingSet,]
+#     marker_test = myGD[testingSet,]
+#     
+#     trained.Model = mixed.solve(y_train, Z = marker_train, K = NULL, SE =FALSE)
+#     
+#     PredictedPheno = as.matrix(marker_test) %*% as.matrix(trained.Model$u)+ as.numeric(trained.Model$beta)
+#     print(cor(y_test,PredictedPheno))
+#     
+#     TrueandPredicted = rbind(TrueandPredicted, 
+#                              data.frame(TruePheno = y_test,
+#                                         PredPheno = PredictedPheno,
+#                                         taxa = df$taxa[testingSet],
+#                                         fold = i,
+#                                         trait = trait_name,
+#                                         correlation = cor(y_test,PredictedPheno)))
+#   }
+#   end_time <- Sys.time()
+#   print(end_time-start_time)
+#   return(TrueandPredicted)
+# }
 
 
 
@@ -277,9 +278,9 @@ WinterGD=wmb_GD%>%as.data.frame()%>%tibble::rownames_to_column("taxa")%>%relocat
 rownames(WinterGD)=WinterGD$taxa
 dim(WinterGD)
 
-y = GE_TP1_2020 %>% arrange(taxa)%>%filter(taxa%in%WinterGD$taxa) %>% ungroup()%>%arrange(taxa)%>% dplyr::select(value) %>% as.matrix()
- Z = WinterGD %>% dplyr::filter(taxa%in%GE_TP1_2020$taxa)%>% arrange(taxa) %>%
-                                      dplyr::select(!taxa) %>% as.matrix()
+#y = GE_TP1_2020 %>% arrange(taxa)%>%filter(taxa%in%WinterGD$taxa) %>% ungroup()%>%arrange(taxa)%>% dplyr::select(value) %>% as.matrix()
+# Z = WinterGD %>% dplyr::filter(taxa%in%GE_TP1_2020$taxa)%>% arrange(taxa) %>%
+ #                                     dplyr::select(!taxa) %>% as.matrix()
 
 GE_TP1_2020_model_Train=mixed.solve(y = GE_TP1_2020 %>% arrange(taxa)%>% filter(taxa%in%WinterGD$taxa)%>%ungroup()%>%arrange(taxa) %>% dplyr::select(value) %>% as.matrix(),
                                        Z = WinterGD %>% dplyr::filter(taxa%in%GE_TP1_2020$taxa)%>% arrange(taxa) %>%
@@ -290,18 +291,7 @@ GE_TP1_2020_model_Train=mixed.solve(y = GE_TP1_2020 %>% arrange(taxa)%>% filter(
 ##
 
 ##
-length(GE_TP1_2020_model_Train$u)
-GE_TP1_2020_predValues$taxa
-GE_TP1_2020$taxa
-dim(GE_TP1_2020_predValues)
-dim(GE_TP1_2020)
-dim(GE_TP1_2020_model_Train$u)
-dim(GE_TP1_2020_model_Train$beta)
-rownames(GE_TP1_2020_predValues)
-table(GE_TP1_2020$taxa)
-v<-WinterGD %>% filter(taxa %nin% GE_TP1_2020$taxa) 
-rownames(v)
-GE_TP1_2020[GE_TP1_2020$taxa=="WINTMALT"]
+
 GE_TP1_2020_predValues = (as.matrix(WinterGD %>% filter(taxa %nin% GE_TP1_2020$taxa) %>% arrange(taxa) %>%
                                       dplyr::select(!taxa) %>% as.matrix()-1) %*%as.matrix(GE_TP1_2020_model_Train$u)+
                             as.numeric(GE_TP1_2020_model_Train$beta)) %>% as.data.frame() %>%
@@ -427,6 +417,7 @@ DH2020_GE.logfits %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(
 library(ggplot2)
 #2021 GE
  G2021.TSF.GE 
+
 DH2021_GE.logfits = G2021.TSF.GE %>% ungroup()  %>%
    rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
        DHCombined.TSF.GE  %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
@@ -452,11 +443,21 @@ TaxaToFilterCombinedGE = DHCombined_GE.logfits %>% filter(year == '2020/2021') %
 DHCombined_GE.logfits %>% filter(taxa %nin% TaxaToFilterCombinedGE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
 ###end combined
 ```
+#save logistic GE fits
+```{r}
+
+GE.logfits=rbind(DH2021_GE.logfits,DH2020_GE.logfits,DHCombined_GE.logfits)
+save(GE.logfits,file="data/Phenotype_Data/log_fits/GE_logfits.Rdata")
+TaxaToFilterGE=list(TaxaToFilter2020GE,TaxaToFilter2021GE,TaxaToFilterCombinedGE)
+save(TaxaToFilterGE,file="data/Phenotype_Data/log_fits/GE_log_taxa_to_filter.Rdata")
+```
 
 ### GWAS Logistics 2020 GWAS
+
+#### GAPIT
 ```{r}
-WinterGD_g[-1]=WinterGD[-1]+1
-WinterGD_g=WinterGD_g%>%rownames_to_column("taxa")%>%relocate(.before = 1)
+#WinterGD_g[-1]=WinterGD[-1]+1
+#WinterGD_g=WinterGD_g%>%rownames_to_column("taxa")%>%relocate(.before = 1)
 
 DF_OperationsV3 = function(df){
   df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
@@ -485,43 +486,43 @@ table(DH2020.GElogfitGWA.mlmm$term)
 # save(DH2020.GElogfitGWA.mlmm,file="data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")#DH2020.GElogfitGWA.mlmm
 load("data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")
 ```
-##ASRmodel GE log
+
+### ASRmodel GE log
 ```{r}
 library(dplyr)
-simple<-DH2020_GE.logfits %>% filter(!(year=='2020' & taxa %in% TaxaToFilter2020GE$taxa)) %>%
- dplyr::rename(value = estimate,GID=taxa)%>%filter(year=="2020",term=="Centering")
+GE.logfits
 
-gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+GID=rownames(genoD)
+gd=as.matrix(genoD)
+table(GE.logfits$term)
+TaxaToFilterCombinedGE
+
+QSD1<-data.frame(GID,QSD1=as.factor(genoD$Qsd1))
+simple<-GE.logfits%>%filter(year=="2020/2021") %>% filter(!(year=='2020/2021' & taxa %in% TaxaToFilterGE[3]$taxa)) %>%
+ dplyr::rename(value = estimate,GID=taxa)%>%filter(term=="Lower")%>%left_join(QSD1,by="GID")
+table(simple$year)
+gd<-gd[which(rownames(gd)%in%c(simple$GID)),]
+
+genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 
 
 table(simple$term)
 
-names(WinterGD)
-names(genoD)
-GID=rownames(genoD)
-gd=as.matrix(genoD)
-rownames(gd)
-dim(genoM)
-genoD_raw[1:5,1:5]
-simple$GID
-names(gd)
-gd<-gd[which(rownames(gd)%in%c(simple$GID)),]
-dim(gd)
+
+
 genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+simple$GID
 pre.aprM <- pre.gwas(pheno.data=simple, indiv = "GID",
 resp = "value", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
-
-fix=NULL
+fix="QSD1"
 random=NULL
-
 resid=NULL
 gwasMTP <- gwas.asreml(pheno.data = pre.aprM$pheno.data,resp = "value",
  gen = "GID", Kinv = pre.aprM$Kinv,
-Q =NULL, npc = 5, geno.data = pre.aprM$geno.data,
-map.data = pre.aprM$map.data,fixedf=fix,randomf = random,residual = resid,
-bonferroni = TRUE, message = TRUE)
+Q =NULL, npc = 5, geno.data = pre.aprM$geno.data,fixedf = fix,
+map.data = pre.aprM$map.data,bonferroni = TRUE, message = TRUE)
 
 
 qq.plot(gwas.table = gwasMTP$gwas.all)
@@ -542,6 +543,7 @@ ls(gwasFIN)
 
 
 ```
+```{r}
 #DH.GElogfitGWA.mlm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 DH2020.GElogfitGWA.mlmm %>% group_by(year, term) %>% slice_head(n = 5) %>% view()
 
@@ -650,15 +652,17 @@ DHCombined_GE.logestimates
 
 
 
+```
 
-# GI log fits #####
+## GI log fits #####
+```{r}
 G2020.TSF.GI = DH2020Estimates%>% ungroup() %>% plyr::rbind.fill(GI_TP1_2020_predValues, GE_TP1_2020_predValues) %>% 
-  filter(type == 'BLUE', trait =='GI') %>% join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))
+  filter(type == 'BLUE', trait =='GI') %>% plyr::join(Taxacounts2020) %>% mutate(value = ifelse(value<0, 0, value))
 
 G2021.TSF.GI = DH2021Estimates%>% ungroup()  %>% 
-  filter(type == 'BLUE', trait =='GI') %>% join(Taxacounts2021) %>% mutate(value = ifelse(value<0, 0, value))
+  filter(type == 'BLUE', trait =='GI') %>% plyr::join(Taxacounts2021) %>% mutate(value = ifelse(value<0, 0, value))
 G20202021.TSF.GI = DHCombined%>% ungroup()  %>% 
-  filter(type == 'BLUE', trait =='GI') %>% join(TaxacountsCombined) %>% mutate(value = ifelse(value<0, 0, value))
+  filter(type == 'BLUE', trait =='GI') %>% plyr::join(TaxacountsCombined) %>% mutate(value = ifelse(value<0, 0, value))
 
 GI_logfits_trycatch = function(df, groupvars) {
   Out = tryCatch(
@@ -673,14 +677,13 @@ GI_logfits_trycatch = function(df, groupvars) {
   )
 }
 #2020 GI log fits
+library(dplyr)
 DH2020_GIlogfits = G2020.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2020') %>%
-  # rbind(G2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2021'),
-  #        G2020_2021.TSF.GI %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
-  arrange(taxa, TP) %>% group_by(year, taxa) %>%
-  group_modify(GI_logfits_trycatch) %>% ungroup() 
 
+  arrange(taxa, TP) %>% group_by(year, taxa)%>%group_modify(GI_logfits_trycatch) %>% ungroup() 
+DH2020_GIlogfits 
 taxaToFilter2020GI = DH2020_GIlogfits  %>% filter(year=='2020') %>% 
-  filter(term == 'Centering' & estimate > 177 |
+  dplyr::filter(term == 'Centering' & estimate > 177 |
            term == 'Lower' & estimate < 0 |
            term == 'TimeTo5.0' & estimate > 250)
 
