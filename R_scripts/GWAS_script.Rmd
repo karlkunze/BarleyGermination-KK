@@ -202,7 +202,7 @@ dev.off()
 #library(GAPIT3)
 DF_OperationsV3 = function(df){
   df = df %>% arrange(P.value)  %>% mutate(logPercentileQQplot = -log10(c(1:length(df$SNP))/length(df$SNP)),
-                                           rank = c(1:length(df$SNP))) %>% arrange(Chrom, as.numeric(Pos)) %>%
+                                           rank = c(1:length(df$SNP))) %>% arrange(Chr, as.numeric(Pos)) %>%
     mutate(log10PVal = -log10(P.value),ordinal = c(1:length(df$SNP)))
   return(df)
 }
