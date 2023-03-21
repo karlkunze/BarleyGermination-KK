@@ -851,8 +851,9 @@ DH20202021_GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10
 
 #end 2020/2021 combined
 
-
+```
 # FPCA on the 2020 data. ######
+```{R}
 source('SpringBarley/Analysis/All_taxa/FPCA/Functions/FPCA_function.R')
 source('SpringBarley/Analysis/All_taxa/FPCA/Functions/pca_fun.R')
 source('SpringBarley/Analysis/All_taxa/FPCA/Functions/pca_score.R')
@@ -1140,7 +1141,9 @@ df = DHs2020 %>% select(year, Family, taxa, Location, PLOT, PM_date, GE, GI) %>%
 
 df$n %>% table()
 filter(PLOT == '6011', trait =='GE')#%>% group_modify(PenalizedSplineFitting)
+```
 # Genomic Prediction ################################################################
+```{r}
 #All will use the data from DHCombined for the non .5 TP. 
 WinterGPdata = DHCombined %>% filter(TP %in% c('TP1','TP2','TP3','TP4','TP5')) %>% filter(type == 'BLUE',Family != 'Cha')
 # Question can we reduce SNP numbers? #######
