@@ -16,6 +16,7 @@ load("data/Phenotype_Data/Heritability_first_step.Rdata")
 load("data/Genotype_data/wmb_file.Rdata")
 load("data/Genotype_data/numeric_raw.Rdata")
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
+library(dplyr)
 DH2020_2021<-DH2020_2021%>%filter(!Location=="Spring")
 
 DH2020_2021[DH2020_2021$taxa%in%c("Charles","Endeavor"),]$Check<-"2"
@@ -34,7 +35,6 @@ wmb_num$GD[,"Qsd1"]
 ```{r}
 library("ASRgwas")
 
-library(dplyr)
 genoD<-genoD_raw
 #dim<-as.matrix(genoD)
 
@@ -44,8 +44,8 @@ genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")
 
 
 #marker effects
-library(dplyr)
-dim
+
+
 marker_ef<-genoD%>%as.data.frame()%>%select(c("Qsd1","JHI_Hv50k_2016_308762"))%>%tibble::rownames_to_column()%>%dplyr::rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
 marker_ef
 
@@ -62,6 +62,7 @@ df_begin
 ```
 #ASGWAS across all Timepoints and years
 ```{r}
+i
 
 #simple<-GI_2020%>%filter(PM_date=="5")
 #simple$PM_date
@@ -86,6 +87,7 @@ Q =NULL, npc = 5, geno.data = pre.aprM$geno.data,
 map.data = pre.aprM$map.data,fixedf=fix,randomf = random,residual = resid,
 bonferroni = TRUE, message = FALSE)
 ?gwas.asreml()
+
 
 
 qq.plot(gwas.table = gwasMTP$gwas.all)
