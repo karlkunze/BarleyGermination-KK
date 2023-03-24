@@ -96,19 +96,48 @@ In addition to dormancy sampling in 2021, 120 lines were selected for micromalti
 
 ## Post harvest germination assay
 
-To measure dormancy loss, all samples were removed the freezer at the same time, beginning the after-ripening process. Samples were stored at ambient room temperature for the duration of the experiment. Germination assays were measured with petri plate assay tests that followed the American Society of Brewing Chemists (ASBC) with two modifications. The first modification was the use of 30 kernels instead of 100 kernels. The second modification was an extended germination count from 3 days to 5 days in lieu of counting for 3 days and using H~2~O~2~ to break dormancy.
+To measure dormancy loss, all samples were removed the freezer at the same time, beginning the after-ripening process at the same physiological state for all lines. Samples were stored at ambient room temperature for the duration of the experiment. Germination assays were measured with petri plate assay tests that followed the American Society of Brewing Chemists (ASBC) [@kuesterSimultaneousDeterminationGermination1997] with modifications and subsequent steps followed in @sweeneyInteractionsBarleySD12021. The first modification was the use of 30 kernels instead of 100 kernels. The second modification was an extended germination count from 3 days to 5 days in lieu of counting for 3 days and using H~2~O~2~ to break dormancy. Germination ernergy(GE) as a measure of seed dormancy was determined as
 
-In brief, GE was calculated as the percentage germinated kernels after three days and for five days. GI was calculated as: Germination energy (GE) and germination index or rate (GI) were measured at five time points for 2020: 5 (TP1), 19 (TP2), 47 (TP3), 96 (TP4), and 152 (TP5) days post PM. Germination Energy(GE) and germination index or rate (GI) were measured at eight time points for 2021: 5(TP1), 12(TP1.5), 19 (TP2), 33(TP2.5), 47(TP3), 68 (TP3.5), 96 (TP4) and 152(TP5) days post PM.
+$GE = \frac{n_{24} + n_{48} + n_{72}}{n_{total}}$
 
-$3 Day GI =10 (N24+N48 +N72)/ (N24+2N48+3N72)$
+$GE_{5 day} = \frac{n_{24} + n_{48} + n_{72}+n_{96}+n_{120}}{n_{total}}$
 
-*5 Day GI =10 (N~24~+N~48~ +N~72~ +N~96~+N~120~)/ (N~24~+2N~48~ +3N~72~+4N~96~ +5N~120~)*
+Where $n$ corresponds to the the number of germinated kernels at 24, 48, 72, 96 and 120 hours after the start of the assay and $n_{total}$ is the total number of germinated and ungerminated kernels.
 
-where N~24~, N~48~, N~72~, N~96~ and N~120~ were the number of germinated kernels at 24, 48, 72, 96 and 120 hours after the start of the assay. For analysis GI was scaled by GE as GI~scale~ = GI\*GE to account for low germination at TP1 and TP2.  For TP1 in 2020, a subset of the lines (223) was phenotyped compared to the remaining timepoints (444). The TP1 subsample included for the remaining lines. For sampling in 2022, we only sampled one complete location (480 plots) and 120 plots at the second location. For the second location, 60 of the 120 lines were sampled based on a range of their respective GE and GI rates measured from the previous field season. The remaining 60 samples consisted of sampling check lines and available seed.
+Germination Index was calculated as a germination rate following: @francakova2012
 
-In addition to measuring germination, a 120 line subset previously mentioned were sent to the USDA Cereal Crops and research unit(CCRU) in Madison, WI. The small grain samples were frozen upon arrival. Each line was malted in single replicates at two different time points 67 days post PM and 152 post PM, a modification from our original plan of 47/111 days post PM due to substantial observed dormancy at 47 days post PM. Due to limits on how many tea ball samples could be malted at one time, the samples were malted in batches every week for two months. Malting procedure and analysis were performed in the methods described by . We are still waiting on the last batch to be analyzed and aim to write a supplemental report once the complete malting data for the winter barley becomes available. Preliminary results indicate that there was significant dormancy for some lines when the grain was malted at 68 days post PM, given the high beta glucan levels.
+$GI_{base_{3 day}}=\frac{10 *(n_{24}+n_{48} +n_{72})} {1n_{24}+2n_{48}+3n_{72}}$
 
-                  
+$GI_{base_{5 day}}=\frac{10 *(n_{24}+n_{48} +n_{72}+n_{96}+n_{120})} {1n_{24}+2n_{48}+3n_{72}+4n_{96}+5n_{120}}$
+
+where $n_{24}$, $n_{48}$, $n_{72}$, $n_{48}$ and $n_{120}$ were the number of germinated kernels at 24, 48, 72, 96 and 120 hours after the start of the assay. GI was scaled by GE as $GI=GI_{base}*GE$ to account for low germination at earlier timepoints.
+
+GE and GI were measured at five time points for 2020: 5 (TP1), 19 (TP2), 47 (TP3), 96 (TP4), and 152 (TP5) days post PM. GE and GI measured at eight time points for 2021: 5(TP1), 12(TP1.5), 19 (TP2), 33(TP2.5), 47(TP3), 68 (TP3.5), 96 (TP4) and 152(TP5) days post PM.
+
+In addition to measuring germination, a 120 line malting quality subset previously mentioned were taken out freezing concurrently with the dormancy samples
+
+Malting quality samples were sent to the USDA Cereal Crops and research unit(CCRU) in Madison, WI. The small grain samples were frozen upon arrival. Each line was malted in single replicates at two different time points corresponding 67 days post PM and 152 post PM. Due to limits on how many tea ball samples could be malted at one time, the samples were malted in batches every week for two months. Malting procedure and analysis were performed in the methods described by @schmittMaltingExtremelySmall2011
+
+## Genotyping
+
+The entire double haploid population was genotyped with the 50K Barley SNP array @bayerDevelopmentEvaluationBarley2017 at the USDA small grains research laborartory in Fargo, ND. Marker positions were based on the Morex version 3 assembly [@mascherLongreadSequenceAssembly2021]. Markers were filtered a maximum heterozygosity level of 0.01 and a minumum minor allele frequency of 0.05 using rTASSEL @monierRTASSELInterfaceTASSEL2022, resulting in a total of 13,452 markers. The R package \@ZhengSNP2012 used to Linkage Disequlibrium(LD) prune markers using a sliding base pair window of 2000 markers and a maximum LD threshold of 0.9. PCA analysis was also conducted with the SNPRelate package. After LD pruning, 9628 markers remained for analysis. KASP markers were used to genotype *HVAlaAT* and *HvMKK3* folllowing casual mutations discovered in @satoAlanineAminotransferaseControls2016 and @nakamura2016 respectively. Details of KASP marker development can be found in @sweeney2021_QTL.
+
+## Statisical Analysis
+
+Given the advancement in computational efficiency, per time point GWAS was analzyed using a single step approach. The package @ASRgwas was used to develop the K and Q matricies, filter out missing information, and conduct single step GWAS using the raw data as input. ASRgwas model flexibility allowed for the integration of fixed, random, covariate and residual factor integration. The base model for GWAS per timepoint was as follows:
+
+$$y_{} \sim 1\mu + X\beta+Z_{1}u + Q\delta + \epsilon$$
+Where $y$ is the response variable for GI, $GI_{base}$ or GE, $\mu$ is the overall mean, $\beta$ is a vector of fixed effects(i.e. Location, replication), $u$ is the vector of addivitive genotype effects assoicated with the genomic additive relationship matrix with $u \sim N(0,G_{A}\sigma^2_{A})$, $Q$ is a matrix of vectors describing population structure and $\delta$ corresponds to the number of vectors(PCAs) of the Q matrix to be included to account for population structure and $\epsilon ~N(0,E\sigma^2)$  where $E$ is either a incidence matrix corresponding independently and identically distributed residuals or a heteroscadistic error structure. A summary of model terms included for each timepoint is presented in table 2 both for within years and across years. 
+
+
+
+##Two step analysis for Logistic modeling
+
+In addition to single timepoint GWAS, modeling dormancy loss over time can provide novel information than by just using  a single timepoint alone. We 
+
+Fixed effect components were determined per timepoint using wald tests. Residual effects
+
+the package @ASRgwas
 
 We previously reported development of a high-throughput Kompetitive Allele Specific Primer (KASP) marker AlaAT1_L214F for the causal mutation in *HvAlaAT1* discovered by Sato et al. (2016). We also developed KASP assays for a SNP in the 5' UTR of *HvGA20ox1* (GA20ox1_331_5UTR), the E165Q mutation in *HvMKK3* identified in Vetch et al. (2020) for both spring barley and winter barley. A summary of the winter barley haplotypes for the parent lines and checks are found in QTL x environment modeling of malting barley preharvest sprouting (Sweeney et al. 2021). All experimental lines and parent genotypes were monomorphic for dormant HvMKK3. The check lines Charles and Endeavor used as a phs susceptibility check in 2020 and 2021 respectively, have the highly non-dormant (N\*) allele for MKK3 and the dormant AlaAT(D) allele, however we cannot make specific conclusions about this haplotype given the low representation in the winter barley population.
 
@@ -122,9 +151,26 @@ Pre-harvest sprouting
 
 For the 2020 year, we only did a subsample of phs scoring. While the 2020 data did follow the trend explained for the 2021 results, we did not have enough observations to determine whether all experimental lines in the 2020 year were resistant or susceptible to phs in the 2020 environment mainly due to low variation and sample size. In our first complete year observation of the 435 unique lines in our trials, we found that 95% of our experimental lines were pre-harvest sprouting resistant (0-2 score) across two locations. Approximately 4.4 % were somewhat resistant (2-4) and only 1.6 % of our lines were PHS susceptible (above 4). The low mean of phs for most of the lines is encouraging, however phs needs to be tested in at least more than one year to account for different environmental effects. This is particularly important given the significant increased dormancy we observed for the 2021 year. Given the low variation of phs scores, correlations were low to most of the GE and GI timepoints. PHS was only moderately correlated with the first timepoint (PM 5) for GE(0.633) and GI(0.683). Even with a week of after ripening, correlation with phs scores dropped significantly at time point 1.5(12 days post PM) for GE(0.367) and GI(0.415). This suggests that for our winter barley population, there is potential to select for increased dormancy break while maintaining PHS resistance. Broad sense heritability for all germination traits, timepoints, years and combinations were very high(0.9). Heritability dropped slight for GE at later time points due to reduced variation but still retained heritability values a minimum\~0.75. 
 
- 
+   #making a table for significant effects
+
+```{r}
+model_2020_GI<-data.frame(year=rep("2020",5),trait=rep("GI",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location + Rep","Location",NA,NA,NA),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=rep("yes",5))
+
+model_2020_GE<-data.frame(year=rep("2020",5),trait=rep("GE",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location","Location","Location:Rep + Location + Rep","Location","Location"),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=c("yes","yes","yes","no","yes"))
+
+models2020=rbind(model_2020_GI,model_2020_GE)
+##
+model_2021_GI<-data.frame(year=rep("2021",8),trait=c(rep("GI",6),rep("GI_base",2)),PM_date=c(5,22,19,33,47,68,96,152),Q=rep("yes",8),npc=rep("2",8),Fixed=c(NA,NA,NA,"replication",NA,"Location","Location:Row + replication","Location"),Random=rep(NA,8),Residual=c("Location",NA,"replication",NA,NA,NA,"Row",NA),Converged=c("yes","yes","yes","yes","yes","yes","yes","yes"))
+
+model_2021_GI
+
+```
 
 Genome wide association results
+
+If Qsd1 and associated MTAs on 5H are included as fixed effects and removed, markers JHI_Hv50k_2016_275586 JHI_Hv50k_2016_275688 JHI_Hv50k_2016_275904 on 4H reached borderline significant at Timepoints 12 and 19 in 2021 for GI. "JHI_Hv50k_2016_275586" "JHI_Hv50k_2016_275688" "JHI_Hv50k_2016_275904" reached significance in TP 68 2021 GI
+
+There is also a marker "JHI_Hv50k_2016_64721" on 2H that reaches borderline signifcnce in 19 GI 2021
 
 For single timepoint GWAS, we found a total of 37 significant marker trait associations associated with GE and GI across all timepoints and years. One marker per LD group of the significant single time point GWA was selected in table 1 to prevent redundancy. Significant marker trait associations from the logistic models were also included. The most significant association was the KASP marker for AlaAT_L214F(Qsd1) and the closely associated 50K JHI-Hv50k-2016-276836(r=0.91) marker. Other potential hits detected in the study include Isoamylase (*HvISA3*,HORVU.MOREX.r2.5HG0404420) which is a starch-debranching enzyme located at 475796690-475807295 bp, 705025 bp distal to marker JHI-Hv50k-2016-311435. Isoamylases hydrolyze α-(1,6) glycosidic linkages and debranch amylopectin during grain filling (Gous and Fox, 2017). Shu and Rasmussen (2014) identified a MTA for amylose content highly associated with the contig MLOC_10776, which includes *HvISA3* (https://ics.hutton.ac.uk/morexGenes/). Starch with higher amylose content is hydrolyzed more slowly by amylolytic enzymes and higher amylose content has been hypothesized to be a contributing factor to grain dormancy (Chu et al., 2014). Although the role of amylose content in seed dormancy has been hypothesized, prior evidence for the role of *HvISA3* is limited. This locus may be useful for PHS resistance but a consistent decrease in GI is not desirable. Negative impacts on starch related malting quality traits like malt extract may also be present.  Another gene of interest in this region is an abscisic acid responsive protein (Liu et al. 2013). Abscisic acid (ABA) is an important regulator of seed dormancy in barley: increases in ABA maintain seed dormancy and decreases in ABA reduce seed dormancy in barley (Gómez-Cadenas et. al 1999). Other potential novel loci include HvVP1 (Viviparous-1) which may be associated with JHI-Hv50k-2016-165725 on chromosome 3H and segregating in the SY Tepee family. HvVP1 is a master transcription factor regulator that controls switching between seed maturation and germination in barley (Abraham et al. 2016).
 
