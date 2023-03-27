@@ -25,11 +25,11 @@ editor: visual
 format:
   docx:
     reference-doc: custom-reference-doc.docx
-link-citations: true
+link-citations: TRUE
 editor_options: 
   chunk_output_type: console
 crossref:
-  fig-title: Figure    # (default is "Figure")
+  fig-title: fig   # (default is "Figure")
   tbl-title: tbl     # (default is "Table")
   title-delim: —     
 bibliography: references.bib
@@ -50,9 +50,9 @@ sysname
 if(sysname == "Darwin") {
     path<-("~/Google Drive/projectX") # example on mac machine
 } else if(sysname == "Linux") {
-    path<-("/home/karl/git/naked_barley_GWAS") # example on linux machine
+    path<-("/home/karl/git/BarleyGermination-KK") # example on linux machine
 } else if(sysname == "Windows") {
-    path<-("C:/Users/kars8/git/naked_barley_GWAS") # example on win machine
+    path<-("C:/Users/kars8/git/BarleyGermination-KK") # example on win machine
 }
 path
 quarto_path<-paste0(path,"/ms")
@@ -180,6 +180,10 @@ The observed dormancy for most non dormant haplotypes at earlier post physiologi
 # Discussion
 
 Important point- cooler temperatures during grainfill for winter barley could be a pereptual inducment of longer dormancy
+
+```         
+JHI_Hv50k_2016_454168   7(24882997) cm(24.21875)    1.23526E-05 0.233       0.12072     Alpha amylase inhibitor protein,,,, HORVU.MOREX.r2.7HG0538600   7H location(24968345    24968677)
+```
 
 # Conclusion
 
