@@ -126,14 +126,11 @@ The entire double haploid population was genotyped with the 50K Barley SNP array
 
 Given the advancement in computational efficiency, per time point GWAS was analzyed using a single step approach. The package @ASRgwas was used to develop the K and Q matricies, filter out missing information, and conduct single step GWAS using the raw data as input. ASRgwas model flexibility allowed for the integration of fixed, random, covariate and residual factor integration. The base model for GWAS per timepoint was as follows:
 
-$$y_{} \sim 1\mu + X\beta+Z_{1}u + Q\delta + \epsilon$$
-Where $y$ is the response variable for GI, $GI_{base}$ or GE, $\mu$ is the overall mean, $\beta$ is a vector of fixed effects(i.e. Location, replication), $u$ is the vector of addivitive genotype effects assoicated with the genomic additive relationship matrix with $u \sim N(0,G_{A}\sigma^2_{A})$, $Q$ is a matrix of vectors describing population structure and $\delta$ corresponds to the number of vectors(PCAs) of the Q matrix to be included to account for population structure and $\epsilon ~N(0,E\sigma^2)$  where $E$ is either a incidence matrix corresponding independently and identically distributed residuals or a heteroscadistic error structure. A summary of model terms included for each timepoint is presented in table 2 both for within years and across years. 
-
-
+$$y_{} \sim 1\mu + X\beta+Z_{1}u + Q\delta + \epsilon$$ Where $y$ is the response variable for GI, $GI_{base}$ or GE, $\mu$ is the overall mean, $\beta$ is a vector of fixed effects(i.e. Location, replication), $u$ is the vector of addivitive genotype effects assoicated with the genomic additive relationship matrix with $u \sim N(0,G_{A}\sigma^2_{A})$, $Q$ is a matrix of vectors describing population structure and $\delta$ corresponds to the number of vectors(PCAs) of the Q matrix to be included to account for population structure and $\epsilon ~N(0,E\sigma^2)$ where $E$ is either a incidence matrix corresponding independently and identically distributed residuals or a heteroscadistic error structure. A summary of model terms included for each timepoint is presented in table 2 both for within years and across years.
 
 ##Two step analysis for Logistic modeling
 
-In addition to single timepoint GWAS, modeling dormancy loss over time can provide novel information than by just using  a single timepoint alone. We 
+In addition to single timepoint GWAS, modeling dormancy loss over time can provide novel information than by just using a single timepoint alone. We
 
 Fixed effect components were determined per timepoint using wald tests. Residual effects
 
