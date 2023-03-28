@@ -1,0 +1,140 @@
+---
+title: "post_GWAS_plots"
+author: "Karl Kunze"
+date: "2023-03-27"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+#post gwas plotting
+```{r}
+library(dplyr)
+library(asreml)
+#2020
+load("data/Genotype_data/ASRgwas_results/Single_TP_GI_2020_results.Rdata")
+load("data/Genotype_data/ASRgwas_results/Single_TP_GE_2020_results.Rdata")
+#2021
+load("data/Genotype_data/ASRgwas_results/Single_TP_GI_2021_results.Rdata")
+load("data/Genotype_data/ASRgwas_results/Single_TP_GE_2021_results.Rdata")
+#combined
+load("data/Genotype_data/ASRgwas_results/Single_TP_GI_cpmbined_results.Rdata")#GI_STP_combined,
+load("data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")#GE_STP_combined
+
+
+
+convert<-function(df){
+var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
+
+var_test$ID<-df[[1]]$trait
+
+#env_n<-length(table(BSR.df$Env))
+for(i in (1:length(df))-1){
+#i<-3
+app<-df[[1+i]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
+app
+app$ID<-df[[i+1]]$trait
+  var_test<- rbind(var_test,app)
+}
+return(var_test)
+}
+
+str(GE_2020)
+GE_2020[[2]]$gwas.sel
+
+convert<-function(df){
+var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
+
+var_test$ID<-df[[1]]$trait
+
+#env_n<-length(table(BSR.df$Env))
+for(i in (1:length(df))-1){
+#i<-3
+app<-df[[1+i]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
+app
+app$ID<-df[[i+1]]$trait
+  var_test<- rbind(var_test,app)
+}
+return(var_test)
+}
+
+
+
+GE20<-convert(GE_2020)
+GI21<-convert(GI_2021)
+GI20<-convert(GI_2020)
+GI_C<-convert(GI_STP_combined)
+GE_C<-convert(GE_STP_combined)
+STP_all<-rbind(GE20,GE21,GI20,GI_C,GE_C)%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+STP_all
+###
+
+WTP<-STP_all%>%arrange(chrom,pos)%>%rename(Chromosome=chrom,Position=pos)
+WTP$ID
+table_chr<-WTP%>%filter(ID=="GI-2020/2021-PM_96")%>%ungroup()%>%dplyr::select(Chromosome,Position,ordinal)%>%arrange(Chromosome,Position)%>%unique()
+table_chr_min<-table_chr%>%group_by(Chromosome)%>%summarize(min=min(Position),min_ord=min(ordinal))
+table_chr_max<-table_chr%>%group_by(Chromosome)%>%summarize(max=max(Position),max_ord=max(ordinal))
+table_chr<-merge(table_chr_min,table_chr_max,by="Chromosome")
+Chr_breaks=table_chr$max_ord-table_chr$min_ord
+ChrTable<-Chr_breaks
+ChrTable
+
+chrLabel = c(1:7, 'UN')
+winterOrdinalBreaks = c(ChrTable[1]/2)
+
+winterChrLines = ChrTable[1]#for the first position
+
+for (i in 2:8){
+ winterOrdinalBreaks[i] = sum(ChrTable[1:i-1])+ChrTable[i]/2
+ winterChrLines[i] = sum(ChrTable[1:i])
+}
+
+WinterPerTPGWAS2<-STP_all%>%ungroup()
+table(WTP$ID)
+
+
+
+library(stringr)
+winterChrLines
+table(WinterPerTPGWAS2$PM)
+WinterPerTPGWAS2 %>%ungroup()%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+
+  geom_vline(xintercept = winterChrLines, color = 'black')+
+ # geom_vline(xintercept = 4780, color = 'red',linetype='longdash')+
+  #annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = winterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5) )+theme_bw()+
+ facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+
+
+WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
+
+
+```
+
+#sig markers
+```{r}
+sig_markers(GE_2020)
+sig_markers<-function(df){
+  #df<-GE_2020
+  names(sel)
+  sel<-data.frame(1,1)
+  sel
+  ?data.frame()
+  sel
+sel<-df[[2]]$gwas.sel
+
+sel$ID<-df[[1]]$trait
+sel
+#env_n<-length(table(BSR.df$Env))
+for(i in (1:length(df))-1){
+#i<-3
+abb<-df[[i+1]]$gwas.sel
+
+abb$ID<-df[[i+1]]$trait
+  sel_test<- rbind(sel,abb)
+}
+return(sel_test)
+}
+
+```

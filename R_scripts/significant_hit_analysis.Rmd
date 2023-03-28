@@ -3,38 +3,66 @@ title: "post_GWAS_analysis"
 author: "Karl Kunze"
 date: "2023-03-20"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
+```{r setup}
 
+
+
+knitr::opts_knit$set(root.dir = '/home/karl/git/BarleyGermination-KK')
+
+```
 ## POST GWAS Analysis
 ```{r}
-  
+  getwd()
+library(dplyr)
+library(ggplot2)
 load("data/GWA_results/WinterPerTPGWAS.Rdata")#WinterPerTPGWAS
 
+
 #moved results to end of logistics, can load the data 
-View(DH2020Estimates %>% rbind(DH2021Estimates, DHCombined) %>%  filter(type == 'BLUE') %>%
-  ungroup() %>% group_by(year, TP, trait))
-table(DHCombined$TP,DHCombined$PM_date)
+
+table_chr<-WinterPerTPGWAS%>%ungroup()%>%dplyr::select(Chromosome,Position,ordinal)%>%arrange(Chromosome,Position)%>%unique()
+table_chr_min<-table_chr%>%group_by(Chromosome)%>%summarize(min=min(Position),min_ord=min(ordinal))
+table_chr_max<-table_chr%>%group_by(Chromosome)%>%summarize(max=max(Position),max_ord=max(ordinal))
+table_chr<-merge(table_chr_min,table_chr_max,by="Chromosome")
+
+Chr_breaks=table_chr$max_ord-table_chr$min_ord
+ChrTable<-Chr_breaks
+ChrTable
+
+chrLabel = c(1:7, 'UN')
+winterOrdinalBreaks = c(ChrTable[1]/2)
+
+winterChrLines = ChrTable[1]#for the first position
+
+for (i in 2:8){
+ winterOrdinalBreaks[i] = sum(ChrTable[1:i-1])+ChrTable[i]/2
+ winterChrLines[i] = sum(ChrTable[1:i])
+}
 WinterPerTPGWAS
+WinterPerTPGWAS2<-WinterPerTPGWAS%>%group_by(year,trait,TP)%>%mutate(fdr.pvalues=p.adjust(P.value,method="fdr"))%>%ungroup()
+
+
+W
+
+WinterPerTPGWAS2 %>% ggplot(aes(ordinal, log10PVal, color = TP, shape = year))+geom_point()+
+  geom_vline(xintercept = winterChrLines, color = 'black')+
+  geom_vline(xintercept = 4780, color = 'red',linetype='longdash')+
+  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+  geom_vline(xintercept = winterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(0.05/13400) )+
+  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
 
 
 WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
-WinterPerTPGWAS %>% arrange(P.value) %>% view()
-#(P.value<5e-6)
-test$PM_date
-table(WinterPerTPGWAS$TP)
-WinterPerTPGWAS%>%mutate(PM_date=mapvalues(TP,from=c("TP1","TP1.5","TP2","TP2.5","TP3","TP3.5","TP4","TP5"),to=c(5,12,19,33,47,68,96,152)))%>%
-  mutate(Time_Point=paste0(TP,"(",PM_date,")"))%>%
 
-ggplot(aes(ordinal, log10PVal, color = Time_Point, shape = year))+geom_point()+
-  geom_vline(xintercept = WinterChrLines, color = 'black')+
-  geom_vline(xintercept = 4780, color = 'red')+
-  annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
-  geom_vline(xintercept = WinterChrLines)+
-  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
-                     breaks = winterOrdinalBreaks)+
-  ggtitle("Single Time Point GWA")+
-  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5e-5)) +
-  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+#(P.value<5e-6)
+
+
 
 
 #I will worry about the other models for a d
