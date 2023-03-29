@@ -12,8 +12,8 @@ library(readxl)
 library(ggplot2)
 
 library(ASRgwas)
-
-
+library(dplyr)
+library(ggh4x)
 ```
 #data upload
 ```{r}
@@ -106,10 +106,9 @@ WinterGD=WinterGD %>%relocate(taxa,.before = 1)%>%
 
 
 WinterGD
-#summarise(taxa = "Endeavor",Qsd1 = 2)%>%bind_rows(WinterGD, .)%>%mutate(Qsd1=replace(Qsd1,Qsd1==1,2))
-WinterGD$taxa
+
 WinterGD[WinterGD$taxa=="ENDEAVOR",]$Qsd1<-2
-WinterGD[WinterGD$taxa=="CHARLES",]$Qsd1
+#WinterGD[WinterGD$taxa=="CHARLES",]$Qsd1<-2
 
 dim(WinterGM)
 colnames(WinterGD)[!colnames(WinterGD)%in%WinterGM$SNP]
@@ -152,7 +151,7 @@ AllDHBluesPerYear  %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data so
   geom_vline(xintercept = c(12,33,68), color = 'red')+
   labs(title = 'GE and GI BLUEs over time with differeing datasets')+theme_bw()
 
-DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+
+AllDHBluesPerYear %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date, y = value, group = taxa))+geom_line()+
   geom_vline(xintercept = c(12,33,68), color = 'red')
 #filter(Family %nin% c('DH130910'))%>%
 
@@ -162,11 +161,29 @@ DHCombined %>% filter(type == 'BLUE' & trait == 'GI') %>% ggplot(aes(x = PM_date
 
 #png('WinterBarley/WinterDHGerminationPaper/picsPNGforQsd1Effects_paper/BluesByFamilyQsd12020_2021.png', 1400, 800, res =120)
 #2020
-table(AllDHBluesPerYear$PM_date,AllDHBluesPerYear$year)
 
-AllDHBluesPerYear
+substr(AllDHBluesPerYear$taxa,1,3)
+library(stringr)
+str_split_fixed(AllDHBluesPerYear$taxa)
+
+AllDHBluesPerYear<-AllDHBluesPerYear%>% mutate(family = plyr::mapvalues(substr(AllDHBluesPerYear$taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
+                            to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',
+      
+                                                                'Lightning','Flavia/Lightning','SY_Tepee/Lightning','Scala/Lightning','Wintmalt/Lightning',"Check","Check","Check")),
+         taxa = AllDHBluesPerYear$taxa,
+         shapes = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), taxa, 'Lines'),
+         size = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), 3, 2))
+
+
+    
+
+"JHI_Hv50k_2016_2018956"
+WinterGD
+colnames(WinterGD[,c('taxa',"JHI_Hv50k_2016_8507")])
+
+AllDHBluesPerYear%>%
  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
+  plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Nondormant','Dormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
   filter(family %nin% c('Lightning')) %>% filter(year %in% c('2020'))  %>%
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
@@ -175,25 +192,26 @@ AllDHBluesPerYear
   geom_boxplot()+facet_nested(trait~family, scales = 'free')+
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2020 Year"))+
 theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
-
+library(Hmisc)
 #2021
+AllDHBluesPerYear
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('Lightning')) %>% filter(year %in% c('2021'))  %>%
+  plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'Alt','Ref')) %>%
+  filter(family %nin% c('Lightning')) %>% filter(year %in% c('2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
-  ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~Family, scales = 'free')+ 
+  ggplot(aes(x = TP, y = value, fill = JHI_Hv50k_2016_8507))+  
+  geom_boxplot()+facet_nested(trait~family, scales = 'free')+ 
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2021 Year"))+
   theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
 #2020/2021
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  join(AlaT[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>%
-  filter(Family %nin% c('Lightning')) %>% filter(year %in% c('2020/2021'))  %>%
+  plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Nondormant','Dormant')) %>%
+  filter(family %nin% c('Lightning')) %>% filter(year %in% c('2020/2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x = TP, y = value, fill = Qsd1))+  
-  geom_boxplot()+facet_nested(trait~Family, scales = 'free_y')+
+  geom_boxplot()+facet_nested(trait~family, scales = 'free_y')+
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for Combined 2020/2021 Years"))+
   theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
 
@@ -351,10 +369,12 @@ pca_pine <- kinship.pca(K = G_align, ncp = 15)
 pca_pine$eigenvalues
 pca_pine$plot.scree
 pca_pine$plot.pca
+##example two
 
-```
-#example two
-```{r}
+
+
+
+
 library(ASRgenomics)
 head(pheno.salmon)
 head(geno.salmon)
@@ -528,7 +548,7 @@ pre.aprAA$pheno.data$Row
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
  gen = "GID", Kinv = pre.aprAA$Kinv,
 Q =pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
-map.data = pre.aprAA$map.data, pvalue.thr = 9.689937e-07,
+map.data = pre.aprAA$map.data, pvalue.thr = 5e-05,
 bonferroni = FALSE,fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb')
 FDR_thresholds(gwasSTP)[1,1]
 ##
@@ -583,10 +603,11 @@ gd=dim;genoMp=genoM;rand=NULL;fixed=c("Location");resid=NULL;maf_lim=0.05;p.val=
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
  gen = "GID", Kinv = pre.aprAA$Kinv,
 Q =pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
-map.data = pre.aprAA$map.data, pvalue.thr = 5.734206e-05,
+map.data = pre.aprAA$map.data, pvalue.thr = 5e-05,
 bonferroni = FALSE,fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb')
 ##
 GI2020_PM19$FDR_rate
+
 
 hist(gwasSTP$mod$residuals)
 wald.asreml(gwasSTP$mod)
@@ -619,7 +640,9 @@ GI2020_PM47<-gwasSTP
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2020_PM47$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GI2020_PM47$FDR_rate<-FDR_thresholds(gwasSTP)
+```
 ### 96
+```{r}
 simple<-GI_2020%>%filter(PM_date=="96")
 simple$PM_date%>%unique()
 
@@ -671,8 +694,9 @@ GI2020_PM96<-gwasSTP
 GI2020_PM96$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GI2020_PM96$trait
 table(GI_2020$PM_date)
-
-# 2020 GI 152
+```
+### 2020 GI 152
+```{r}
 simple<-GI_2020%>%filter(PM_date=="152")
 simple$PM_date%>%unique()
 
@@ -725,7 +749,7 @@ GI2020_PM152$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GI2020_PM152$trait
 table(GI_2020$PM_date)
 GI2020_PM5
-GI_2020=list(GI2020_PM5,GI2020_PM19,GI2020_PM47,GI2020_PM96,GI2020_PM152)
+GI_2020_GWAS=list(GI2020_PM5,GI2020_PM19,GI2020_PM47,GI2020_PM96,GI2020_PM152)
 ```
 ### Germination Energy 2020 
 ```{r}
@@ -739,8 +763,10 @@ GE_all
 GE_2020<-GE_all%>%filter(Year=="2020")%>%droplevels()
 table(GE_2020$PM_date)
 
+```
 
 ### PM 5
+```{r}
 simple<-GE_2020%>%filter(PM_date=="5")
 simple$PM_date
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=1e-05;bonfer=FALSE
@@ -781,6 +807,7 @@ manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = 1e-05,
 point.size = 1.2)
 #change here
 tr
+paste0(tr,"-",ty,"-PM_",tpm)
 GE2020_PM5<-gwasSTP
 GE2020_PM5$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GE2020_PM5$trait
@@ -1028,14 +1055,14 @@ table(GE_2020$PM_date)
 
 ### GE 2020 list
 
-GE_2020<-list(GE2020_PM5,GE2020_PM19,GE2020_PM47,GE2020_PM96,GE2020_PM152)
+GE_2020_GWAS<-list(GE2020_PM5,GE2020_PM19,GE2020_PM47,GE2020_PM96,GE2020_PM152)
 GE2020
 ```
 #SAVING GE2020 and GI2020 Single Timepoint GWAS
 ```{r}
 GI_2020
-save(GI_2020,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_2020_results.Rdata")
-save(GE_2020,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_2020_results.Rdata")
+save(GI_2020_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_2020_results.Rdata")
+save(GE_2020_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_2020_results.Rdata")
 ```
 # 2021 Single Timepoint
 ## Germination Index
@@ -1052,25 +1079,26 @@ table(GI_2021$PM_date)
 
 ### 2021 GI PM 5
 simple<-GI_2021%>%filter(PM_date=="5")
-simple$PM_date
+simple$Maturity_date
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 
 
 print(paste0("data input: ",df$type%>%unique()))
 
-simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0)
+simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,Maturity_date)
 
 hist(simple$GI)
 simple$ND<-as.character(simple$Check)
-simple$GI_l<-simple$GI^0.5
+simple$GI_l<-simple$GI^1
 hist(simple$GI_l)
+simple
 pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",
-resp = "GI_l", geno.data = gd,map.data = genoMp,
+resp = "GI", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
-
-fixed=c("Location")
+pre.aprAA$pheno.data$Day1Germ
+fixed=NULL
 rand=NULL
 resid="Location"
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
@@ -1095,7 +1123,9 @@ GI2021_PM5<-gwasSTP
 GI2021_PM5$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM5$trait
 table(GI_2021$PM_date)
-########### GI PM 12
+```
+### GI PM 12
+```{R}
 simple<-GI_2021%>%filter(PM_date=="12")
 simple$PM_date
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=1e-05;bonfer=TRUE
@@ -1114,14 +1144,14 @@ maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
 
-fixed=NULL
+fixed="Location"
 random=NULL
-resid=NULL
+resid="Location"
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
  gen = "GID", Kinv = pre.aprAA$Kinv,
 Q = pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
 map.data = pre.aprAA$map.data, pvalue.thr = p.val,
-bonferroni = FALSE,fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb')
+bonferroni = FALSE,fixedf = fixed,residual=resid,randomf = rand,workspace='1Gb')
 
 
 
@@ -1271,8 +1301,10 @@ GI2021_PM33<-gwasSTP
 GI2021_PM33$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM33$trait
 table(GI_2021$PM_date)
-# GI 2021 47
+```
 
+### GI 2021 47
+```{r}
 simple<-GI_2021%>%filter(PM_date=="47")
 simple$PM_date
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=TRUE
@@ -1404,7 +1436,7 @@ gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=TRUE
 #View(simple)
 
 print(paste0("data input: ",GI_2021$type%>%unique()))
-View(simple)
+#View(simple)
 simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,Maturity_date)%>%mutate(GI_lam=GI^1.2)
 
 hist(simple$GI_lam)
