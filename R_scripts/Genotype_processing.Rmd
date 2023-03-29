@@ -192,7 +192,7 @@ wmbGAPIT$A<-wmb_GD$A
 
 
 wmbGAPIT$GD[1:5,1:5]
-library(SNPRelate)
+library(citation("SNPRelate"))
 snpgdsCreateGeno("test4.gds", genmat = as.matrix(round(wmbGAPIT$GD,0)), sample.id=rownames(wmbGAPIT$GD), snp.id = colnames(wmbGAPIT$GD), snp.chromosome = names(wmbGAPIT$GM$Chromosome),
                  snp.position = as.integer(wmbGAPIT$GM$Position), snpfirstdim =FALSE)
 (gdsfile <- snpgdsOpen("test4.gds"))
