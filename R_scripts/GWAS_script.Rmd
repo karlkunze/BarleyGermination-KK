@@ -196,12 +196,12 @@ library(Hmisc)
 #2021
 AllDHBluesPerYear
 AllDHBluesPerYear %>%  filter(type == 'BLUE') %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'Alt','Ref')) %>%
+  plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507',"Qsd1")]) %>% filter(JHI_Hv50k_2016_8507!= 1,Qsd1!=1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'Alt','Ref'),Qsd1=ifelse(JHI_Hv50k_2016_8507==2,'Nondormant','Dormant')) %>%
   filter(family %nin% c('Lightning')) %>% filter(year %in% c('2021'))  %>%
   filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
-  filter(!(trait =='GE' &value>1.05)) %>%
-  ggplot(aes(x = TP, y = value, fill = JHI_Hv50k_2016_8507))+  
-  geom_boxplot()+facet_nested(trait~family, scales = 'free')+ 
+  filter(!(trait =='GE' &value>1.05))%>%
+  ggplot(aes(x = TP, y = value, fill = c(JHI_Hv50k_2016_8507)))+  
+  geom_boxplot()+facet_nested(trait~Qsd1+family, scales = 'free')+ 
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2021 Year"))+
   theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
 #2020/2021
@@ -459,13 +459,15 @@ cv<-data.frame(p_valueFR=p_thershFDR,FDR=fdr_threshold)
 return(cv)
 }
 ```
-#2020 Single Timepoint GWAS
-## Germination Index 2020
+#Single Timepoint GWAS
+
 ```{r}
 GI_all<-df_begin
 
-
+## Germination Index 2020
 GI_all
+```
+```{r}
 ## 2020
 
 GI_2020<-GI_all%>%filter(Year=="2020")%>%droplevels()
@@ -1263,6 +1265,7 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 fixed=c("replication")
 random=NULL
+
 resid=NULL
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
  gen = "GID", Kinv = pre.aprAA$Kinv,
@@ -1432,13 +1435,13 @@ table(GI_2021$PM_date)
 ```{R}
 simple<-GI_2021%>%filter(PM_date=="96")
 simple
-gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=TRUE
+gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 #View(simple)
 
 print(paste0("data input: ",GI_2021$type%>%unique()))
 #View(simple)
 simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,Maturity_date)%>%mutate(GI_lam=GI^1.2)
-
+View(simple)
 hist(simple$GI_lam)
 simple$ND<-as.character(simple$Check)
 length(simple$GI_0)
@@ -1589,8 +1592,8 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 
 random=NULL
-fixed=c("Location:Row","Location:Column","Location")
-resid=NULL
+fixed=NULL
+resid="Location"
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
 Q = pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
@@ -1709,7 +1712,7 @@ gd=dim;genoMp=genoM;maf_lim=0.05;p.val=1e-05;bonfer=FALSE
 
 print(paste0("data input: ",GI_2021$type%>%unique()))
 
-simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,ws_percent,AssayNumber)%>%mutate(GE_tr=abs(GE - mean(GE,na.rm = TRUE)))%>%mutate(groups=as.factor(cut(simple$AssayNumber,5)))
+simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,ws_percent,AssayNumber)%>%mutate(GE_tr=abs(GE - mean(GE,na.rm = TRUE)))%>%mutate(groups=as.factor(cut(simple$AssayNumber,8)))
 hist(simple$GE_bi)
 str(simple$AssayNumber)
 simple$groups
@@ -1724,10 +1727,10 @@ resp = "GE", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
-pre.aprAA $pheno.data$g
-random=NULL
-fixed=NULL
-resid=c("groups")
+pre.aprAA $pheno.data
+rand=NULL
+fixed=c("Qsd1","JHI_Hv50k_2016_308762")
+resid=NULL
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
@@ -1801,14 +1804,14 @@ maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
 
-random=NULL
+rand=NULL
 fixed=c("Location:Row")
 resid=NULL
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
-Q =  NULL, npc = 7, geno.data = pre.aprAA$geno.data,
-map.data = pre.aprAA$map.data, bonferroni = TRUE,
+Q =  NULL, npc = 2, geno.data = pre.aprAA$geno.data,
+map.data = pre.aprAA$map.data, bonferroni = FALSE,
 fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb')
 
 #rm(gwasSTP)
@@ -1906,13 +1909,14 @@ maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
 hist(pre.aprAA $pheno.data$GE)
-random=NULL
+
+rand=NULL
 fixed=NULL
 resid=NULL
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
-Q =  NULL, npc = 7, geno.data = pre.aprAA$geno.data,
+Q =  NULL, npc = 2, geno.data = pre.aprAA$geno.data,
 map.data = pre.aprAA$map.data, bonferroni = TRUE,
 fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb')
 
@@ -1949,10 +1953,10 @@ gwasFIN
 
 #change here
 paste0(tr,"-",ty,"-PM_",tpm)
-GE2021_PM33
-GE2021_PM33<-gwasSTP
-GE2021_PM33$trait<-paste0(tr,"-",ty,"-PM_",tpm)
-GE2021_PM33$trait
+GE2021_PM47
+GE2021_PM47<-gwasSTP
+GE2021_PM47$trait<-paste0(tr,"-",ty,"-PM_",tpm)
+GE2021_PM47$trait
 table(GE_2021$PM_date)
 
 
@@ -1966,7 +1970,7 @@ table(GE_2021$PM_date)
 
 simple<-GE_2021%>%filter(PM_date=="68")
 simple
-gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=TRUE
+gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 #View(simple)
 
 print(paste0("data input: ",GI_2021$type%>%unique()))
@@ -1986,15 +1990,15 @@ maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
 hist(pre.aprAA $pheno.data$GE)
-random=NULL
-fixed=NULL
+rand=NULL
+fixed=c("Location:Row","Row")
 resid=NULL
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
 Q =  pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,
 map.data = pre.aprAA$map.data, bonferroni = FALSE,
-fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb')
+fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb',pvalue.thr =p.val )
 
 #rm(gwasSTP)
 hist(gwasSTP$mod$residuals)
@@ -2051,11 +2055,11 @@ gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 
 print(paste0("data input: ",GI_2021$type%>%unique()))
 
-simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,ws_percent)%>%mutate(GE_tr=abs(GE - mean(GE,na.rm = TRUE)^-5))
+simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0,JHI_Hv50k_2016_308762,Row,Column,spot_bloch,ws_percent,AssayNumber)%>%mutate(GE_tr=abs(GE - mean(GE,na.rm = TRUE)^-5))%>%mutate(groups=as.factor(cut(simple$AssayNumber,8)))
 
 #hist(simple$GE)
 
-hist(simple$GE_tr)
+hist(simple$GE)
 simple$ND<-as.character(simple$Check)
 length(simple$GI_0)
 
@@ -2066,17 +2070,17 @@ resp = "GE", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
-hist(pre.aprAA $pheno.data$GE)
-random=NULL
-fixed=NULL
-resid=NULL
+
+rand=NULL
+fixed=c("groups:Row")
+resid="Location"
 
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
 Q =  pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,
-map.data = pre.aprAA$map.data, bonferroni = TRUE,
-fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb',maxiter.update = 10)
+map.data = pre.aprAA$map.data, bonferroni = FALSE,
+fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb',maxiter.update = 10,pvalue.thr = p.val)
 
 #rm(gwasSTP)
 hist(gwasSTP$mod$residuals)
@@ -2114,7 +2118,7 @@ gwasFIN
 paste0(tr,"-",ty,"-PM_",tpm,"did not covnver")
 GE2021_PM96
 GE2021_PM96<-gwasSTP
-GE2021_PM96$trait<-paste0(tr,"-",ty,"-PM_",tpm,": did_not_coverge")
+GE2021_PM96$trait<-paste0(tr,"-",ty,"-PM_",tpm,": did_not_converge")
 GE2021_PM96$trait
 table(GE_2021$PM_date)
 ```
@@ -2124,7 +2128,7 @@ table(GE_2021$PM_date)
 
 simple<-GE_2021%>%filter(PM_date=="152")
 simple
-gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=TRUE
+gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 #View(simple)
 
 print(paste0("data input: ",GI_2021$type%>%unique()))
@@ -2144,8 +2148,8 @@ maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
 hist(pre.aprAA $pheno.data$GE)
-random=NULL
-fixed=NULL
+rand=NULL
+fixed=c("Row","Location")
 resid=NULL
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
@@ -2198,11 +2202,12 @@ table(GE_2021$PM_date)
 ```{r}
 
 
-GI_2021=list(GI2021_PM5,GI2021_PM19,GI2021_PM33,GI2021_PM47,GI2021_PM68,GI2021_PM96,GI2021_PM152)
-save(GI_2021,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_2021_results.Rdata")
+GI_2021_GWAS=list(GI2021_PM5,GI2021_PM19,GI2021_PM33,GI2021_PM47,GI2021_PM68,GI2021_PM96,GI2021_PM152)
+save(GI_2021_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_2021_results.Rdata")
 
-GE2021=list(GE2021_PM5,GE2021_PM12,GE2021_PM33,GE2021_PM68,GE2021_PM96,GE2021_PM152)
-save(GE_2021,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_2021_results.Rdata")
+GE_2021_GWAS=list(GE2021_PM5,GE2021_PM12,GE2021_PM33,GE2021_PM68,GE2021_PM96,GE2021_PM152)
+save(GE_2021_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_2021_results.Rdata")
+
 ```
 # COMBINED
 
@@ -2217,6 +2222,7 @@ simple<-GI_all%>%filter(PM_date=="5")
 simple
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 #View(simple)
+
 
 print(paste0("data input: ",GI_all$type%>%unique()))
 
@@ -2385,11 +2391,11 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 random=NULL
 fixed=c("Year:replication")
-resid="Year"
+resid=NULL
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
  gen = "GID", Kinv = pre.aprAA$Kinv,
-Q = pre.aprAA$Q, npc = 5, geno.data = pre.aprAA$geno.data,bonferroni = TRUE,
+Q = pre.aprAA$Q, npc = 5, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
 map.data = pre.aprAA$map.data, pvalue.thr =5e-05,
 fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
 
@@ -2457,8 +2463,8 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 
 random=NULL
-fixed="Year"
-resid="Year"
+fixed="Year:replication"
+resid=NULL
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
  gen = "GID", Kinv = pre.aprAA$Kinv,
@@ -2530,8 +2536,8 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 
 random=NULL
-fixed="Year"
-resid="Year"
+fixed=c("Year","Year:replication")
+resid=NULL
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
  gen = "GID", Kinv = pre.aprAA$Kinv,
@@ -2610,8 +2616,8 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 
 random=NULL
-fixed=c("Year","Year:replication")
-resid="Year"
+fixed=c("Year","Year:Location")
+resid=NULL
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
@@ -2624,6 +2630,8 @@ hist(gwasSTP$mod$residuals)
 summary(gwasSTP$mod)$varcomp
 
 wald.asreml(gwasSTP$mod)
+
+
 t3<-simple[,c("GE","Year","PM_date")]
 t3
 tr<-"GE";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
@@ -2655,12 +2663,12 @@ GE_5$trait<-paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 GE_5$trait
 table(GE_all$PM_date)
 ```
-### GE 12
+### GE 19
 ```{r}
 GE_all<-df_begin
 GE_all$Year
 ##GI PM 5
-simple<-GE_all%>%filter(PM_date=="12")
+simple<-GE_all%>%filter(PM_date=="19")
 simple
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 #View(simple)
@@ -2683,7 +2691,8 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 
 random=NULL
-fixed="Year"
+fixed=NULL
+
 resid="Year"
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
@@ -2723,16 +2732,16 @@ gwasFIN
 
 paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
-GE_12<-gwasSTP
-GE_12$trait<-paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
-GE_12$trait
+GE_19<-gwasSTP
+GE_19$trait<-paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_19$trait
 table(GE_all$PM_date)
 ```
 ### GE 47
 ```{r}
 GE_all<-df_begin
 GE_all$Year
-##GI PM 5
+
 simple<-GE_all%>%filter(PM_date=="47")
 simple
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
@@ -2756,7 +2765,7 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 
 random=NULL
-fixed="Year"
+fixed=c("Year","Year:Location")
 resid=NULL
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
@@ -2830,7 +2839,7 @@ random=NULL
 fixed="Year:Location"
 resid="Year"
 table(pre.aprAA$pheno.data$Year)
-gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE_tr",
+gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
 Q = pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
 map.data = pre.aprAA$map.data, pvalue.thr =5e-05,
@@ -2899,8 +2908,8 @@ method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heter
 
 
 random=NULL
-fixed="Year"
-resid="Year"
+fixed=NULL
+resid=NULL
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
@@ -2946,6 +2955,6 @@ table(GE_all$PM_date)
 ```
 #GE COMBINED
 ```{r}
-GE_STP_combined=list(GE_5,GE_12,GE_47,GE_96,GE_152)
+GE_STP_combined=list(GE_5,GE_19,GE_47,GE_96,GE_152)
 save(GE_STP_combined,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")
 ```
