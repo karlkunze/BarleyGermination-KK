@@ -38,8 +38,8 @@ app$ID<-df[[i+1]]$trait
 return(var_test)
 }
 
-str(GE_2020)
-GE_2020[[2]]$gwas.sel
+str(GE_2020_GWAS)
+GE_2020_GWAS[[2]]$gwas.sel
 
 convert<-function(df){
 var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
@@ -59,14 +59,16 @@ return(var_test)
 
 
 
-GE20<-convert(GE_2020)
-GI21<-convert(GI_2021)
-GE20<-convert(GE_2021)
+GE20<-convert(GE_2020_GWAS)
+GI20<-convert(GI_2020_GWAS)
+GE21<-convert(GE_2021_GWAS)
+GI21<-convert(GI_2021_GWAS)
 
 GI_C<-convert(GI_STP_combined)
+table(GE_C$ID)
 GE_C<-convert(GE_STP_combined)
-STP_all<-rbind(GE20,GI20,GI_C,GE_C)%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
-STP_all
+STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C)%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+
 ###
 
 WTP<-STP_all%>%arrange(chrom,pos)%>%rename(Chromosome=chrom,Position=pos)
