@@ -17,6 +17,7 @@ getwd()
 ```
 #add AlaAT
 ```{r}
+getwd()
 #add AlaAT for DH population
 AlaT_markers<-read_excel("data/Genotype_data/WMB_DH_AlaAT_KASP_rawdata.xlsx",sheet = 'Results');AlaT_markers[,c(1:12)];colnames(AlaT_markers)[12]<-"AlaT_Allele"
 AlaT_markers<-AlaT_markers[!is.na(AlaT_markers$AlaT_Allele),];colnames(AlaT_markers)[4]<-"GID"
@@ -34,7 +35,7 @@ AlaT_markers_1<-as.data.frame(t(as.matrix(AlaT_markers)));AlaT_markers_1<-AlaT_m
 #REFERENCE 2
 # AlaT_markers_1<-AlaT_markers_1%>%as.data.frame%>%tibble::add_column("rs#"="Qsd1","alleles"="C/G","chrom"="5H","pos"=442160000,"strand"="+",.before =1)
 #REFERENCE 3
-AlaT_markers_1<-AlaT_markers_1%>%as.data.frame%>%tibble::add_column("rs#"="Qsd1","alleles"="C/G","chrom"="5H","pos"=435636564,"strand"="+",.before =1)
+AlaT_markers_1<-AlaT_markers_1%>%as.data.frame%>%tibble::add_column("rs#"="Qsd1","alleles"="G/C","chrom"="5H","pos"=435636564,"strand"="+",.before =1)
 
 #View(AlaT_markers_1)
 rownames(AlaT_markers_1)<-NULL
@@ -76,7 +77,7 @@ duplicate_names<-colnames(wmb_gt[which(duplicated(colnames(wmb_gt)))]);duplicate
 AlaT_markers_2<-AlaT_markers_1[colnames(AlaT_markers_1)%in%colnames(wmb_gt)]
 
 wmb_gt<-wmb_gt%>%add_row(AlaT_markers_2)%>%arrange(chrom,pos)
-wmb_gt[wmb_gt$`rs#`=="Qsd1",]$alleles<-"C/G"
+wmb_gt[wmb_gt$`rs#`=="Qsd1",]$alleles<-"G/C"
 
 #add morex positions
 
@@ -151,18 +152,10 @@ wmbGAPIT$GD=wmbGAPIT$GD[-1]
 wmbGAPIT$GM
 myGM20[myGM20$SNP=="Qsd1",]
 wmb_num<-wmbGAPIT
-wmb_num$GD[wmb_num$GD$Qsd1==1,]$Qsd1<-c(0,)
-
-correction<-rownames(wmb_num$GD[wmb_num$GD$Qsd1==1,])
-correction
-AlaT_markers$GID
-allele<-AlaT_markers%>%mutate(GID=toupper(GID))%>%filter(GID%in%correction)
-allele_C<-allele%>%filter(Allele_bp=="C")
-allele_G<-allele%>%filter(Allele_bp=="G")
+wmb_num$GD[wmb_num$GD$Qsd1==1,]$Qsd1<-0
 
 
-wmb_num$GD[rownames(wmb_num$GD)%in%allele_C$GID,]$Qsd1<-0
-wmb_num$GD[rownames(wmb_num$GD)%in%allele_G$GID,]$Qsd1<-2
+
 save(wmb_num,file="data/Genotype_data/numeric_raw.Rdata")
 ```
 #EM algorithm
@@ -193,6 +186,7 @@ wmbGAPIT$A<-wmb_GD$A
 
 wmbGAPIT$GD[1:5,1:5]
 library(citation("SNPRelate"))
+library(SNPRelate)
 snpgdsCreateGeno("test4.gds", genmat = as.matrix(round(wmbGAPIT$GD,0)), sample.id=rownames(wmbGAPIT$GD), snp.id = colnames(wmbGAPIT$GD), snp.chromosome = names(wmbGAPIT$GM$Chromosome),
                  snp.position = as.integer(wmbGAPIT$GM$Position), snpfirstdim =FALSE)
 (gdsfile <- snpgdsOpen("test4.gds"))
