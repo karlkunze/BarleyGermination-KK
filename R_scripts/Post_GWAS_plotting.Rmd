@@ -69,31 +69,35 @@ table(GE21$ID)
 GI21<-convert(GI_2021_GWAS)
 table(GI21$ID)
 GI_C<-convert(GI_STP_combined)
+
 table(GI_C$ID)
 GE_C<-convert(GE_STP_combined)
+#accidently labeled GE with GI here, see if I can change this
+
+GE_C$ID<-gsub("GI","GE",GE_C$ID)
+
 library(stringr)
-STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C)%>%mutate(notes="none")
+STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C)%>%mutate(notes="none")%>%group_by(ID)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
+table(STP_all$ID)
+table_chr<-STP_all%>%ungroup()%>%dplyr::select(chrom,pos,ordinal)%>%arrange(chrom,pos)%>%unique()
+
+table_chr_min<-table_chr%>%group_by(chrom)%>%summarize(min=min(pos),min_ord=min(ordinal))
+table_chr_max<-table_chr%>%group_by(chrom)%>%summarize(max=max(pos),max_ord=max(ordinal))
+table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%drop_na(chrom)
+table_chr
 
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$notes<-"GE-2021-PM_96: did_not_converge"
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
-
-
-STP_all[grep("GI_0-2021-PM_152",STP_all$ID),]$ID<-"GI0-2021-PM_152"
-STP_all<-STP_all%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
 table(STP_all$ID)
+
+STP_all$ID<-gsub("GI_0","GI0",STP_all$ID)
+
+STP_all<-STP_all%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+WinterPerTPGWAS2<-STP_all
 ###
 
-WTP<-STP_all%>%dplyr::rename(Chromosome=chrom,Position=pos)
 
-table_chr<-WTP%>%dplyr::select(Chromosome,Position)%>%arrange(Chromosome,Position)%>%unique()%>%mutate(ordinal=1:n())
-table_chr
-library(tidyr)
-names(table_chr)
-table_chr$Chromosome
-table_chr_min<-table_chr%>%group_by(Chromosome)%>%summarise(min=min(Position),min_ord=min(ordinal))
-table_chr_min
-table_chr_max<-table_chr%>%group_by(Chromosome)%>%summarise(max=max(Position),max_ord=max(ordinal))
-table_chr<-merge(table_chr_min,table_chr_max,by="Chromosome")
+
 Chr_breaks=table_chr$max_ord-table_chr$min_ord
 ChrTable<-Chr_breaks
 ChrTable
@@ -102,65 +106,276 @@ chrLabel = c(1:7, 'UN')
 winterOrdinalBreaks = c(ChrTable[1]/2)
 
 winterChrLines = ChrTable[1]#for the first position
-
+wininterChrLines 
 for (i in 2:8){
  winterOrdinalBreaks[i] = sum(ChrTable[1:i-1])+ChrTable[i]/2
  winterChrLines[i] = sum(ChrTable[1:i])
 }
+winterChrLines
+
+table(STP_all$ID)
+winterOrdinalBreaks
 
 WinterPerTPGWAS2<-STP_all%>%ungroup()
-table(WTP$ID)
-
-
-
 library(stringr)
 winterChrLines
 library(ggplot2)
-table(WinterPerTPGWAS2$PM)
-0.05/9238
+table(WinterPerTPGWAS2$ID)
 
-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+
+hist(WinterPerTPGWAS2$log10PVal)
+WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal>3.5&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
+#this GWAS TP is giving weird assocations, so I just removed it
+
+#False discovery rate
+#all P values are FDR adjusted, to find the p-value of the FDR rate, I found the max p value for which the FDR p value is less than 0.05, code is below
+FDR_rate<-max(WinterPerTPGWAS2[WinterPerTPGWAS2$fdr.pvalues_round<0.051,]$p.value,na.rm=TRUE)
+
+#even the line is slightly more conservative than the true FDR rate since the nearest FDR value below 0.05 is 0.03. This is important because while we do not want false positive(QQ plots should be used for this), we also shouldn't be over stringent with Bonferonni cutoff, we elimate
+ALaAT_ord<-unique(WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal)
+ALaAT_ord<-median(ALaAT_ord)
+WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
- # geom_vline(xintercept = 4780, color = 'red',linetype='longdash')+
-  #annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
+ geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='longdash')+
+  annotate(geom= 'text', x = ALaAT_ord, y = 12, label = 'AlaAT1')+
   geom_vline(xintercept = winterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
-  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5.412427e-06) )+theme_bw()+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9238) ,alpha=0.2)+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
-a=-log10(1e-5)
-a
-CH3<-WinterPerTPGWAS2 %>%filter(log10PVal>a)%>%filter(chrom=="3")
-CH3<-colnames(WinterGD)[which(CH3$marker%in%colnames(WinterGD))]
+  
+WinterPerTPGWAS2$fdr.pvalues_round<-round(WinterPerTPGWAS2$fdr.pvalues,3)
+WinterPerTPGWAS2$fdr.pvalues_round
+
+
 
 mar<-WinterPerTPGWAS %>% arrange(P.value) %>% ungroup()%>% select(SNP, Chromosome, Position) %>% unique()
-
+WinterPerTPGWAS2
+WinterPerTPGWAS2%>%filter(fdr.pvalues<0.05)
 
 ```
 
-#sig markers
+#sig markers looping
 ```{r}
-sig_markers(GE_2020)
+sig_all<-function(df){
 sig_markers<-function(df){
-  #df<-GE_2020
-  names(sel)
-  sel<-data.frame(1,1)
-  sel
-  ?data.frame()
-  sel
-sel<-df[[2]]$gwas.sel
+bj<-c(df[[1]]$trait,!is.null(df[[1]]$gwas.sel),1)
+names(bj)<-c("trait","sign_markers","i_value")
+for(i in 2:length(df)){
+  bo<-c(df[[i]]$trait,!is.null(df[[i]]$gwas.sel),i)
+  bj<-rbind(bo,bj)
 
-sel$ID<-df[[1]]$trait
-sel
-#env_n<-length(table(BSR.df$Env))
-for(i in (1:length(df))-1){
-#i<-3
-abb<-df[[i+1]]$gwas.sel
+}
+return(bj)
+}
 
-abb$ID<-df[[i+1]]$trait
-  sel_test<- rbind(sel,abb)
+vb<-sig_markers(df)%>%as.data.frame()%>%mutate(i_value=as.numeric(i_value))%>%filter(sign_markers==TRUE)%>%arrange(i_value)
+
+ro<-df[[vb[1,"i_value"]]]$gwas.sel
+ro$trait<-df[[vb[1,"i_value"]]]$trait
+
+
+for ( i in c(vb[2:nrow(vb),"i_value"])){
+rt<-df[[i]]$gwas.sel
+rt$trait<-df[[i]]$trait
+    ro<-rbind(ro,rt)                   
 }
-return(sel_test)
+return(ro)
 }
+
+GE20_sig<-sig_all(GE_2020_GWAS)
+GE21_sig<-sig_all(GE_2021_GWAS)
+GI21_sig<-sig_all(GI_2021_GWAS)
+GI20_sig<-sig_all(GI_2020_GWAS)
+GI_sig<-sig_all(GI_STP_combined)
+GE_sig<-sig_all(GE_STP_combined)
+sig<-rbind(GE20_sig,GE21_sig,GE_sig,GI20_sig,GI21_sig,GI20_sig)%>%rename(ID=trait)%>%filter(!ID%in%c("GE-2021-PM_96: did_not_converge"))
+sig
+
+
+sig$ID<-gsub("GI_0","GI0",sig$ID)
+
+sig<-sig%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+markers<-sig
+names(markers)
+View(markers)
+markers$expl.var
+marker_table<-markers%>%arrange(chrom,pos,year,PM)%>%reframe(PM_dates = toString(unique(PM)),trait=toString(unique(trait)),year=toString(unique(year)), .by = c(marker,chrom,pos),testmin=round(min(maf),3),testmax=round(max(maf),3),PVEmin=round(min(expl.var),3),PVEmax=round(max(expl.var),3),Pvalue=max(round(p.value,4)))%>%mutate(MAF=ifelse(testmax==testmin,testmax,paste0(round(testmin,3),"-",round(testmax,3))),PVE_r=ifelse(PVEmin==PVEmax,PVEmax,paste0(round(PVEmin,3),"-",round(PVEmax,3))))%>%dplyr::select(!c("testmin","testmax"))%>%drop_na(chrom)
+
+```
+#LD analysis
+```{r}
+library(LDheatmap)
+require(snpStats)
+rgb.palette <- colorRampPalette(rev(c("blue", "orange", "red")), space = "rgb")
+### Chromosome 1
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="1",]$marker)%>%as.matrix()
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="1",]$marker))
+min_marker<-gmt[which(gmt$Position==min(gmt$Position))+1,]
+
+max_marker<-gmt[which(gmt$Position==max(gmt$Position))-1,]
+max_marker$Position-min_marker$Position
+
+gdat<-as(gdt,"SnpMatrix")
+max_marker$SNP
+LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 1",SNP.name = c(min_marker$SNP,max_marker$SNP))
+#they are all in the same LD block, except for the outer two markers
+```
+
+### CH 2
+```{r}
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="2",]$marker)%>%as.matrix()
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="2",]$marker))
+
+min_marker<-gmt[which(gmt$Position==min(gmt$Position)),]
+
+max_marker<-gmt[which(gmt$Position==max(gmt$Position)),]
+max_marker$Position-min_marker$Position
+
+gdat<-as(gdt,"SnpMatrix")
+max_marker$SNP
+LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 2",SNP.name = c(min_marker$SNP,max_marker$SNP),add.map = TRUE,text=TRUE)
+## 3 LD blocks here
+#split up
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="2",]$marker)%>%as.matrix()
+gdt<-gdt[,1:8]
+
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="2",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt))
+gdat<-as(gdt,"SnpMatrix")
+
+LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 2",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+#subset
+CH2_LD_groupA=data.frame(SNP=gmt$SNP[3:7],Ch="2",group="A",Position=gmt$Position[3:7],ld=1)
+
+## Group 2H B
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="2",]$marker)%>%as.matrix()
+
+gdt0<-gdt[,10:23]
+
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="2",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+
+LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 2",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+
+CH2_LD_groupB=data.frame(SNP=WinterGM%>%filter(SNP%in%colnames(gdt0))%>%dplyr::select(SNP),Ch="2",group="B",position=WinterGM%>%filter(SNP%in%colnames(gdt0))%>%dplyr::select(Position),ld=0.93)
+#Group 2H C
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="2",]$marker)%>%as.matrix()
+dim(gdt)
+gdt0<-gdt[,24:30]
+
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="2",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+
+LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 2",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+CH2_LD_groupC_D=data.frame(SNP=WinterGM%>%filter(SNP%in%colnames(gdt0))%>%dplyr::select(SNP),Ch="2",group=c("BC","BC","BC","D","E","E","E"),position=WinterGM%>%filter(SNP%in%colnames(gdt0))%>%dplyr::select(Position),ld=0.93)
+
+CH2_LD_groupC_D
+
+# put groups togehet
+CH2_LD_groupA
+rCH2_LD_groups=rbind(CH2_LD_groupA,CH2_LD_groupB,CH2_LD_groupC_D)
+
+
+```
+### 3H
+```{r}
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="3",]$marker)%>%as.matrix()
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="3",]$marker))
+
+min_marker<-gmt[which(gmt$Position==min(gmt$Position)),]
+
+max_marker<-gmt[which(gmt$Position==max(gmt$Position)),]
+max_marker$Position-min_marker$Position
+
+gdat<-as(gdt,"SnpMatrix")
+max_marker$SNP
+LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 3",SNP.name = c(min_marker$SNP,max_marker$SNP),add.map = TRUE,text=TRUE)
+#looks like Im only going to define one group here
+###
+
+
+
+dim(gdt)
+gdt0<-gdt[,5:18]
+
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="3",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+
+LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 2",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+
+gmt$SNP
+CH3_LD_groupA=data.frame(SNP=gmt$SNP,Ch="3",group="A",Position=gmt$Position,ld=0.94)
+CH3_LD_groupA
+```
+### 4H
+```{r}
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="4",]$marker)%>%as.matrix()
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="4",]$marker))
+
+min_marker<-gmt[which(gmt$Position==min(gmt$Position)),]
+
+max_marker<-gmt[which(gmt$Position==max(gmt$Position)),]
+max_marker$Position-min_marker$Position
+
+gdat<-as(gdt,"SnpMatrix")
+max_marker$SNP
+LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 4",SNP.name = c(min_marker$SNP,max_marker$SNP),add.map = TRUE,text=TRUE)
+#Split up into two
+
+#group A on 4H
+dim(gdt)
+gdt0<-gdt[,1:8]
+
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="4",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+
+LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 4",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+
+gmt$SNP
+CH4_LD_groupA=data.frame(SNP=gmt$SNP,Ch="4",group="A",Position=gmt$Position,ld=0.99)
+CH4_LD_groupA
+### group b
+gdt0<-gdt[,24:32]
+
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="4",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+
+LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 4",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+CH4_LD_groupB=data.frame(SNP=gmt$SNP,Ch="4",group="B",Position=gmt$Position,ld=0.91)
+CHR4_LD=rbind(CH4_LD_groupA,CH4_LD_groupB)
+
+```
+### 5H there's a lot here
+```{r}
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="5",]$marker)%>%as.matrix()
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="5",]$marker))
+
+min_marker<-gmt[which(gmt$Position==min(gmt$Position)),]
+gmt
+max_marker<-gmt[which(gmt$Position==max(gmt$Position)),]
+max_marker$Position-min_marker$Position
+
+gdat<-as(gdt,"SnpMatrix")
+max_marker$SNP
+LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 5",SNP.name = c(min_marker$SNP,max_marker$SNP,"Qsd1"),add.map = FALSE,text=FALSE)
+# I see 5 groups, 4 high LD and we will need to look at Qsd1, should also look at the MKK3 region
+#group A
+gdt0<-gdt[,50:65]
+
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="5",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+
+LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 5",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+
+
+CH4_LD_groupB=data.frame(SNP=gmt$SNP,Ch="4",group="B",Position=gmt$Position,ld=0.91)
+CHR4_LD=rbind(CH4_LD_groupA,CH4_LD_groupB)
+
 
 ```

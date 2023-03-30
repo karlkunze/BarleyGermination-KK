@@ -285,6 +285,7 @@ GETP22020= FoldCVGPv2(DH2020Estimates%>% filter(TP=='TP1', trait == 'GE',type ==
 
 # We are going to use our DH2020Estimates to fit time series. We need to GP the first TP of GE and GI values on the 
 # half of the DHs that were not phenotyped. 
+
 Taxacounts2020 = DH2020Estimates %>% filter(type == 'BLUE', trait == 'GE') %>% ungroup() %>% group_by(taxa) %>% 
   summarise(count = n()) %>% mutate(DataC = ifelse(count == 4,'Pred','Full')) %>%
   filter(taxa%in%rownames(wmb_GD))
@@ -441,6 +442,7 @@ DH2020_GE.logfits
 TaxaToFilter2020GE = DH2020_GE.logfits %>% filter(year == '2020') %>% 
   filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
 TaxaToFilter2020GE $taxa
+library(ggplot2)
 DH2020_GE.logfits %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
 # figure out what to set filters on for the 2021 and combined 2020/2021 data.sets
 
@@ -548,8 +550,6 @@ library(dplyr)
 table(GE.logfits$term)
  
 simple21<-GE.logfits%>%as.data.frame()%>% dplyr::filter(year%in%c('2021'))%>%filter(term=="Centering")
-simple21
-
 simple21<-simple21%>% dplyr::rename(value = estimate,GID=taxa)%>%filter(!GID%in%TaxaToFilter2021GE$taxa)%>%dplyr::left_join(QSD1,by="GID")
 
 simple21
