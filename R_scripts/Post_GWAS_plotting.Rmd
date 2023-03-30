@@ -43,14 +43,14 @@ str(GE_2020_GWAS)
 GE_2020_GWAS[[2]]$gwas.sel
 
 convert<-function(df){
-var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
+var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
 
 var_test$ID<-df[[1]]$trait
 
 #env_n<-length(table(BSR.df$Env))
 for(i in (2:length(df))-1){
 #i<-3
-app<-df[[1+i]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
+app<-df[[1+i]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
 app
 app$ID<-df[[i+1]]$trait
   var_test<- rbind(var_test,app)
@@ -69,21 +69,22 @@ table(GE21$ID)
 GI21<-convert(GI_2021_GWAS)
 table(GI21$ID)
 GI_C<-convert(GI_STP_combined)
-table(GE_C$ID)
+table(GI_C$ID)
 GE_C<-convert(GE_STP_combined)
 library(stringr)
 STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C)%>%mutate(notes="none")
 
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$notes<-"GE-2021-PM_96: did_not_converge"
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
-STP_all[grep("GI_0",STP_all$ID),]$trait<-"GI0"
+
+
 STP_all[grep("GI_0-2021-PM_152",STP_all$ID),]$ID<-"GI0-2021-PM_152"
 STP_all<-STP_all%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
 table(STP_all$ID)
 ###
 
-WTP<-STP_all
-WTP$chrom
+WTP<-STP_all%>%dplyr::rename(Chromosome=chrom,Position=pos)
+
 table_chr<-WTP%>%dplyr::select(Chromosome,Position)%>%arrange(Chromosome,Position)%>%unique()%>%mutate(ordinal=1:n())
 table_chr
 library(tidyr)
