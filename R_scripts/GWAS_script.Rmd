@@ -473,8 +473,10 @@ GI_all
 GI_2020<-GI_all%>%filter(Year=="2020")%>%droplevels()
 table(GI_2020$PM_date)
 
+```
 
 ### PM 5
+```{r}
 simple<-GI_2020%>%filter(PM_date=="5")
 simple$PM_date
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
@@ -2956,5 +2958,6 @@ table(GE_all$PM_date)
 #GE COMBINED
 ```{r}
 GE_STP_combined=list(GE_5,GE_19,GE_47,GE_96,GE_152)
+GE_STP_combined[[4]]$trait
 save(GE_STP_combined,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")
 ```

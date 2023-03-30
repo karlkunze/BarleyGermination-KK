@@ -15,6 +15,7 @@ load("data/Phenotype_Data/Heritability_first_step.Rdata")
 
 load("data/Genotype_data/wmb_file.Rdata")
 load("data/Genotype_data/numeric_raw.Rdata")
+
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 library(dplyr)
 DH2020_2021<-DH2020_2021%>%filter(!Location=="Spring")
@@ -24,8 +25,10 @@ DH2020_2021[DH2020_2021$taxa%in%c("Charles","Endeavor"),]$Check<-"2"
 ```
 #Genotype config
 ```{r}
-genoD_raw<-wmb_num$GD
-genoM_raw<-wmb_num$GM
+
+genoD_raw<-wmbGAPIT$GD
+genoM_raw<-wmbGAPIT$GM
+
 dim(genoD_raw)
 dim(genoM_raw)
 wmb_num$GM[wmb_num$GM$SNP=="Qsd1",]
@@ -46,7 +49,7 @@ genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")
 #marker effects
 
 
-marker_ef<-genoD%>%as.data.frame()%>%select(c("Qsd1","JHI_Hv50k_2016_308762"))%>%tibble::rownames_to_column()%>%dplyr::rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
+marker_ef<-genoD%>%as.data.frame()%>%dplyr::select(c("Qsd1","JHI_Hv50k_2016_308762"))%>%tibble::rownames_to_column()%>%dplyr::rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
 marker_ef
 
 
@@ -83,10 +86,10 @@ random=NULL
 resid="Year"
 gwasMTP <- gwas.asreml(pheno.data = pre.aprM$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprM$Kinv,
-Q =NULL, npc = 5, geno.data = pre.aprM$geno.data,
+Q =pre.aprM$Q, npc = 2, geno.data = pre.aprM$geno.data,
 map.data = pre.aprM$map.data,fixedf=fix,randomf = random,residual = resid,
 bonferroni = TRUE, message = FALSE)
-?gwas.asreml()
+
 
 
 
@@ -106,14 +109,31 @@ marker.plot(pheno.data = pre.aprA$pheno.data, indiv = "GID",
 resp = "GE", geno.data.sel = Msel)
 ls(gwasFIN)
 ```
+#two step modeling
+```{r}
+simple<-df_begin
+gwasMTP$call
+gd=genoD%>%as.matrix()
+gd[1:5,1:5]
+simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0)
+simple$PM_date_n<-as.numeric(as.character(simple$PM_date))
+library(asreml)
 
+v=asreml(fixed = GI ~ 1 + grp(Q) + Year:PM_date + Year, 
+    random = ~+vm(GID, pre.aprM$Kinv$GID), residual = ~dsum(~units | 
+        Year), data = pre.aprM$pheno.data, na.action = list(x = "include", 
+        y = "include"), group = list(Q = c(5, 6)), workspace = "1Gb")
+summary(v)
+predict.asreml(v,classify = "GID")
 
+?predict.asreml()
+single_step<-asreml(fixed=y~E+at(E,5):Planting_dateM,random=~G+E:G,residual = ~dsum(~ar1(Column):ar1(Row) + id(Column):ar1(Row) +ar1(Column):id(Row) | E, levels = list(c(1,6), c(7,8,5),c(2,3,4))))
 
-
+```
 #Time series analysis
 ```{r}
 
-
+dim(genoD_raw)
  wmb_GD=as.data.frame(apply(genoD_raw,1, function(x) { 
   x[which(x == 0)] = -1
   x[which(x == 1)] <- 0
@@ -129,8 +149,19 @@ wmb_GD=t(wmb_GD)
 dim(wmb_GD)
 wmb_GM=genoM_raw
 
+df_sum=df_begin%>%rename(year=Year)%>%group_by(year,TP,GID)%>%summarise(GIm=mean(GI,na.rm=TRUE),GEm=mean(GE,na.rm=TRUE),GI0m=mean(GI_0,na.rm=TRUE))
+table(df_sum$year)
+#tidyr::pivot_longer(cols=c("GI","GE","GI_0"),names_to = "trait")
+
+names(df_begin)
+?pivot_longer()
+```
+```{r}
+                
+df= AllDHBluesPerYear%>%filter(year=="2020")%>% filter(TP=='TP1', trait == 'GE')
 
 df =AllDHBluesPerYear%>%filter(year=="2020")%>% filter(TP=='TP1', trait == 'GE',type =='BLUE');myGD = wmb_GD; numfolds = 10;datasplit = .5;trait_name ='GE'
+df
 FoldCVGPv2 = function(df, myGD=wmb_GD, numfolds=10,datasplit=0.5, trait_name){
 
   myGD=wmb_GD
@@ -245,9 +276,10 @@ myGD=myGD[-1]
 
 library(rrBLUP)
 
+
 DH2020Estimates=AllDHBluesPerYear%>%filter(year=="2020")%>%droplevels()
 table(DH2020Estimates$year)
-
+dim(wmb_GD)
 GETP22020= FoldCVGPv2(DH2020Estimates%>% filter(TP=='TP1', trait == 'GE',type =='BLUE'),myGD = wmb_GD, numfolds = 10,datasplit = .5,trait_name ='GE' )
 
 
@@ -306,9 +338,9 @@ GE_TP1_2020_predValues = (as.matrix(WinterGD %>% filter(taxa %nin% GE_TP1_2020$t
                                                                            'SY_Tepee/DH130910','Wintmalt/DH130910',
                                                                            'DH130910','Flavia','SY_Tepee','Scala','Wintmalt','Scala'))) %>%
   filter(taxa %in% Taxacounts2020$taxa)%>% mutate(year = '2020')
-library(dplyr)
+#library(dplyr)
 GI_TP1_2020 = AllDHBluesPerYear%>%filter(year=="2020") %>% filter(TP == 'TP1', trait == 'GI', type == 'BLUE') 
-library(rrBLUP)
+#library(rrBLUP)
 GI_TP1_2020_model_Train = mixed.solve(y = GI_TP1_2020 %>%filter(taxa%in%WinterGD$taxa)%>% arrange(taxa) %>% ungroup() %>%
                                         dplyr::select(value) %>% as.matrix(),
                                       Z = WinterGD %>% filter(taxa%in%GI_TP1_2020$taxa)%>% arrange(taxa) %>%
@@ -370,7 +402,7 @@ DHCombined.TSF.GE = DHCombined%>% dplyr::ungroup() %>%
 
 
 
-
+library(drc)
 
 GE_logFits_trycatch = function(df, groupvars){
   Out = tryCatch(
@@ -388,6 +420,7 @@ GE_logFits_trycatch = function(df, groupvars){
   return(Out)
 }
 library(dplyr)
+library(tidyr)
 G2020.TSF.GE %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
 #G2020.TSF.GI %>% group_by(taxa) %>% summarise(count = n()) %>% filter(count==4)
 
@@ -420,17 +453,22 @@ library(ggplot2)
  G2021.TSF.GE 
 
 DH2021_GE.logfits = G2021.TSF.GE %>% ungroup()  %>%
-   rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
-       DHCombined.TSF.GE  %>% mutate(PM_date = PM_date-5,year = '2020/2021'))%>%
+   rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date,year = '2021'),
+       DHCombined.TSF.GE  %>% mutate(PM_date = PM_date,year = '2020/2021'))%>%
   arrange(taxa, TP) %>% group_by(year, taxa) %>% group_modify(GE_logFits_trycatch) %>% ungroup() 
+
+DH2021_GE.logfits
 # There are a few that fail of course, but overall all looks really good. 
 DH2021_GE.logfits
-TaxaToFilter2021GE = DH2021_GE.logfits %>% filter(year == '2021') %>% 
+TaxaToFilter2021GE 
+TaxaToFilter2021GE = DH2021_GE.logfits %>% filter(year == '2021')%>% 
   filter(term=='Centering' & estimate> 200 | term=='TimeTo95' & estimate>250)
-DH2021_GE.logfits %>% filter(taxa %nin% TaxaToFilter2021GE$taxa) %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
+TaxaToFilter2021GE
+DH2021_GE.logfits %>% ggplot(aes(x = estimate)) +geom_density()+facet_wrap(vars(term), scales = 'free')
+TaxaToFilter2021GE 
 ###end 2021
 #Combined
-
+DH2021_GE.logfits
 
 DHCombined_GE.logfits = DHCombined.TSF.GE %>% ungroup()  %>%
   # rbind(G2021.TSF.GE %>% mutate(PM_date = PM_date-5,year = '2021'),
@@ -446,9 +484,14 @@ DHCombined_GE.logfits %>% filter(taxa %nin% TaxaToFilterCombinedGE$taxa) %>% ggp
 ```
 #save logistic GE fits
 ```{r}
-
+DH2021_GE.logfits$year<-"2021"
+DHCombined_GE.logfits
+dim(DH2021_GE.logfits)
+DH2021_GE.logfits=DH2021_GE.logfits%>%filter(year=="2021")
 GE.logfits=rbind(DH2021_GE.logfits,DH2020_GE.logfits,DHCombined_GE.logfits)
 save(GE.logfits,file="data/Phenotype_Data/log_fits/GE_logfits.Rdata")
+TaxaToFilter2021GE
+TaxaToFilter2020GE
 TaxaToFilterGE=list(TaxaToFilter2020GE,TaxaToFilter2021GE,TaxaToFilterCombinedGE)
 save(TaxaToFilterGE,file="data/Phenotype_Data/log_fits/GE_log_taxa_to_filter.Rdata")
 ```
@@ -469,7 +512,7 @@ DF_OperationsV3 = function(df){
 GWA_MLMM_fortidyR = function(df, groupvars) {
 
 
-   GWAS = GAPIT(Y = df %>% dplyr::select(taxa, value) %>% as.data.frame(),GD=WinterGD_g%>%as.data.frame(), GM=wmb_GM%>%as.data.frame(),PCA.total = 2,
+   GWAS = GAPIT(Y = df %>% dplyr::select(taxa, value) %>% as.data.frame(),GD=WinterGD%>%as.data.frame(), GM=wmb_GM%>%as.data.frame(),PCA.total = 2,
                Geno.View.output=F, model="MLMM", Major.allele.zero = F, file.output=F,SNP.MAF = 0.05)
     GWAS$GWAS
     print(groupvars)
@@ -491,43 +534,49 @@ load("data/GWA_results/DH2020.GElogfitGWA_mlmm.Rdata")
 ### ASRmodel GE log
 ```{r}
 library(dplyr)
-GE.logfits
+table(GE.logfits$year)
 
 GID=rownames(genoD)
-gd=as.matrix(genoD)
+#gd=as.matrix(genoD)
+#table(GE.logfits$term)
+#TaxaToFilterCombinedGE
+
+QSD1<-data.frame(GID,QSD1=as.factor(genoD[,"Qsd1"]))
+table(GE.logfits$term,GE.logfits$year)
+GE.logfits$year
+library(dplyr)
 table(GE.logfits$term)
-TaxaToFilterCombinedGE
+ 
+simple21<-GE.logfits%>%as.data.frame()%>% dplyr::filter(year%in%c('2021'))%>%filter(term=="Centering")
+simple21
 
-QSD1<-data.frame(GID,QSD1=as.factor(genoD$Qsd1))
-simple<-GE.logfits%>%filter(year=="2020/2021") %>% filter(!(year=='2020/2021' & taxa %in% TaxaToFilterGE[3]$taxa)) %>%
- dplyr::rename(value = estimate,GID=taxa)%>%filter(term=="Lower")%>%left_join(QSD1,by="GID")
-table(simple$year)
-gd<-gd[which(rownames(gd)%in%c(simple$GID)),]
+simple21<-simple21%>% dplyr::rename(value = estimate,GID=taxa)%>%filter(!GID%in%TaxaToFilter2021GE$taxa)%>%dplyr::left_join(QSD1,by="GID")
 
+simple21
 genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
-
-
-table(simple$term)
-
-
-
-genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
-simple$GID
-pre.aprM <- pre.gwas(pheno.data=simple, indiv = "GID",
-resp = "value", geno.data = gd,map.data = genoMp,
+names(simple21)
+rownames(gd)
+pre.aprM <- pre.gwas(pheno.data=simple21, indiv = "GID",
+resp = "value", geno.data =gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
-method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
-fix="QSD1"
+method = "VanRaden", rename.markers = TRUE, impute = TRUE, Q.method = "K",heterozygosity = 0.20)
+detach("package:drc",unload=TRUE)
+fix=NULL
 random=NULL
 resid=NULL
-gwasMTP <- gwas.asreml(pheno.data = pre.aprM$pheno.data,resp = "value",
+hist(pre.aprM$pheno.data$value)
+
+
+#(.packages())
+gwasMTP_log <- gwas.asreml(pheno.data = pre.aprM$pheno.data,resp = "value",
  gen = "GID", Kinv = pre.aprM$Kinv,
-Q =NULL, npc = 5, geno.data = pre.aprM$geno.data,fixedf = fix,
-map.data = pre.aprM$map.data,bonferroni = TRUE, message = TRUE)
+Q =pre.aprM$Q, npc = 2, geno.data = pre.aprM$geno.data,fixedf = fix,randomf = random,residual = resid,
+map.data = pre.aprM$map.data,bonferroni = FALSE,pvalue.thr = 1e-05, message = TRUE)
 
 
-qq.plot(gwas.table = gwasMTP$gwas.all)
-manhattan.plot(gwas.table = gwasMTP$gwas.all, pvalue.thr = 5e-05,
+qq.plot(gwas.table = gwasMTP_log$gwas.all)
+
+manhattan.plot(gwas.table = gwasMTP_log$gwas.all, pvalue.thr = 5e-05,
 point.size = 1.2)
 
 gwasMTP$gwas.sel
@@ -564,10 +613,15 @@ DH2020.GElogfitGWA.mlmm %>%ggplot(aes(ordinal, log10PVal, color = term))+geom_po
 
 #lets Plot the fitted 
 library(plyr)
+library(Hmisc)
 t = seq(1,150, by = 3)
 DH2020_GE.logestimates =  DH2020_GE.logfits  %>% dplyr::filter(term %in% c('Centering','Lower','Rate')) %>% dplyr::group_by(year,taxa) %>% 
   dplyr::group_modify(~{data.frame(time = t,GE_est = .x$estimate[2]+(1-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[3])))))})
-DH2020_GE.logestimates %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = time, y = GE_est, group = taxa)) +geom_line()
+DH2020_GE.logestimates$color<-"black"
+DH2020_GE.logestimates[DH2020_GE.logestimates$time<20&DH2020_GE.logestimates$GE_est<0.50,]$color<-"A"
+DH2020_GE.logestimates[DH2020_GE.logestimates$time>30&DH2020_GE.logestimates$GE_est>0.5,]$color<-"A"
+DH2020_GE.logestimates
+DH2020_GE.logestimates %>% filter(taxa %nin% TaxaToFilter2020GE$taxa) %>% ggplot(aes(x = time, y = GE_est,color=color, group = taxa)) +geom_line()
 
 #2021
 # DH2021.GElogfitGWA.mlmm = DH2021_GE.logfits %>% filter(!(year=='2021' & taxa %in% TaxaToFilter2021GE$taxa)) %>%
@@ -669,7 +723,7 @@ G20202021.TSF.GI = DHCombined%>% ungroup()  %>%
 library(tibble)
 library(broom)
 library(drc)
-
+##
 GI_logfits_trycatch = function(df, groupvars) {
   Out = tryCatch(
     {supressWarnings(broom::tidy(drm(value~PM_date, data = df,
@@ -682,17 +736,35 @@ GI_logfits_trycatch = function(df, groupvars) {
     }
   )
 }
+##
+###change
+GI_logfits_trycatch = function(df, groupvars) {
+  Out = tryCatch(
+    {broom::tidy(drm(value~PM_date, data = df,
+                                      fct =drc::LL.4(names = c('Rate','Lower','Upper','Centering'))))%>%
+        add_row(.,term = 'TimeTo5.0',curve ='Derived',
+                estimate = ifelse(.[2,3] > 5.0, 0,as.double((((.[3,3]-.[2,3])/(5.0-.[2,3])-1)^(1/.[1,3]))*.[4,3])))
+    }, error = function(e){
+      data.frame()
+    }
+  )
+}
+
+
+###change
 #2020 GI log fits
 
 
 
 library(dplyr)
+library(drc)
+ G2020.TSF.GI
 DH2020_GIlogfits = G2020.TSF.GI %>% mutate(PM_date = PM_date-5, year = '2020') %>%
 
   arrange(taxa, TP) %>% group_by(year, taxa)%>%group_modify(GI_logfits_trycatch) %>% ungroup() 
-
-taxaToFilter2020GI = DH2020_GIlogfits  %>% filter(year=='2020') %>% 
-  dplyr::filter(term == 'Centering' & estimate > 177 |
+DH2020_GIlogfits
+taxaToFilter2020GI = DH2020_GIlogfits  %>% dplyr::filter(year=='2020') %>% 
+dplyr::filter(term == 'Centering' & estimate > 177 |
            term == 'Lower' & estimate < 0 |
            term == 'TimeTo5.0' & estimate > 250)
 
@@ -715,16 +787,20 @@ load("data/GWA_results/DH2020_GIlogfitGWA_mlmm.Rdata")#DH2020_GIlogfitGWA.mlmm
 ```
 
 ```{r}
-DH2020_GIlogfitGWA.asreml = DH2020_GIlogfits  %>%
+library(dplyr)
+DH2020_GIlogfit = DH2020_GIlogfits  %>%
   filter(!(year == '2020' & taxa %in% taxaToFilter2020GI$taxa)) %>%
   # Add filtering steps here
-  group_by(year,term) %>%  rename(value = estimate) 
+  group_by(year,term) %>%  dplyr::rename(value = estimate) 
 
-
+DH2020_GIlogfit
 ```
 ```{r}
+DH2020_GIlogfits$estimate
+DHGI2020.logestimates = DH2020_GIlogfits  %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa)
+DH2020_GI.logfits
 
-DHGI2020.logestimates = DH2020_GIlogfits  %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
+DHGI2020.logestimates%>%mutate(estimate=ifelse(estimate=="NaN",0,estimate))%>%
   group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
 
 #DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
@@ -825,9 +901,10 @@ taxaToFilter20202021_GI = DH20202021_GIlogfits  %>% filter(year=='2020/2021') %>
            term == 'TimeTo5.0' & estimate > 250)
 
 GI.logfits=rbind(DH2021_GIlogfits,DH2020_GIlogfits,DH20202021_GIlogfits)
+taxaToFilter2020GI
 GI.logfits$trait<-"GI"
 save(GI.logfits,file="data/Phenotype_Data/log_fits/GI_logfits.Rdata")
-TaxaToFilterGI=list(TaxaToFilter2020_GI,TaxaToFilter2021_GI,taxaToFilter20202021_GI)
+TaxaToFilterGI=list(taxaToFilter2020GI,taxaToFilter2021GI,taxaToFilter20202021_GI)
 save(TaxaToFilterGE,file="data/Phenotype_Data/log_fits/GE_log_taxa_to_filter.Rdata")
 
 
@@ -846,7 +923,7 @@ save(TaxaToFilterGE,file="data/Phenotype_Data/log_fits/GE_log_taxa_to_filter.Rda
 # save(DH20202021_GIlogfitGWA.mlmm,file="data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")
 
 load("data/GWA_results/DH20202021_GIlogfitGWA_mlmm.Rdata")#DH20202021_GIlogfitGWA.mlmm
-DHGI20202021.logestimates = DHGI202021logfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
+DHGI20202021.logestimates = DH20202021_GIlogfits %>% filter(term %in% c('Centering','Rate','Upper','Lower')) %>% group_by(year, taxa) %>% 
   group_modify(~{data.frame(time = t,GI_est= .x$estimate[2]+(.x$estimate[3]-.x$estimate[2])/(1+exp(.x$estimate[1]*(log(t)-log(.x$estimate[4])))))})
 
 #DHGI.logestimates %>% filter(taxa %nin% taxaToFilter2020GI$taxa) %>% ggplot(aes(x = time, y = GI_est, group = taxa)) +geom_line()
@@ -881,11 +958,14 @@ DH20202021_GIlogfitGWA.mlmm %>% group_by(year, term)%>%ggplot(aes(ordinal, log10
 ```
 # FPCA on the 2020 data. ######
 ```{R}
-source('SpringBarley/Analysis/All_taxa/FPCA/Functions/FPCA_function.R')
-source('SpringBarley/Analysis/All_taxa/FPCA/Functions/pca_fun.R')
-source('SpringBarley/Analysis/All_taxa/FPCA/Functions/pca_score.R')
-source('SpringBarley/Analysis/All_taxa/FPCA/Functions/tuning_nointer.R')
-
+getwd()
+source('~/git/TimeSeriesGermination/SpringBarley/Analysis/All_taxa/FPCA/Functions/FPCA_function.R')
+source('~/git/TimeSeriesGermination/SpringBarley/Analysis/All_taxa/FPCA/Functions/pca_fun.R')
+source('~/git/TimeSeriesGermination/SpringBarley/Analysis/All_taxa/FPCA/Functions/pca_score.R')
+source('~/git/TimeSeriesGermination/SpringBarley/Analysis/All_taxa/FPCA/Functions/tuning_nointer.R')
+library(drc)
+library(fda)
+library(magic)
 GI2020FPCA = G2020.TSF.GI %>% group_by(taxa) %>% dplyr::add_tally() %>% filter(n ==5) %>% ungroup() %>% 
   transmute(taxa = taxa, time = PM_date, GI = value) %>%
   FPCA_function(dfTaxaTraitTime = .,
@@ -907,16 +987,16 @@ GEGI2020FPCATimeTo = data.frame(time = GI2020FPCA$EstimatedAndEmpiricalMu$time[-
   group_by(taxa) %>% group_modify(~{.x %>% filter(value>5.0) %>% slice_head(n=1)}) %>% ungroup() %>% mutate(Param = 'fTimeTo5.0', year= '2020', trait = 'GI') %>%
   rbind(data.frame(time = GE2020FPCA$EstimatedAndEmpiricalMu$time[-c(1:5)]) %>% cbind(GE2020FPCA$RecoveredCurves)  %>% pivot_longer(cols = !time, names_to='taxa') %>%
           group_by(taxa) %>% group_modify(~{.x %>% filter(value>.95) %>% slice_head(n=1)}) %>% ungroup() %>% mutate(Param = 'fTimeTo95', year= '2020', trait= 'GE')) %>%
-  select(taxa, trait, year, Param, time) %>% rename(value=time)
+  dplyr::select(taxa, trait, year, Param, time) %>% dplyr::rename(value=time)
 
 #GWA using the FPCs without interpolation and penalized spline fits to the data
-GWA2020.FPCA.GEGI = rbind(GI2020FPCA$PCs_withTaxa %>% select(taxa, FPC1,FPC2) %>% mutate(trait='GI', year= '2020') %>%
+GWA2020.FPCA.GEGI = rbind(GI2020FPCA$PCs_withTaxa %>% dplyr::select(taxa, FPC1,FPC2) %>% mutate(trait='GI', year= '2020') %>%
                             pivot_longer(cols = c(FPC1,FPC2), values_to = 'value',names_to='Param'),
-                          GE2020FPCA$PCs_withTaxa %>% select(taxa, FPC1,FPC2) %>% mutate(trait='GE', year= '2020') %>%
+                          GE2020FPCA$PCs_withTaxa %>% dplyr::select(taxa, FPC1,FPC2) %>% mutate(trait='GE', year= '2020') %>%
                             pivot_longer(cols = c(FPC1,FPC2), values_to = 'value',names_to='Param')) %>% rbind(GEGI2020FPCATimeTo) %>%
   group_by(year,trait,Param) %>%
   group_modify(GWA_MLMM_fortidyR)
-
+library(GAPIT3)
 GWA2020.FPCA.GEGI %>% slice_head(n=5) %>%view()
 
 
@@ -997,24 +1077,24 @@ DH2020SplineFits%>%ungroup() %>%
 
 # FPCA on the b-spline fit stuff ######
 # each of these take about 25 minutes to run so be careful. I am going to comment them out to prevent accedental running
-# SplineFitFPCA.GE.2020 = DH2020SplineFits %>% ungroup() %>% group_by(taxa) %>% filter(trait=='GE') %>% add_tally() %>% filter(n==59) %>%
-#   ungroup() %>% transmute(taxa = taxa, time = time, GE=value) %>%
-#   FPCA_function(dfTaxaTraitTime = .,
-#                 Trait = 'GE', #Trait name must be entered as a character ie Trait = 'GE3'
-#                 NumKnots = 2, # NumKnots is the number of interior knots to be fitted
-#                 order = 3, # Order is the dergree of the polynomial to be fit to the data.
-#                 NumObsevationsPerLine = 59)
-# SplineFitFPCA.GE.2020$phi.fun.plot
-# 
-# start_time = Sys.time()
-# SplineFitFPCA.GI.2020 = DH2020SplineFits %>% ungroup() %>% group_by(taxa) %>% filter(trait=='GI') %>% add_tally() %>% filter(n==59) %>%
-#   ungroup() %>% transmute(taxa = taxa, time = time, GI=value) %>%
-#   FPCA_function(dfTaxaTraitTime = .,
-#                 Trait = 'GI', #Trait name must be entered as a character ie Trait = 'GE3'
-#                 NumKnots = 2, # NumKnots is the number of interior knots to be fitted
-#                 order = 3, # Order is the dergree of the polynomial to be fit to the data.
-#                 NumObsevationsPerLine = 59)
-# stoptime=Sys.time()
+SplineFitFPCA.GE.2020 = DH2020SplineFits %>% ungroup() %>% group_by(taxa) %>% filter(trait=='GE') %>% add_tally() %>% filter(n==59) %>%
+  ungroup() %>% transmute(taxa = taxa, time = time, GE=value) %>%
+  FPCA_function(dfTaxaTraitTime = .,
+                Trait = 'GE', #Trait name must be entered as a character ie Trait = 'GE3'
+                NumKnots = 2, # NumKnots is the number of interior knots to be fitted
+                order = 3, # Order is the dergree of the polynomial to be fit to the data.
+                NumObsevationsPerLine = 59)
+SplineFitFPCA.GE.2020$phi.fun.plot
+
+start_time = Sys.time()
+SplineFitFPCA.GI.2020 = DH2020SplineFits %>% ungroup() %>% group_by(taxa) %>% filter(trait=='GI') %>% add_tally() %>% filter(n==59) %>%
+  ungroup() %>% transmute(taxa = taxa, time = time, GI=value) %>%
+  FPCA_function(dfTaxaTraitTime = .,
+                Trait = 'GI', #Trait name must be entered as a character ie Trait = 'GE3'
+                NumKnots = 2, # NumKnots is the number of interior knots to be fitted
+                order = 3, # Order is the dergree of the polynomial to be fit to the data.
+                NumObsevationsPerLine = 59)
+stoptime=Sys.time()
 print(stoptime-start_time)
 SplineFitFPCA.GE.2020$v1
 SplineFitFPCA.GI.2020$v1

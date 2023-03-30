@@ -10,6 +10,7 @@ editor_options:
 ```{r}
 library(dplyr)
 library(asreml)
+
 #2020
 load("data/Genotype_data/ASRgwas_results/Single_TP_GI_2020_results.Rdata")
 load("data/Genotype_data/ASRgwas_results/Single_TP_GE_2020_results.Rdata")
@@ -47,7 +48,7 @@ var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fd
 var_test$ID<-df[[1]]$trait
 
 #env_n<-length(table(BSR.df$Env))
-for(i in (1:length(df))-1){
+for(i in (2:length(df))-1){
 #i<-3
 app<-df[[1+i]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
 app
@@ -60,20 +61,30 @@ return(var_test)
 
 
 GE20<-convert(GE_2020_GWAS)
+table(GE20$ID)
 GI20<-convert(GI_2020_GWAS)
+table(GI20$ID)
 GE21<-convert(GE_2021_GWAS)
+table(GE21$ID)
 GI21<-convert(GI_2021_GWAS)
-
+table(GI21$ID)
 GI_C<-convert(GI_STP_combined)
 table(GE_C$ID)
 GE_C<-convert(GE_STP_combined)
-STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C)%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+library(stringr)
+STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C)%>%mutate(notes="none")
 
+STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$notes<-"GE-2021-PM_96: did_not_converge"
+STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
+STP_all[grep("GI_0",STP_all$ID),]$trait<-"GI0"
+STP_all[grep("GI_0-2021-PM_152",STP_all$ID),]$ID<-"GI0-2021-PM_152"
+STP_all<-STP_all%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+table(STP_all$ID)
 ###
 
-WTP<-STP_all%>%arrange(chrom,pos)%>%rename(Chromosome=chrom,Position=pos)
-WTP$ID
-table_chr<-WTP%>%filter(ID=="GI-2020/2021-PM_96")%>%ungroup()%>%dplyr::select(Chromosome,Position,ordinal)%>%arrange(Chromosome,Position)%>%unique()
+WTP<-STP_all
+WTP$chrom
+table_chr<-WTP%>%dplyr::select(Chromosome,Position)%>%arrange(Chromosome,Position)%>%unique()%>%mutate(ordinal=1:n())
 table_chr
 library(tidyr)
 names(table_chr)
@@ -103,15 +114,18 @@ table(WTP$ID)
 
 library(stringr)
 winterChrLines
+library(ggplot2)
 table(WinterPerTPGWAS2$PM)
-WinterPerTPGWAS2 %>%ungroup()%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+
+0.05/9238
+
+WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  # geom_vline(xintercept = 4780, color = 'red',linetype='longdash')+
   #annotate(geom= 'text', x = 4780, y = 30, label = 'AlaAT1')+
   geom_vline(xintercept = winterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
-  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(1e-5) )+theme_bw()+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(5.412427e-06) )+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
 a=-log10(1e-5)
 a
