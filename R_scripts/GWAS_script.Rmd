@@ -17,11 +17,14 @@ library(ggh4x)
 ```
 #data upload
 ```{r}
+
+
 load("data/Phenotype_Data/AllDHBluesPerYear_first_step.Rdata")
 load("data/Phenotype_Data/Heritability_first_step.Rdata")
 
 load("data/Genotype_data/wmb_file.Rdata")
 load("data/Genotype_data/numeric_raw.Rdata")
+WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 DH2020_2021<-DH2020_2021%>%filter(!Location=="Spring")
 

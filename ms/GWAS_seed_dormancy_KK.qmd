@@ -162,6 +162,92 @@ model_2021_GI<-data.frame(year=rep("2021",8),trait=c(rep("GI",6),rep("GI_base",2
 
 
 ```
+#manhattan
+```{r}
+load("~/git/BarleyGermination-KK/data/GWA_results/STP_all.Rdata")
+
+markerpart<-STP_all[STP_all$ID%in%c("GE-2020-PM_152","GE-2020-PM_19","GE-2020-PM_47","GE-2020-PM_5","GE-2020-PM_96"),]$marker%>%unique()
+markerall<-STP_all[!STP_all$ID%in%c("GE-2020-PM_152","GE-2020-PM_19","GE-2020-PM_47","GE-2020-PM_5","GE-2020-PM_96"),]$marker%>%unique()
+STP_smal<-STP_all[STP_all$ID%in%c("GE-2020-PM_152","GE-2020-PM_19","GE-2020-PM_47","GE-2020-PM_5","GE-2020-PM_96"),]
+mb<-STP_smal$marker%>%unique()
+
+STP_smal[!STP_smal$marker%in%(markerall),]
+which(markerall==mb)
+ord_list<-STP_all[STP_all$ID=="GI-2020/2021-PM_19",c("marker","ordinal")]%>%unique()
+table_chr<-STP_all%>%ungroup()%>%filter()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
+table_chr
+table_chr_min<-table_chr%>%group_by(chrom)%>%summarize(min=min(pos),min_ord=min(ordinal))
+table_chr_max<-table_chr%>%group_by(chrom)%>%summarize(max=max(pos),max_ord=max(ordinal))
+table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
+table_chr
+
+STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$notes<-"GE-2021-PM_96: did_not_converge"
+STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
+table(STP_all$ID)
+
+STP_all$ID<-gsub("GI_0","GI0",STP_all$ID)
+
+STP_all<-STP_all%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+WinterPerTPGWAS2<-STP_all
+###
+
+
+
+Chr_breaks=table_chr$max_ord-table_chr$min_ord
+ChrTable<-Chr_breaks
+ChrTable
+
+chrLabel = c(1:7, 'UN')
+winterOrdinalBreaks = c(ChrTable[1]/2)
+
+winterChrLines = ChrTable[1]#for the first position
+
+for (i in 2:8){
+ winterOrdinalBreaks[i] = sum(ChrTable[1:i-1])+ChrTable[i]/2
+ winterChrLines[i] = sum(ChrTable[1:i])
+}
+winterChrLines
+
+table(STP_all$ID)
+winterOrdinalBreaks
+
+
+
+WinterPerTPGWAS2<-STP_all%>%ungroup()%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))
+library(stringr)
+winterChrLines
+library(ggplot2)
+WinterPerTPGWAS
+
+hist(WinterPerTPGWAS2$log10PVal)
+WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal>3.5&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
+#this GWAS TP is giving weird assocations, so I just removed it
+
+#False discovery rate
+#all P values are FDR adjusted, to find the p-value of the FDR rate, I found the max p value for which the FDR p value is less than 0.05, code is below
+FDR_rate<-max(WinterPerTPGWAS2[WinterPerTPGWAS2$fdr.pvalues<0.051,]$p.value,na.rm=TRUE)
+
+#even the line is slightly more conservative than the true FDR rate since the nearest FDR value below 0.05 is 0.03. This is important because while we do not want false positive(QQ plots should be used for this), we also shouldn't be over stringent with Bonferonni cutoff, we elimate
+ALaAT_ord<-unique(WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal)
+WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal
+ALaAT_ord
+ALaAT_ord<-ALaAT_ord[4]
+max(WinterPerTPGWAS2$ordinal,na.rm = TRUE)
+
+WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
+  geom_vline(xintercept = winterChrLines, color = 'black')+
+ geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='longdash')+
+  annotate(geom= 'text', x = ALaAT_ord, y = 12, label = 'AlaAT1')+
+  geom_vline(xintercept = winterChrLines)+
+  scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
+                     breaks = winterOrdinalBreaks)+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
+ facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+
+
+print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,5)))
+print(paste("Bonferroni cutoff at 0.05 :",round(0.05/9658,5)))
+```
 
 Genome wide association results
 
@@ -179,9 +265,7 @@ The observed dormancy for most non dormant haplotypes at earlier post physiologi
 
 # Discussion
 
-Important point- cooler temperatures during grainfill for winter barley could be a pereptual inducment of longer dormancy
-JHI_Hv50k_2016_454168   7(24882997) cm(24.21875)    1.23526E-05 0.233       0.12072     Alpha amylase inhibitor protein,,,, HORVU.MOREX.r2.7HG0538600   7H location(24968345    24968677)
-
+Important point- cooler temperatures during grainfill for winter barley could be a pereptual inducment of longer dormancy JHI_Hv50k_2016_454168 7(24882997) cm(24.21875) 1.23526E-05 0.233 0.12072 Alpha amylase inhibitor protein,,,, HORVU.MOREX.r2.7HG0538600 7H location(24968345 24968677)
 
 # Conclusion
 
