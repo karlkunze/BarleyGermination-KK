@@ -106,7 +106,7 @@ Where $n$ corresponds to the the number of germinated kernels at 24, 48, 72, 96 
 
 Germination Index was calculated as a germination rate following: @francakova2012
 
-$GI_{base_{3 day}}=\frac{10 *(n_{24}+n_{48} +n_{72})} {1n_{24}+2n_{48}+3n_{72}}$
+\$$GI_{base_{3 day}}=\frac{10 *(n_{24}+n_{48} +n_{72})} {1n_{24}+2n_{48}+3n_{72}}$\$
 
 $GI_{base_{5 day}}=\frac{10 *(n_{24}+n_{48} +n_{72}+n_{96}+n_{120})} {1n_{24}+2n_{48}+3n_{72}+4n_{96}+5n_{120}}$
 
@@ -116,7 +116,22 @@ GE and GI were measured at five time points for 2020: 5 (TP1), 19 (TP2), 47 (TP3
 
 In addition to measuring germination, a 120 line malting quality subset previously mentioned were taken out freezing concurrently with the dormancy samples
 
+
 Malting quality samples were sent to the USDA Cereal Crops and research unit(CCRU) in Madison, WI. The small grain samples were frozen upon arrival. Each line was malted in single replicates at two different time points corresponding 67 days post PM and 152 post PM. Due to limits on how many tea ball samples could be malted at one time, the samples were malted in batches every week for two months. Malting procedure and analysis were performed in the methods described by @schmittMaltingExtremelySmall2011
+# summary statistics
+```{r}
+load("ms/Rdata/genetic_variance_h2.Rdata")
+
+phenoS1<-flextable(sum_table,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
+phenoS1
+
+phenoS1<-phenoS1%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
+bold(bold = TRUE, part = "header")%>%set_caption(caption=as_paragraph(as_chunk("Summary statistics single and combined time point analysis ",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")
+phenoS1
+
+
+
+```
 
 ## Genotyping
 
@@ -126,7 +141,58 @@ The entire double haploid population was genotyped with the 50K Barley SNP array
 
 Given the advancement in computational efficiency, per time point GWAS was analzyed using a single step approach. The package @ASRgwas was used to develop the K and Q matricies, filter out missing information, and conduct single step GWAS using the raw data as input. ASRgwas model flexibility allowed for the integration of fixed, random, covariate and residual factor integration. The base model for GWAS per timepoint was as follows:
 
-$$y_{} \sim 1\mu + X\beta+Z_{1}u + Q\delta + \epsilon$$ Where $y$ is the response variable for GI, $GI_{base}$ or GE, $\mu$ is the overall mean, $\beta$ is a vector of fixed effects(i.e. Location, replication), $u$ is the vector of addivitive genotype effects assoicated with the genomic additive relationship matrix with $u \sim N(0,G_{A}\sigma^2_{A})$, $Q$ is a matrix of vectors describing population structure and $\delta$ corresponds to the number of vectors(PCAs) of the Q matrix to be included to account for population structure and $\epsilon ~N(0,E\sigma^2)$ where $E$ is either a incidence matrix corresponding independently and identically distributed residuals or a heteroscadistic error structure. A summary of model terms included for each timepoint is presented in table 2 both for within years and across years.
+$$y_{} \sim 1\mu + X\beta+Z_{1}u + Q\delta + \epsilon$$ 
+
+Where $y$ is the response variable for GI, $GI_{base}$ or GE, $\mu$ is the overall mean, $\beta$ is a vector of fixed effects(i.e. Location, replication), $u$ is the vector of addivitive genotype effects assoicated with the genomic additive relationship matrix with $u \sim N(0,G_{A}\sigma^2_{A})$, $Q$ is a matrix of vectors describing population structure and $\delta$ corresponds to the number of vectors(PCAs) of the Q matrix to be included to account for population structure and $\epsilon ~N(0,E\sigma^2)$ where $E$ is either a incidence matrix corresponding independently and identically distributed residuals or a heteroscadistic error structure. A summary of model terms included for each timepoint is presented in table 2 both for within years and across years.
+#Model terms
+```{r,eval=FALSE}
+model_2020_GI<-data.frame(year=rep("2020",5),trait=rep("GI",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location + Rep","Location",NA,NA,NA),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=rep("yes",5))
+
+model_2020_GE<-data.frame(year=rep("2020",5),trait=rep("GE",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location","Location","Location:Rep + Location + Rep","Location","Location"),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=c("yes","yes","yes","no","yes"))
+
+models2020=rbind(model_2020_GI,model_2020_GE)
+##
+model_2021_GI<-data.frame(year=rep("2021",8),trait=c(rep("GI",6),rep("GI_base",2)),PM_date=c(5,22,19,33,47,68,96,152),Q=rep("yes",8),npc=rep("2",8),Fixed=c(NA,NA,NA,"Rep",NA,"Location","Location:Row + replication","Location"),Random=rep(NA,8),Residual=c("Location",NA,"Rep",NA,NA,NA,"Row",NA),Converged=c("yes","yes","yes","yes","yes","yes","yes","yes"))
+
+
+model_2021_GE<-data.frame(year=rep("2021",8),trait=c(rep("GE",8)),PM_date=c(5,22,19,33,47,68,96,152),Q=rep("yes",8),npc=rep("2",8),Fixed=c(NA,NA,"Qsd1","replication:Row",NA,"Location:Row + Row","Location:Row","Location:Row"),Random=rep(NA,8),Residual=c("Location",NA,"Rep",NA,NA,NA,"Location",NA),Converged=c("no","yes","yes","yes","yes","yes","no","no"))
+models2021=rbind(model_2021_GI,model_2021_GE)
+
+#combined
+model_combined_GI<-data.frame(year=rep("2020/2021",5),trait=rep("GI",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Year:Location","Location:Year","Year:Rep","Year + Year:Rep","Year + Year:replication"),Random=rep(NA,5),Residual=c("Year",NA,"Year",NA,NA),Converged=rep("yes",5))
+model_combined_GI
+
+model_combined_GE<-data.frame(year=rep("2020/2021",5),trait=rep("GE",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Year+ Year:Location",NA,"Year:Location + Location","Year:Location",NA),Random=rep(NA,5),Residual=c(NA,"Year",NA,NA,NA),Converged=c("no",rep("yes",4)))
+
+
+model_table1<-rbind(models2020,models2021,model_combined_GI,model_combined_GE)%>%relocate(trait,.before = 1)
+
+
+E1_ft<-flextable(model_table1,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
+E1_ft
+
+E1_ft<-E1_ft%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
+bold(bold = TRUE, part = "header")%>%set_caption(caption=as_paragraph(as_chunk("Summary of the fixed, random and residual model terms fitted each timepoint across germination energy and index for genome wide assocation modeling ",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%
+#E1_ft<-E1_ft%>%add_footer_lines(E1_ft, values = "")
+footnote(i = c(1), j = c(1),
+            value = as_paragraph(
+              c("GI: Germination index, GE: Germination Energy, GI_base:unadjusted germination index, PM Date: Post physiological maturity date and timepoint,Q: fixed effect population structure matrix, npc: number of principal components included, Rep: Replication")),
+            ref_symbols = c("a"),
+            part = "header")
+
+E1_ft_2<-E1_ft%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")
+E1_ft_2
+# 
+# footnote(i = c(1), j = c(2),
+#             value = as_paragraph(
+#               c("BSR-Barley Stripe Rust;LR-Leaf Rust;SB-Spot Blotch;SLD-Scald")),
+#             ref_symbols = c("b"),
+#             part = "header")
+
+  
+E1_ft_2
+```
+
 
 ##Two step analysis for Logistic modeling
 
@@ -138,7 +204,7 @@ the package @ASRgwas
 
 We previously reported development of a high-throughput Kompetitive Allele Specific Primer (KASP) marker AlaAT1_L214F for the causal mutation in *HvAlaAT1* discovered by Sato et al. (2016). We also developed KASP assays for a SNP in the 5' UTR of *HvGA20ox1* (GA20ox1_331_5UTR), the E165Q mutation in *HvMKK3* identified in Vetch et al. (2020) for both spring barley and winter barley. A summary of the winter barley haplotypes for the parent lines and checks are found in QTL x environment modeling of malting barley preharvest sprouting (Sweeney et al. 2021). All experimental lines and parent genotypes were monomorphic for dormant HvMKK3. The check lines Charles and Endeavor used as a phs susceptibility check in 2020 and 2021 respectively, have the highly non-dormant (N\*) allele for MKK3 and the dormant AlaAT(D) allele, however we cannot make specific conclusions about this haplotype given the low representation in the winter barley population.
 
-All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at the USDA Small Grains Genotyping Lab in Fargo, ND. After filtering poor quality markers, minor allele frequency (MAF) below 0.05, and monomorphic sites, 15,467 polymorphic markers remained and were used for genome-wide association (GWA). After conducting linkage disequilibrium (LD) pruning to reduce high LD blocks that exist in double haploid populations, we retained 8,384 markers for analysis. The *GAPIT* R package (Tang et al., 2016) was used for GWA. Multi-locus mixed models (MLMM) were fit for germination traits at each time point and for PHS. MLMM models have fewer false positive associations and use forward and backward step-wise regression compared to the standard mixed linear model.  P-values below the Bonferroni cutoff (p=0.05) of 3.57x10-6 were considered significant. A summary of the GWA results is presented in Table 1. Models were run for all trait/time point combinations, including the 5-day extensions. In addition to single timepoint GWAS, we used time series analysis to develop models that represent dormancy breakage over time. Details of the methods can be found in Rooney. et. al 2022. Briefly, each line was modelled in a logistic curve representing the GE and rate over time, both with years and combined years. We derived components of the logistic curve, such as time to 95% germination or time to 5.0 GI, to determine what novel loci, if any, can be detected if we use the timepoint data as a complete model compared to conducting GWA on each timepoint independently
+All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at the USDA Small Grains Genotyping Lab in Fargo, ND. After filtering poor quality markers, minor allele frequency (MAF) below 0.05, and monomorphic sites, 15,467 polymorphic markers remained and were used for genome-wide association (GWA). After conducting linkage disequilibrium (LD) pruning to reduce high LD blocks that exist in double haploid populations, we retained 8,384 markers for analysis. The *GAPIT* R package (Tang et al., 2016) was used for GWA. Multi-locus mixed models (MLMM) were fit for germination traits at each time point and for PHS. MLMM models have fewer false positive associations and use forward and backward step-wise regression compared to the standard mixed linear model. P-values below the Bonferroni cutoff (p=0.05) of 3.57x10-6 were considered significant. A summary of the GWA results is presented in Table 1. Models were run for all trait/time point combinations, including the 5-day extensions. In addition to single timepoint GWAS, we used time series analysis to develop models that represent dormancy breakage over time. Details of the methods can be found in Rooney. et. al 2022. Briefly, each line was modelled in a logistic curve representing the GE and rate over time, both with years and combined years. We derived components of the logistic curve, such as time to 95% germination or time to 5.0 GI, to determine what novel loci, if any, can be detected if we use the timepoint data as a complete model compared to conducting GWA on each timepoint independently
 
 # Results
 
@@ -150,29 +216,16 @@ For the 2020 year, we only did a subsample of phs scoring. While the 2020 data d
 
 #making a table for significant effects
 
-```{r,eval=FALSE}
-model_2020_GI<-data.frame(year=rep("2020",5),trait=rep("GI",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location + Rep","Location",NA,NA,NA),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=rep("yes",5))
-
-model_2020_GE<-data.frame(year=rep("2020",5),trait=rep("GE",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location","Location","Location:Rep + Location + Rep","Location","Location"),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=c("yes","yes","yes","no","yes"))
-
-models2020=rbind(model_2020_GI,model_2020_GE)
-##
-model_2021_GI<-data.frame(year=rep("2021",8),trait=c(rep("GI",6),rep("GI_base",2)),PM_date=c(5,22,19,33,47,68,96,152),Q=rep("yes",8),npc=rep("2",8),Fixed=c(NA,NA,NA,"replication",NA,"Location","Location:Row + replication","Location"),Random=rep(NA,8),Residual=c("Location",NA,"replication",NA,NA,NA,"Row",NA),Converged=c("yes","yes","yes","yes","yes","yes","yes","yes"))
 
 
+#manhattan plot
 
-```
-#manhattan
 ```{r}
-load("~/git/BarleyGermination-KK/data/GWA_results/STP_all.Rdata")
 
-markerpart<-STP_all[STP_all$ID%in%c("GE-2020-PM_152","GE-2020-PM_19","GE-2020-PM_47","GE-2020-PM_5","GE-2020-PM_96"),]$marker%>%unique()
-markerall<-STP_all[!STP_all$ID%in%c("GE-2020-PM_152","GE-2020-PM_19","GE-2020-PM_47","GE-2020-PM_5","GE-2020-PM_96"),]$marker%>%unique()
-STP_smal<-STP_all[STP_all$ID%in%c("GE-2020-PM_152","GE-2020-PM_19","GE-2020-PM_47","GE-2020-PM_5","GE-2020-PM_96"),]
-mb<-STP_smal$marker%>%unique()
+load(paste0(path,"/data/GWA_results/STP_all.Rdata"))
+library(stringr)
 
-STP_smal[!STP_smal$marker%in%(markerall),]
-which(markerall==mb)
+
 ord_list<-STP_all[STP_all$ID=="GI-2020/2021-PM_19",c("marker","ordinal")]%>%unique()
 table_chr<-STP_all%>%ungroup()%>%filter()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
 table_chr
@@ -228,11 +281,9 @@ WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal
 FDR_rate<-max(WinterPerTPGWAS2[WinterPerTPGWAS2$fdr.pvalues<0.051,]$p.value,na.rm=TRUE)
 
 #even the line is slightly more conservative than the true FDR rate since the nearest FDR value below 0.05 is 0.03. This is important because while we do not want false positive(QQ plots should be used for this), we also shouldn't be over stringent with Bonferonni cutoff, we elimate
-ALaAT_ord<-unique(WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal)
+#ALaAT_ord<-unique(WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal)
 WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal
-ALaAT_ord
-ALaAT_ord<-ALaAT_ord[4]
-max(WinterPerTPGWAS2$ordinal,na.rm = TRUE)
+
 
 WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
@@ -255,7 +306,15 @@ If Qsd1 and associated MTAs on 5H are included as fixed effects and removed, mar
 
 There is also a marker "JHI_Hv50k_2016_64721" on 2H that reaches borderline signifcnce in 19 GI 2021
 
-For single timepoint GWAS, we found a total of 37 significant marker trait associations associated with GE and GI across all timepoints and years. One marker per LD group of the significant single time point GWA was selected in table 1 to prevent redundancy. Significant marker trait associations from the logistic models were also included. The most significant association was the KASP marker for AlaAT_L214F(Qsd1) and the closely associated 50K_JHI-Hv50k-2016-276836(r=0.91) marker. Other potential hits detected in the study include Isoamylase (*HvISA3*,HORVU.MOREX.r2.5HG0404420) which is a starch-debranching enzyme located at 475796690-475807295 bp, 705025 bp distal to marker JHI-Hv50k-2016-311435. Isoamylases hydrolyze α-(1,6) glycosidic linkages and debranch amylopectin during grain filling (Gous and Fox, 2017). Shu and Rasmussen (2014) identified a MTA for amylose content highly associated with the contig MLOC_10776, which includes *HvISA3* (https://ics.hutton.ac.uk/morexGenes/). Starch with higher amylose content is hydrolyzed more slowly by amylolytic enzymes and higher amylose content has been hypothesized to be a contributing factor to grain dormancy (Chu et al., 2014). Although the role of amylose content in seed dormancy has been hypothesized, prior evidence for the role of *HvISA3* is limited. This locus may be useful for PHS resistance but a consistent decrease in GI is not desirable. Negative impacts on starch related malting quality traits like malt extract may also be present.Another gene of interest in this region is an abscisic acid responsive protein (Liu et al. 2013). Abscisic acid (ABA) is an important regulator of seed dormancy in barley: increases in ABA maintain seed dormancy and decreases in ABA reduce seed dormancy in barley (Gómez-Cadenas et. al 1999). Other potential novel loci include HvVP1 (Viviparous-1) which may be associated with JHI-Hv50k-2016-165725 on chromosome 3H and segregating in the SY Tepee family. HvVP1 is a master transcription factor regulator that controls switching between seed maturation and germination in barley (Abraham et al. 2016).
+For single timepoint GWAS, we found a total of 37 significant marker trait associations associated with GE and GI across all timepoints and years. One marker per LD group of the significant single time point GWA was selected in table 1 to prevent redundancy. . The most significant association was the KASP marker for AlaAT_L214F(Qsd1) and the closely associated 50K_JHI-Hv50k-2016-276836(r=0.91) marker. Other potential hits detected in the study include Isoamylase (*HvISA3*,HORVU.MOREX.r2.5HG0404420) which is a starch-debranching enzyme located at 475796690-475807295 bp, 705025 bp distal to marker JHI-Hv50k-2016-311435. Isoamylases hydrolyze α-(1,6) glycosidic linkages and debranch amylopectin during grain filling (Gous and Fox, 2017). Shu and Rasmussen (2014) identified a MTA for amylose content highly associated with the contig MLOC_10776, which includes *HvISA3* (https://ics.hutton.ac.uk/morexGenes/). Starch with higher amylose content is hydrolyzed more slowly by amylolytic enzymes and higher amylose content has been hypothesized to be a contributing factor to grain dormancy (Chu et al., 2014). Although the role of amylose content in seed dormancy has been hypothesized, prior evidence for the role of *HvISA3* is limited. This locus may be useful for PHS resistance but a consistent decrease in GI is not desirable. Negative impacts on starch related malting quality traits like malt extract may also be present.Another gene of interest in this region is an abscisic acid responsive protein (Liu et al. 2013). Abscisic acid (ABA) is an important regulator of seed dormancy in barley: increases in ABA maintain seed dormancy and decreases in ABA reduce seed dormancy in barley (Gómez-Cadenas et. al 1999). Other potential novel loci include HvVP1 (Viviparous-1) which may be associated with JHI-Hv50k-2016-165725 on chromosome 3H and segregating in the SY Tepee family. HvVP1 is a master transcription factor regulator that controls switching between seed maturation and germination in barley (Abraham et al. 2016).
+# Marker table
+```{r}
+getwd()
+load("Rdata/Significant_marker_table.Rdata")
+View(marker_tableR)
+
+
+```
 
 ### Role of alanine amino transferase
 

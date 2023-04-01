@@ -436,17 +436,14 @@ genoD[genoD$Qsd1==1,]$Qsd1<-2
 genoD=genoD%>%mutate(Qsd1=ifelse(Qsd1==0,2,0))
 genoD["ENDEAVOR",]$Qsd1<-2
 genoD["FLAVIA",]$Qsd1<-2
-
+genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")%>%filter(marker%in%colnames(dim))
 
 rownames(dim)%in%c("ENDEAVOR")
 library(dplyr)
-genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")%>%filter(marker%in%colnames(dim))
-
-table(DH2020_2021$PM_date,DH2020_2021$Year)
 
 
 #marker effects
-marker_ef<-dim%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_308762")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
+marker_ef<-genoD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_308762")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
 marker_ef
 
 
@@ -488,16 +485,19 @@ grep("L",colnames(myGD20_prune))
 
 #JHI-Hv50k-2016-367342 MKK3 QTL
 
-
+dim<-genoD%>%as.matrix()
 ```
 
 ### PM 5
 ```{r}
 simple<-GI_2020%>%filter(PM_date=="5")
 simple$PM_date
+
+
+dim[1:5,1:5]
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 
-
+genoM
 print(paste0("data input: ",simple$type%>%unique()))
 
 simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0)
@@ -2977,4 +2977,83 @@ table(GE_all$PM_date)
 GE_STP_combined=list(GE_5,GE_19,GE_47,GE_96,GE_152)
 GE_STP_combined[[4]]$trait
 save(GE_STP_combined,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")
+```
+# Malting Quality GWAS
+```{r}
+Sys.info()['sysname']
+if( .Platform$OS.type == "unix" ){
+  patht <- "/home/karl/git/"
+}
+if( .Platform$OS.type == "windows" ){
+  patht <- "C:/Users/kars8/git/"
+}
+
+patht<-paste0(patht,"NY-winter-barley-analysis/")
+load("data/MQ/WMB21_Master_Cornell.Rdata")
+View(MQ_WMB21)
+dim<-genoD%>%as.matrix()
+
+```
+
+```{r}
+View(MQ_WMB21)
+MQ<-MQ_WMB21%>%rename(GID=gid)%>%filter(!Treatment=="SpringTP2-4")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")
+MQ[MQ$GID=="DH130910",]$GID<-"LIGHTNING"
+MQ%>%pivot_longer(names_to="MQ_trait",cols=c(BG,AA,DP,FAN,sp_mean,ME,MP,ST))%>%ggplot(aes(value)) + 
+        # it sets bins intead of breaks, so add 1
+        geom_histogram(bins = 51) + 
+        # make a new "facet" for each value of `variable` (formerly column names), and 
+        # use a convenient x-scale instead of the same for all 3
+        facet_wrap(~Timepoint+MQ_trait,scales = "free_x")+theme_bw()
+
+
+gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+
+
+print(paste0("data input: ",simple$type%>%unique()))
+
+#simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0)
+#should do Genomic prediction for the missing ones
+
+
+###
+
+
+simple<-MQ
+MQ$BG
+gd
+genoMp
+pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",
+resp = "BG", geno.data = gd,map.data = genoMp,
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+##
+pre.aprAA$pheno.data$Timepoint
+random=NULL
+fixed=c("Timepoint")
+resid=NULL
+gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "BG",
+ gen = "GID", Kinv = pre.aprAA$Kinv,
+Q = pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
+map.data = pre.aprAA$map.data, pvalue.thr =5e-05,bonferroni = FALSE,fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
+
+
+FDR_thresholds(gwasSTP)
+
+t3<-simple[,c("GI","Year","PM_date")]
+
+
+tr<-"GI";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
+
+
+qq.plot(gwas.table = gwasSTP$gwas.all)
+manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = FDR_thresholds(gwasSTP)[1,1],
+point.size = 1.2)
+#change here
+
+GI2020_PM5<-gwasSTP
+GI2020_PM5$trait<-paste0(tr,"-",ty,"-PM_",tpm)
+GI2020_PM5$FDR_rate<-FDR_thresholds(gwasSTP)
+GI2020_PM5$FDR_rate
+table(GI_2020$PM_date)
 ```

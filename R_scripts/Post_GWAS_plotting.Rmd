@@ -10,7 +10,8 @@ editor_options:
 ```{r}
 library(dplyr)
 library(asreml)
-setwd("/home/karl/git/BarleyGermination-KK")
+getwd()
+setwd("C:/Users/kars8/git/BarleyGermination-KK/")
 #2020
 load("data/Genotype_data/ASRgwas_results/Single_TP_GI_2020_results.Rdata")
 
@@ -24,6 +25,66 @@ load("data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")#G
 
 
 
+rep_str = c('GI'='GE')
+GE_STP_combined[[5]]$trait<-str_replace_all(GE_STP_combined[[5]]$trait,rep_str)
+GE_STP_combined[[3]]$trait<-str_replace_all(GE_STP_combined[[3]]$trait,rep_str)
+GE_STP_combined[[4]]$trait<-str_replace_all(GE_STP_combined[[4]]$trait,rep_str)
+
+```
+# need to get phenotypic distrbution file
+```{r}
+load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
+
+sum<-DH2020_2021%>%mutate(GI_0=GI/GE)%>%pivot_longer(values_to = "value",names_to = "trait",cols = c(GE,GI,GI_0))%>%group_by(Year,trait,PM_date)%>%reframe(mean=format(round(mean(value,na.rm=TRUE),3),nsmall=2),range=paste0(format(round(min(value,na.rm=TRUE),2),nsmall=2),"-",format(round(max(value,na.rm=TRUE),2),nsmall=2)))%>%filter(!trait=="GI_0"|PM_date%in%c("152","96")|Year=="2021")%>%filter(!trait=="GI_0"|PM_date%in%c("152","96"))
+View(sum)
+sum_across<-DH2020_2021%>%pivot_longer(values_to = "value",names_to = "trait",cols = c(GE,GI))%>%filter(!PM_date%in%c("12","33","68"))%>%mutate(Year="2020/2021")%>%group_by(Year,trait,PM_date)%>%reframe(mean=format(round(mean(value,na.rm=TRUE),3),nsmall=2),range=paste0(format(round(min(value,na.rm=TRUE),2),nsmall=2),"-",format(round(max(value,na.rm=TRUE),2),nsmall=2)))
+sum$trait
+sum_stats=rbind(sum,sum_across)%>%mutate(PM_date=as.numeric(as.character(PM_date)))
+sum_stats$trait<-gsub("GI_0","GI0",sum_stats$trait)
+gvH2_fromList<-function(df){
+  
+H2<-df[[1]]$heritability
+
+
+varcomp<-summary(df[[1]]$mod)$varcomp
+o2g<-varcomp[grep("GID",rownames(varcomp)),"component"]
+
+
+var_est<-data.frame(trait=df[[1]]$trait,o2g=round(o2g,4),h2=round(H2$h2.vc[1,"Estimate"],4),h2_PEV=round(H2$h2.pev[1,"Estimate"],4))
+
+#env_n<-length(table(BSR.df$Env))
+for(i in (2:length(df))){
+
+  H2<-df[[i]]$heritability
+
+
+varcomp<-summary(df[[i]]$mod)$varcomp
+o2g<-varcomp[grep("GID",rownames(varcomp)),"component"]
+
+
+app<-data.frame(trait=df[[i]]$trait,o2g=round(o2g,4),h2=round(H2$h2.vc[1,"Estimate"],4),h2_PEV=round(H2$h2.pev[1,"Estimate"],4))
+
+
+  var_est<- rbind(var_est,app)
+
+}
+return(var_est)
+}
+
+
+gvH2=rbind(gvH2_fromList(GE_2020_GWAS),gvH2_fromList(GI_2020_GWAS),gvH2_fromList(GE_2021_GWAS),gvH2_fromList(GI_2021_GWAS),gvH2_fromList(GE_STP_combined),gvH2_fromList(GI_STP_combined))%>%mutate(ID=trait)
+
+gvH2$ID<-gsub("GI_0","GI0",gvH2$ID)
+
+gvH2[grep("did",gvH2$ID),]$ID<-"GE-2021-PM_96"
+gvH2<-gvH2%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),Year=str_split_i(ID,"-",2))%>%arrange(Year,trait,PM)%>%rename(PM_date=PM)
+
+sum_table<-gvH2%>%left_join(sum_stats,by=c("Year","trait","PM_date"))%>%arrange(Year,trait,PM_date)%>%relocate(ID,trait,Year,PM_date,.before=1)%>%relocate(mean,range,.before = o2g)
+View(sum_table)
+save(sum_table,file="ms/Rdata/genetic_variance_h2.Rdata")
+
+```
+```{r}
 convert<-function(df){
 var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
 
@@ -40,8 +101,6 @@ app$ID<-df[[i+1]]$trait
 return(var_test)
 }
 
-str(GE_2020_GWAS)
-GE_2020_GWAS[[2]]$gwas.sel
 
 convert<-function(df){
 var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
@@ -761,6 +820,7 @@ write.xlsx(ee,file = "ms/supplementary_data/gene_annotation_file_0.xlsx")
 save(marker_table2,file="data/marker_table2.Rdata")
 marker_table2<-marker_table2%>%filter(MAF>0.05)
 marker_table2$Gene_candidate<-NA
+marker_table2
 #CHR 2
 marker_table2[marker_table2$Chr=="2",]
 marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_64721",]$Gene_candidate<-c("Mitogen-activated protein kinase(HORVU.MOREX.r2.2HG0082040)")
