@@ -312,7 +312,7 @@ Genetic_map$SNP
 Genetic_map$cM
 
 marker_table<-markers%>%filter(maf>0.05)%>%arrange(chrom,pos,year,PM)%>%left_join(Genetic_map,by=c("chrom","marker"))%>%unique()%>%reframe(.by = c(chrom,marker),pos_range=ifelse(min(pos)==max(pos),max(pos),paste0(min(pos),"-",max(pos))),cm_range=ifelse(min(cM)==max(cM),min(cM),paste0(min(cM),"-",max(cM))),PM_dates = toString(unique(PM)),trait=toString(unique(trait)),year=toString(unique(year)),testmin=round(min(maf),3),testmax=round(max(maf),3),PVEmin=round(min(expl.var),3),PVEmax=round(max(expl.var),3),Pvalue=max(round(p.value,4)))%>%tidyr::drop_na(chrom)
-View(marker_table)
+Viewmarker_table)
 
 ```
 #LD analysis
