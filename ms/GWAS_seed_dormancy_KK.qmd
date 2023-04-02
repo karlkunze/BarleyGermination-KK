@@ -194,17 +194,13 @@ E1_ft_2
 E1_ft_2
 ```
 
-##Two step analysis for Logistic modeling
 
-In addition to single timepoint GWAS, modeling dormancy loss over time can provide novel information than by just using a single timepoint alone. We
-
-Fixed effect components were determined per timepoint using wald tests. Residual effects
 
 the package @ASRgwas
 
 We previously reported development of a high-throughput Kompetitive Allele Specific Primer (KASP) marker AlaAT1_L214F for the causal mutation in *HvAlaAT1* discovered by Sato et al. (2016). We also developed KASP assays for a SNP in the 5' UTR of *HvGA20ox1* (GA20ox1_331_5UTR), the E165Q mutation in *HvMKK3* identified in Vetch et al. (2020) for both spring barley and winter barley. A summary of the winter barley haplotypes for the parent lines and checks are found in QTL x environment modeling of malting barley preharvest sprouting (Sweeney et al. 2021). All experimental lines and parent genotypes were monomorphic for dormant HvMKK3. The check lines Charles and Endeavor used as a phs susceptibility check in 2020 and 2021 respectively, have the highly non-dormant (N\*) allele for MKK3 and the dormant AlaAT(D) allele, however we cannot make specific conclusions about this haplotype given the low representation in the winter barley population.
 
-All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at the USDA Small Grains Genotyping Lab in Fargo, ND. After filtering poor quality markers, minor allele frequency (MAF) below 0.05, and monomorphic sites, 15,467 polymorphic markers remained and were used for genome-wide association (GWA). After conducting linkage disequilibrium (LD) pruning to reduce high LD blocks that exist in double haploid populations, we retained 8,384 markers for analysis. The *GAPIT* R package (Tang et al., 2016) was used for GWA. Multi-locus mixed models (MLMM) were fit for germination traits at each time point and for PHS. MLMM models have fewer false positive associations and use forward and backward step-wise regression compared to the standard mixed linear model. P-values below the Bonferroni cutoff (p=0.05) of 3.57x10-6 were considered significant. A summary of the GWA results is presented in Table 1. Models were run for all trait/time point combinations, including the 5-day extensions. In addition to single timepoint GWAS, we used time series analysis to develop models that represent dormancy breakage over time. Details of the methods can be found in Rooney. et. al 2022. Briefly, each line was modelled in a logistic curve representing the GE and rate over time, both with years and combined years. We derived components of the logistic curve, such as time to 95% germination or time to 5.0 GI, to determine what novel loci, if any, can be detected if we use the timepoint data as a complete model compared to conducting GWA on each timepoint independently
+All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at the USDA Small Grains Genotyping Lab in Fargo, ND. After filtering poor quality markers, minor allele frequency (MAF) below 0.05, and monomorphic sites, 15,467 polymorphic markers remained and were used for genome-wide association (GWA). After conducting linkage disequilibrium (LD) pruning to reduce high LD blocks that exist in double haploid populations, we retained 8,384 markers for analysis. A summary of the GWA results is presented in Table 1. Models were run for all trait/time point combinations
 
 # Results
 
@@ -358,8 +354,9 @@ FDR_rate<-max(WinterPerTPGWAS2[WinterPerTPGWAS2$fdr.pvalues<0.051,]$p.value,na.r
 #even the line is slightly more conservative than the true FDR rate since the nearest FDR value below 0.05 is 0.03. This is important because while we do not want false positive(QQ plots should be used for this), we also shouldn't be over stringent with Bonferonni cutoff, we elimate
 #ALaAT_ord<-unique(WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal)
 ALaAT_ord=WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal%>%unique()
-
+ALaAT_ord
 WinterPerTPGWAS2[WinterPerTPGWAS2$trait=="PHS",]$PM<-4
+#All chromosomes
 WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='longdash')+
@@ -369,6 +366,15 @@ WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% 
                      breaks = winterOrdinalBreaks)+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
+  geom_vline(xintercept = winterChrLines, color = 'black')+
+ geom_vline(xintercept = 5760, color = 'red',linetype='longdash')+
+  annotate(geom= 'text', x = 5760, y = 12, label = 'AlaAT1')+
+  geom_vline(xintercept = winterChrLines)+
+
+  ylab('-log(p-value)')+xlab('Chromosome 5')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
+ facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()+scale_x_continuous(limits = c(5000,7000)) 
+#Ch 5
 
 
 print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,8)))
