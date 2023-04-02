@@ -22,7 +22,8 @@ load("data/Genotype_data/ASRgwas_results/Single_TP_GE_2021_results.Rdata")
 #combined
 load("data/Genotype_data/ASRgwas_results/Single_TP_GI_cpmbined_results.Rdata")#GI_STP_combined,
 load("data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")#GE_STP_combined
-
+#phs
+load("data/Genotype_data/ASRgwas_results/PHS_GWAS_results.Rdata")
 
 
 rep_str = c('GI'='GE')
@@ -36,11 +37,12 @@ GE_STP_combined[[4]]$trait<-str_replace_all(GE_STP_combined[[4]]$trait,rep_str)
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
 
 sum<-DH2020_2021%>%mutate(GI_0=GI/GE)%>%pivot_longer(values_to = "value",names_to = "trait",cols = c(GE,GI,GI_0))%>%group_by(Year,trait,PM_date)%>%reframe(mean=format(round(mean(value,na.rm=TRUE),3),nsmall=2),range=paste0(format(round(min(value,na.rm=TRUE),2),nsmall=2),"-",format(round(max(value,na.rm=TRUE),2),nsmall=2)))%>%filter(!trait=="GI_0"|PM_date%in%c("152","96")|Year=="2021")%>%filter(!trait=="GI_0"|PM_date%in%c("152","96"))
-View(sum)
+#View(sum)
 sum_across<-DH2020_2021%>%pivot_longer(values_to = "value",names_to = "trait",cols = c(GE,GI))%>%filter(!PM_date%in%c("12","33","68"))%>%mutate(Year="2020/2021")%>%group_by(Year,trait,PM_date)%>%reframe(mean=format(round(mean(value,na.rm=TRUE),3),nsmall=2),range=paste0(format(round(min(value,na.rm=TRUE),2),nsmall=2),"-",format(round(max(value,na.rm=TRUE),2),nsmall=2)))
 sum$trait
 sum_stats=rbind(sum,sum_across)%>%mutate(PM_date=as.numeric(as.character(PM_date)))
 sum_stats$trait<-gsub("GI_0","GI0",sum_stats$trait)
+
 gvH2_fromList<-function(df){
   
 H2<-df[[1]]$heritability
@@ -73,6 +75,9 @@ return(var_est)
 
 
 gvH2=rbind(gvH2_fromList(GE_2020_GWAS),gvH2_fromList(GI_2020_GWAS),gvH2_fromList(GE_2021_GWAS),gvH2_fromList(GI_2021_GWAS),gvH2_fromList(GE_STP_combined),gvH2_fromList(GI_STP_combined))%>%mutate(ID=trait)
+#adding phs
+bn<-data.frame(GWAS_phs$trait,summary(GWAS_phs$mod)$varcomp[1,1],GWAS_phs$heritability$h2.vc[1],GWAS_phs$heritability$h2.pev[1],GWAS_phs$trait);colnames(bn)<-names(gvH2)
+gvH2<-gvH2%>%add_row(bn)
 
 gvH2$ID<-gsub("GI_0","GI0",gvH2$ID)
 
@@ -80,7 +85,11 @@ gvH2[grep("did",gvH2$ID),]$ID<-"GE-2021-PM_96"
 gvH2<-gvH2%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),Year=str_split_i(ID,"-",2))%>%arrange(Year,trait,PM)%>%rename(PM_date=PM)
 
 sum_table<-gvH2%>%left_join(sum_stats,by=c("Year","trait","PM_date"))%>%arrange(Year,trait,PM_date)%>%relocate(ID,trait,Year,PM_date,.before=1)%>%relocate(mean,range,.before = o2g)
-View(sum_table)
+mr_phs<-DH2020_2021%>%dplyr::select(phs,Location,Year)%>%reframe(mean=round(mean(phs,na.rm=TRUE),2),range=paste0(min(phs,na.rm=TRUE),"-",max(phs,na.rm = TRUE)))
+
+sum_table[sum_table$trait=="PHS",c("mean","range")]<-mr_phs[1,]
+sum_table[sum_table$trait=="PHS",c("mean","range")]
+
 save(sum_table,file="ms/Rdata/genetic_variance_h2.Rdata")
 
 ```
@@ -137,7 +146,13 @@ GE_C<-convert(GE_STP_combined)
 GE_C$ID<-gsub("GI","GE",GE_C$ID)
 
 library(stringr)
-STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C)%>%mutate(notes="none")%>%group_by(ID)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
+
+PHS<-GWAS_phs$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
+
+PHS$ID<-GWAS_phs$trait
+names(GE20)
+names()
+STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C,PHS)%>%mutate(notes="none")%>%group_by(ID)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
 save(STP_all,file="data/GWA_results/STP_all.Rdata")
 ```
 ```{r}
@@ -200,7 +215,7 @@ ALaAT_ord
 ALaAT_ord<-median(ALaAT_ord)
 
 
-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
+WinterPerTPGWAS2%>%ungroup()%>%filter(!trait=="PHS")%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='longdash')+
   annotate(geom= 'text', x = ALaAT_ord, y = 12, label = 'AlaAT1')+
@@ -223,6 +238,16 @@ WinterPerTPGWAS2%>%filter(fdr.pvalues<0.05)
 
 #sig markers looping
 ```{r}
+sig_markers<-function(df){
+bj<-c(df[[1]]$trait,!is.null(df[[1]]$gwas.sel),1)
+names(bj)<-c("trait","sign_markers","i_value")
+for(i in 2:length(df)){
+  bo<-c(df[[i]]$trait,!is.null(df[[i]]$gwas.sel),i)
+  bj<-rbind(bo,bj)
+
+}
+return(bj)
+}
 sig_all<-function(df){
 sig_markers<-function(df){
 bj<-c(df[[1]]$trait,!is.null(df[[1]]$gwas.sel),1)
@@ -255,7 +280,13 @@ GI21_sig<-sig_all(GI_2021_GWAS)
 GI20_sig<-sig_all(GI_2020_GWAS)
 GI_sig<-sig_all(GI_STP_combined)
 GE_sig<-sig_all(GE_STP_combined)
-sig<-rbind(GE20_sig,GE21_sig,GE_sig,GI20_sig,GI21_sig,GI20_sig)%>%rename(ID=trait)%>%filter(!ID%in%c("GE-2021-PM_96: did_not_converge"))
+
+GWAS_phs$gwas.sel$trait<-GWAS_phs$trait
+names()
+names(GWAS_phs)
+names(GWAS_phs$gwas.sel)
+names(GI21_sig)
+sig<-rbind(GE20_sig,GE21_sig,GE_sig,GI20_sig,GI21_sig,GI20_sig,GWAS_phs$gwas.sel)%>%rename(ID=trait)%>%filter(!ID%in%c("GE-2021-PM_96: did_not_converge"))
 sig
 
 

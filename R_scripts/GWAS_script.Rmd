@@ -123,6 +123,8 @@ dim(WinterGD)
 dim(WinterGD)
 
 WinterRelationship=wmbGAPIT$A
+
+save(WinterRelationship,file="ms/Rdata/WinterRelationship.Rdata")
 WinterPCA = eigen(WinterRelationship)
 substr(WinterGD$taxa,1,3)
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
@@ -139,17 +141,19 @@ winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>%
          size = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), 3, 2))
 
 
+winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", 
+     tolower(winterlinePCAvalues$shapes),
+     perl = TRUE),size=ifelse(size==2,3,4))%>%filter(family !=c('Check')) %>%
+  ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(shape=guide_legend(title = "Variety/Experimental Line"),size="none",color=guide_legend(title="Family/Population"))+xlab(as.character(paste0("PC1: ",round(WinterPVEPCA[1]*100,2),"%")))+ylab(as.character(paste0("PC2: ",round(WinterPVEPCA[2]*100,2),"%")))+ggtitle(lab="Principal component analysis plot of the \n NY winter malting barley double haploid population")+theme(plot.title = element_text(hjust = 0.5))+scale_x_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))+scale_y_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))
 
-winterlinePCAvalues %>% filter(family !=c('Check')) %>%
-  ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(size = "none")+
-  xlab('PC1')+ylab('PC2')+ggtitle(lab="PCA by family of NY \n WMB DH population")
+
 
 
 setwd(rprojroot::find_rstudio_root_file())
 
-
+?xlab()
 #Travis' Time series perspective
-AllDHBluesPerYear
+
 AllDHBluesPerYear  %>%  filter(type == 'BLUE') %>% mutate(headerFacet = 'Data source') %>%
   ggplot(aes(x = PM_date, y = value, group = taxa))+
   geom_smooth()+facet_nested(trait~headerFacet+year, scales = 'free')+
@@ -197,6 +201,8 @@ AllDHBluesPerYear%>%
   geom_boxplot()+facet_nested(trait~family, scales = 'free')+
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Rates for 2020 Year"))+
 theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+
+
 library(Hmisc)
 #2021
 AllDHBluesPerYear
@@ -422,7 +428,7 @@ gwasS$gwas.sel
 
 
 ```
-#asreml actual GWAS
+#asreml GWAS setup
 ```{r}
 library("ASRgwas")
 
@@ -436,8 +442,9 @@ genoD[genoD$Qsd1==1,]$Qsd1<-2
 genoD=genoD%>%mutate(Qsd1=ifelse(Qsd1==0,2,0))
 genoD["ENDEAVOR",]$Qsd1<-2
 genoD["FLAVIA",]$Qsd1<-2
-genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")%>%filter(marker%in%colnames(dim))
-
+genoM_raw
+genoM<-genoM_raw%>%dplyr::rename(marker=SNP,chrom="Chromosome","pos"="Position")%>%filter(marker%in%colnames(genoD))
+genoM
 rownames(dim)%in%c("ENDEAVOR")
 library(dplyr)
 
@@ -453,7 +460,7 @@ df_begin<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%
 table(df_begin$GID)
 ###
 df_begin<-df_begin%>%mutate(replication=as.factor(replication),Location=as.factor(Location),Check=as.factor(Check),GI_0=GI/GE)
-df_begin
+
 #Single Timepoint ASRgwas
 FDR_thresholds<-function(df_ps){
 df_ps<-df_ps$gwas.all$p.value
@@ -468,14 +475,119 @@ cv<-data.frame(p_valueFR=p_thershFDR,FDR=fdr_threshold)
 return(cv)
 }
 ```
+#going to make some visualizations here
+```{r}
+library(tidyr)
+hist(df_begin$GI_0)
+df_begin$Family<-gsub("DH130910","Lightning",df_begin$Family)
+df_begin_long<-df_begin%>%mutate(GI_0=ifelse(is.nan(GI_0),NA,GI_0))%>%pivot_longer(names_to="trait",cols=c("GE","GI"))%>%rename(year=Year)
+df2<-df_begin_long%>%filter(PM_date%in%c("5","19","47","96","152"))
+
+df2$year<-"2020/2021"
+
+df_begin_long%>%rbind(df2)%>% mutate(headerFacet = 'Dataset Year') %>%
+  ggplot(aes(x = PM_date, y = value, group = GID))+
+  geom_smooth(na.rm = TRUE,se=FALSE,linewidth=0.2,colour="black")+facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_vline(xintercept = c(12,33,68), color = 'red')+
+  labs(title = 'Germination Energy and Index over time by individual genotype')+theme_bw()
+```
+
+```{r}
+
+df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
+  filter(Family %nin% c('Lightning'))   %>%
+ # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = PM_date, y = value, fill = Qsd1))+
+ 
+  geom_boxplot(outlier.shape = NA)+facet_nested(trait~Family+year, scales = 'free')+
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination rates by grouping of AlaAT"))+
+theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+
+```
 #Single Timepoint GWAS
 
 ```{r}
 GI_all<-df_begin
+hist(df_begin$phs)
+GI_2020<-GI_all%>%filter(Year=="2020")%>%droplevels()
+table(GI_2020$PM_date)
+grep("L",colnames(myGD20_prune))
+
+```
+#PHS
+```{r}
+#we need to include
+phs<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")%>%select(GID,Location,SourcePLOT,Row,Check,Family,Year,phs)%>%left_join(marker_ef,by="GID")
+
+simple<-phs%>%unique()
+simple
+
+genoM
+
+gd=as.matrix(genoD);genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+
+dim(gd)
+print(paste0("data input: ",simple$type%>%unique()))
+
+#should do Genomic prediction for the missing ones
+
+
+simple$ND<-as.character(simple$Check)
+simple[simple$GID=="ENDEAVOR",]$phs<-8
+simple$ND
+pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",
+resp = "phs", geno.data = gd,map.data = genoMp,
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+##
+fixed="Check"
+random=NULL
+
+resid=NULL
+pre.aprAA$pheno.data$phs
+hist(pre.aprAA$pheno.data$phs)
+gwasSTP.phs<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "phs",
+ gen = "GID", Kinv = pre.aprAA$Kinv,
+Q = NULL, npc = 4, geno.data = pre.aprAA$geno.data,
+map.data = pre.aprAA$map.data,bonferroni = TRUE,fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
+library(asreml)
+wald.asreml(gwasSTP.phs$mod)
+gwasSTP.phs$heritability
+summary(gwasSTP.phs$mod)$varcomp
+FDR_thresholds(gwasSTP)
+
+gwasSTP.phs$heritability
+gwasSTP.phs$gwas.sel
+plot(gwasSTP$mod)
+qq.plot(gwas.table = gwasSTP.phs$gwas.all)
+manhattan.plot(gwas.table = gwasSTP.phs$gwas.all, pvalue.thr = FDR_thresholds(gwasSTP)[1,1],
+point.size = 1.2)
+#change here
+FDR_thresholds(gwasSTP)[1,1]
+tr
+GWAS_phs<-gwasSTP.phs
+
+GWAS_phs$trait<-paste0("PHS","-","2020/2021","-PM_","3")
+GWAS_phs$trait
+GWAS_phs$FDR_rate<-FDR_thresholds(gwasSTP.phs)
+save(GWAS_phs,file = "data/Genotype_data/ASRgwas_results/PHS_GWAS_results.Rdata")
+
+
+#JHI-Hv50k-2016-367342 MKK3 QTL
+
+dim<-genoD%>%as.matrix()
+
+
+```
 
 ## Germination Index 2020
+
+
+
 GI_all
-```
+
 ```{r}
 ## 2020
 
@@ -1082,6 +1194,7 @@ GE2020
 #SAVING GE2020 and GI2020 Single Timepoint GWAS
 ```{r}
 GI_2020
+
 save(GI_2020_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_2020_results.Rdata")
 save(GE_2020_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_2020_results.Rdata")
 ```
@@ -2250,7 +2363,7 @@ simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,
 simple$ND<-as.character(simple$Check)
 length(simple$GI_0)
 names(simple)
-
+pre.aprAA$Kinv
 pre.aprAA <- pre.gwas(pheno.data=simple%>%filter(!ND=="2")%>%droplevels(), indiv = "GID",
 resp = "GI", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
@@ -2980,6 +3093,7 @@ save(GE_STP_combined,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_combi
 ```
 # Malting Quality GWAS
 ```{r}
+
 Sys.info()['sysname']
 if( .Platform$OS.type == "unix" ){
   patht <- "/home/karl/git/"
@@ -2999,6 +3113,7 @@ dim<-genoD%>%as.matrix()
 View(MQ_WMB21)
 MQ<-MQ_WMB21%>%rename(GID=gid)%>%filter(!Treatment=="SpringTP2-4")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")
 MQ[MQ$GID=="DH130910",]$GID<-"LIGHTNING"
+library(tidyr)
 MQ%>%pivot_longer(names_to="MQ_trait",cols=c(BG,AA,DP,FAN,sp_mean,ME,MP,ST))%>%ggplot(aes(value)) + 
         # it sets bins intead of breaks, so add 1
         geom_histogram(bins = 51) + 
@@ -3010,45 +3125,158 @@ MQ%>%pivot_longer(names_to="MQ_trait",cols=c(BG,AA,DP,FAN,sp_mean,ME,MP,ST))%>%g
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 
 
-print(paste0("data input: ",simple$type%>%unique()))
+print(paste0("data input: ",MQ$type%>%unique()))
 
 #simple<-simple%>%dplyr::select(SourcePLOT,GID,Year,PM_date,replication,Location,Check,Day1Germ,scald,Qsd1,GE,GI,GI_0)
 #should do Genomic prediction for the missing ones
+```
+#may need to do two step analysis
+```{r}
+
+pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",
+resp = "AA", geno.data = gd,map.data = genoMp,
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = TRUE, Q.method = "K",heterozygosity = 0.20)
+
+
+asreml_step1 <- function(d2, groupvars) {
+d2<-MQ_long%>%filter(trait=="AA",Timepoint=="TP2")
+
+
+model0<-asreml(fixed=value~1,random=~GID,residual=~units,data=d2,na.action = na.method(x = "include"))
+M
+model_narrow<-asreml(fixed=value~1,random=~vm(GID, pre.aprAA$Kinv$GID),residual=~units,data=d2,na.action = na.method(x = "include"))
+BLUP<-summary(model_narrow,coef=TRUE)$coef.random
+d2$value
+dim(BLUP)
+cor(BLUP,d2$value,method = "pearson",use="complete.obs")
+var_comp_narrow<-as.data.frame(summary(model_narrow)$varcomp)
+var_comp_narrow
+var_Comp<-as.data.frame(summary(model0)$varcomp)
+
+t<-as.data.frame(table(d2$GID));t<-t[!t$Var1%in%c("R","NACL"),];r<-mean(t$Freq)
+r
+var_Comp
+H2<-round(var_Comp["GID",]$component/((var_Comp["GID",]$component+var_Comp["units!R",]$component)/r),4)
+h2<-round(var_comp_narrow[1,]$component/((var_comp_narrow[1,]$component+var_comp_narrow["units!R",]$component)/r),4)
+h2<-as.data.frame(h2)
+H2<-as.data.frame(H2)
+H2
+predict
+predictV<-predict(model0,classify = "GID")
+
+object<-as.data.frame(list(predictV,H2,h2))
+object
+return(object)
+step1_MQ.0<-data%>%group_by(Timepoint,trait)%>%group_modify(asreml_step1)%>%ungroup()
+}
+
+
+MQ_long<-MQ%>%mutate(GID=as.factor(GID))%>%pivot_longer(names_to="trait",cols=c(AA,BG,DP,FAN,ME,sp_mean,ST,MP))%>%group_by(Timepoint,trait)
+
+
+
+```
+#GBLUP
+```{r}
+asreml_step1 <- function(d2, groupvars) {
+MQ_long$
+df<-MQ_long%>%filter(trait%in%c("BG"))
+  pre.aprGBLP <- pre.gwas(pheno.data=d2, indiv = "GID",
+resp = "value", geno.data = gd,map.data = genoMp,
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
+method = "VanRaden", rename.markers = TRUE, impute = TRUE, Q.method = "K",heterozygosity = 0.20)
+
+ pre.aprGBLP$pheno.data
+
+#model0<-asreml(fixed=value~Timepoint,random=~GID,residual=~units,data=d2,na.action = na.method(x = "include"))
+
+print(groupvars)
+model_narrow<-asreml(fixed=value~Timepoint,random=~vm(GID, pre.aprGBLP$Kinv$GID),residual=~units,data=pre.aprGBLP$pheno.data,na.action = na.method(x = "include"))
+var_comp_narrow<-as.data.frame(summary(model_narrow)$varcomp)
+model_narrow<-update.asreml(model_narrow)
+BLUP<-summary(model_narrow,coef=TRUE)$coef.random
+pheno<-pre.aprGBLP$pheno.data%>%group_by(GID)%>%summarize(mean=mean(value))%>%ungroup()
+
+BLUP_cor<-data.frame(BLUP_cor=cor(BLUP,pheno$mean,method = "pearson",use = "complete.obs"))
+
+var_Comp<-as.data.frame(summary(model0)$varcomp)
+
+t<-as.data.frame(table(d2$GID));t<-t[!t$Var1%in%c("R","NACL"),];r<-mean(t$Freq)
+H2<-round(var_Comp["GID",]$component/((var_Comp["GID",]$component+var_Comp["units!R",]$component)/r),4)
+h2<-round(var_comp_narrow[1,]$component/((var_comp_narrow[1,]$component+var_comp_narrow["units!R",]$component)/r),4)
+h2<-as.data.frame(h2)
+H2<-as.data.frame(H2)
+predictV<-predict(model0,classify = "GID")
+
+object<-list(predictV,H2,h2,BLUP_cor)
+
+return(object)
+
+}
+
+step1_MQ.0<-MQ_long%>%filter(!trait%in%c("ST","sp_mean"))%>%group_by(trait)%>%group_map(asreml_step1,.keep = TRUE)
+
+```
+
+Biplot
+```{r}
+
+
+%>% group_modify(~{
+    PCA = .x %>% select(AA:GITP6) %>%
+      princomp(., cor=T)
+    X <- PCA$loadings
+    X[,1:2]
+    loadings = data.frame((X[,1:3]))
+    loadings %>% rownames_to_column(var = 'trait') %>% mutate(PercentVar2PC = sum((PCA$sdev^2)[1:2])/sum(PCA$sdev^2) )
+  })
+
+
+```
+```{r}
 
 
 ###
 
 
-simple<-MQ
-MQ$BG
-gd
+simple<-MQ%>%rename(crop_year="Crop Year")
+
 genoMp
-pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",
-resp = "BG", geno.data = gd,map.data = genoMp,
+table(step1_MQ1$trait)
+#d3<-step1_MQ1%>%rename(GID=taxa,value=pvals.predicted.value)%>%filter(trait=="TotalProtein")
+View(MQ)
+names(MQ)
+pre.aprAA <- pre.gwas(pheno.data=MQ, indiv = "GID",
+resp = "FAN", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
-method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
-##
-pre.aprAA$pheno.data$Timepoint
+method = "VanRaden", rename.markers = TRUE, impute = TRUE, Q.method = "K",heterozygosity = 0.20)
+##v
+
+fixed=c("Treatment")
 random=NULL
-fixed=c("Timepoint")
-resid=NULL
-gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "BG",
+#View(pre.aprAA$pheno.data)
+resid="Timepoint"
+
+gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "MP",
  gen = "GID", Kinv = pre.aprAA$Kinv,
 Q = pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
-map.data = pre.aprAA$map.data, pvalue.thr =5e-05,bonferroni = FALSE,fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
-
-
+map.data = pre.aprAA$map.data, pvalue.thr =1e-05,bonferroni = FALSE,fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
+gwasSTP$heritability
+gwasSTP$heritability
 FDR_thresholds(gwasSTP)
+summary(gwasSTP$mod)$varcomp
+wald.asreml(gwasSTP$mod)
 
-t3<-simple[,c("GI","Year","PM_date")]
-
-
-tr<-"GI";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
 
 
 qq.plot(gwas.table = gwasSTP$gwas.all)
 manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = FDR_thresholds(gwasSTP)[1,1],
 point.size = 1.2)
+
+
+tr<-"ST";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
+t3<-simple[,c("AA","Timepoint")]
 #change here
 
 GI2020_PM5<-gwasSTP

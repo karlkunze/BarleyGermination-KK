@@ -231,6 +231,38 @@ winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])", "\\1\
   ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(shape=guide_legend(title = "Variety/Experimental Line"),size="none",color=guide_legend(title="Family/Population"))+xlab(as.character(paste0("PC1: ",round(WinterPVEPCA[1]*100,2),"%")))+ylab(as.character(paste0("PC2: ",round(WinterPVEPCA[2]*100,2),"%")))+ggtitle(lab="Principal component analysis plot of the \n NY winter malting barley double haploid population")+theme(plot.title = element_text(hjust = 0.5))+scale_x_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))+scale_y_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))
 
 ```
+
+```{r}
+library(tidyr)
+hist(df_begin$GI_0)
+df_begin$Family<-gsub("DH130910","Lightning",df_begin$Family)
+df_begin_long<-df_begin%>%mutate(GI_0=ifelse(is.nan(GI_0),NA,GI_0))%>%pivot_longer(names_to="trait",cols=c("GE","GI"))%>%rename(year=Year)
+df2<-df_begin_long%>%filter(PM_date%in%c("5","19","47","96","152"))
+
+df2$year<-"2020/2021"
+
+df_begin_long%>%rbind(df2)%>% mutate(headerFacet = 'Dataset Year') %>%
+  ggplot(aes(x = PM_date, y = value, group = GID))+
+  geom_smooth(na.rm = TRUE,se=FALSE,linewidth=0.2,colour="black")+facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_vline(xintercept = c(12,33,68), color = 'red')+
+  labs(title = 'Germination Energy and Index over time by individual genotype')+theme_bw()
+```
+
+```{r}
+
+df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
+  filter(Family %nin% c('Lightning'))   %>%
+ # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+  filter(!(trait =='GE' &value>1.05)) %>%
+  ggplot(aes(x = PM_date, y = value, fill = Qsd1))+
+ 
+  geom_boxplot(outlier.shape = NA)+facet_nested(trait~Family+year, scales = 'free')+
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination rates by grouping of AlaAT"))+
+theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+
+
+```
 Pre-harvest sprouting
 
  
