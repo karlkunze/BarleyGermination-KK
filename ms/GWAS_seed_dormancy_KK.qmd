@@ -119,7 +119,8 @@ In addition to measuring germination, a 120 line malting quality subset previous
 Malting quality samples were sent to the USDA Cereal Crops and research unit(CCRU) in Madison, WI. The small grain samples were frozen upon arrival. Each line was malted in single replicates at two different time points corresponding 67 days post PM and 152 post PM. Due to limits on how many tea ball samples could be malted at one time, the samples were malted in batches every week for two months. Malting procedure and analysis were performed in the methods described by @schmittMaltingExtremelySmall2011 \# summary statistics
 
 ```{r}
-load("ms/Rdata/genetic_variance_h2.Rdata")
+getwd()
+load("Rdata/genetic_variance_h2.Rdata")
 
 phenoS1<-flextable(sum_table,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
 phenoS1
@@ -163,10 +164,11 @@ model_combined_GI
 
 model_combined_GE<-data.frame(year=rep("2020/2021",5),trait=rep("GE",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Year+ Year:Location",NA,"Year:Location + Location","Year:Location",NA),Random=rep(NA,5),Residual=c(NA,"Year",NA,NA,NA),Converged=c("no",rep("yes",4)))
 
+phs_sum<-data.frame(year=rep("2020/2021"),trait="PHS",PM_date=c(7),Q=rep("yes",1),npc="2",Fixed=c("Year+ Year:Location"),Random=rep(NA,1),Residual=c(NA),Converged=c("yes"))
 
-model_table1<-rbind(models2020,models2021,model_combined_GI,model_combined_GE)%>%relocate(trait,.before = 1)
+model_table1<-rbind(models2020,models2021,model_combined_GI,model_combined_GE,phs_sum)%>%relocate(trait,.before = 1)
 
-
+model_table1
 E1_ft<-flextable(model_table1,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
 E1_ft
 
@@ -208,7 +210,7 @@ All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at th
 
 ```{R}
 
-load("ms/Rdata/WinterRelationship.Rdata")
+load("Rdata/WinterRelationship.Rdata")
 WinterPCA = eigen(WinterRelationship)
 substr(WinterGD$taxa,1,3)
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
@@ -234,7 +236,7 @@ winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])", "\\1\
 
 ```{r}
 library(tidyr)
-hist(df_begin$GI_0)
+
 df_begin$Family<-gsub("DH130910","Lightning",df_begin$Family)
 df_begin_long<-df_begin%>%mutate(GI_0=ifelse(is.nan(GI_0),NA,GI_0))%>%pivot_longer(names_to="trait",cols=c("GE","GI"))%>%rename(year=Year)
 df2<-df_begin_long%>%filter(PM_date%in%c("5","19","47","96","152"))
@@ -250,24 +252,44 @@ df_begin_long%>%rbind(df2)%>% mutate(headerFacet = 'Dataset Year') %>%
 
 ```{r}
 
+
 df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
   filter(Family %nin% c('Lightning'))   %>%
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
-  ggplot(aes(x = PM_date, y = value, fill = Qsd1))+
- 
-  geom_boxplot(outlier.shape = NA)+facet_nested(trait~Family+year, scales = 'free')+
+  ggplot(aes(x=PM_date,y=value,fill = Qsd1))+
+geom_boxplot(outlier.shape =NA)+facet_nested(trait~Family+year, scales = 'free')+
+
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination rates by grouping of AlaAT"))+
-theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))
+theme_bw()+theme(axis.text.x = element_text(angle = 45),plot.title = element_text(hjust=0.5))
+#PHS
+
+phs_setup<-df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+  plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
+  filter(Family %nin% c('Lightning'))   %>%select(phs,Qsd1,taxa,SourcePLOT,Location,year)%>%unique()
+ # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+phs_setup%>%group_by(taxa)%>%
+  ggplot(aes(phs, fill = Qsd1))+
+ 
+  geom_histogram(binwidth = 0.2,col=I("black"))+
+  labs(x="PHS score(0-9)",y="Frequecny")+ggtitle(label = paste0("Hisogram of Pre-harvest sprouting values for 2020/2021"))+
+theme_bw()+theme(axis.text.x = element_text(angle = 0),plot.title = element_text(hjust=0.5))+
+    annotate('rect', xmin=-0.1, xmax=2, ymin=0, ymax=1000, alpha=.1, fill='green')+
+    annotate('rect', xmin=2, xmax=4, ymin=0, ymax=1000, alpha=.1, fill='yellow')+
+     annotate('rect', xmin=4, xmax=7, ymin=0, ymax=1000, alpha=.1, fill='red')
+ 
 
 
+ # stat_bin(aes(y=(phs)/sum(phs), 
+ #    label=round((phs)/sum(phs),2)),
+ #    geom="text", size=4, binwidth = 0.1, vjust=-1.5)
 ```
 Pre-harvest sprouting
 
- 
 
-For the 2020 year, we only did a subsample of phs scoring. While the 2020 data did follow the trend explained for the 2021 results, we did not have enough observations to determine whether all experimental lines in the 2020 year were resistant or susceptible to phs in the 2020 environment mainly due to low variation and sample size. In our first complete year observation of the 435 unique lines in our trials, we found that 95% of our experimental lines were pre-harvest sprouting resistant (0-2 score) across two locations. Approximately 4.4 % were somewhat resistant (2-4) and only 1.6 % of our lines were PHS susceptible (above 4). The low mean of phs for most of the lines is encouraging, however phs needs to be tested in at least more than one year to account for different environmental effects. This is particularly important given the significant increased dormancy we observed for the 2021 year. Given the low variation of phs scores, correlations were low to most of the GE and GI timepoints. PHS was only moderately correlated with the first timepoint (PM 5) for GE(0.633) and GI(0.683). Even with a week of after ripening, correlation with phs scores dropped significantly at time point 1.5(12 days post PM) for GE(0.367) and GI(0.415). This suggests that for our winter barley population, there is potential to select for increased dormancy break while maintaining PHS resistance. Broad sense heritability for all germination traits, timepoints, years and combinations were very high(0.9). Heritability dropped slight for GE at later time points due to reduced variation but still retained heritability values a minimum\~0.75
+
+For the 2020 year, we only did a subsample of phs scoring. While the 2020 data did follow the trend explained for the 2021 results, we did not have enough observations to determine whether all experimental lines in the 2020 year were resistant or susceptible to phs in the 2020 environment mainly due to low variation and sample size. In our first complete year observation of the 435 unique lines in our trials, we found that 95% of our experimental lines were pre-harvest sprouting resistant (0-2 score) across two locations. Approximately 4.4 % were somewhat resistant (2-4) and only 1.6 % of our lines were PHS susceptible (above 4). The low mean of phs for most of the lines is encouraging, however phs needs to be tested in at least more than one year to account for different environmental effects. This is particularly important given the significant increased dormancy we observed for the 2021 year. Given the low variation of phs scores, correlations were low to most of the GE and GI timepoints. PHS was only moderately correlated with the first timepoint (PM 5) for GE(0.633) and GI(0.683). Even with a week of after ripening, correlation with phs scores dropped significantly at time point 1.5(12 days post PM) for GE(0.367) and GI(0.415). This suggests that for our winter barley population, there is potential to select for increased dormancy break while maintaining PHS resistance. Broad sense heritability for all germination traits, timepoints, years and combinations were very high(0.9). Heritability dropped slight for GE at later time points due to reduced variation but still retained heritability values a minimum~0.75
 
 #making a table for significant effects
 
@@ -279,11 +301,12 @@ load(paste0(path,"/data/GWA_results/STP_all.Rdata"))
 library(stringr)
 
 
-ord_list<-STP_all[STP_all$ID=="GI-2020/2021-PM_19",c("marker","ordinal")]%>%unique()
+ord_list<-STP_all[STP_all$ID=="GI-2020/2021-PM_152",c("chrom","pos","marker","ordinal")]
+ord_list<-ord_list%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
 table_chr<-STP_all%>%ungroup()%>%filter()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
 table_chr
-table_chr_min<-table_chr%>%group_by(chrom)%>%summarize(min=min(pos),min_ord=min(ordinal))
-table_chr_max<-table_chr%>%group_by(chrom)%>%summarize(max=max(pos),max_ord=max(ordinal))
+table_chr_min<-table_chr%>%group_by(chrom)%>%summarise(min=min(pos),min_ord=min(ordinal))
+table_chr_max<-table_chr%>%group_by(chrom)%>%summarise(max=max(pos),max_ord=max(ordinal))
 table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
 table_chr
 
@@ -316,12 +339,11 @@ winterChrLines
 
 table(STP_all$ID)
 winterOrdinalBreaks
-
-
+STP_all$ordinal
 
 WinterPerTPGWAS2<-STP_all%>%ungroup()%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))
 library(stringr)
-winterChrLines
+
 library(ggplot2)
 WinterPerTPGWAS
 
@@ -335,9 +357,9 @@ FDR_rate<-max(WinterPerTPGWAS2[WinterPerTPGWAS2$fdr.pvalues<0.051,]$p.value,na.r
 
 #even the line is slightly more conservative than the true FDR rate since the nearest FDR value below 0.05 is 0.03. This is important because while we do not want false positive(QQ plots should be used for this), we also shouldn't be over stringent with Bonferonni cutoff, we elimate
 #ALaAT_ord<-unique(WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal)
-WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal
+ALaAT_ord=WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal%>%unique()
 
-
+WinterPerTPGWAS2[WinterPerTPGWAS2$trait=="PHS",]$PM<-4
 WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='longdash')+
@@ -349,8 +371,8 @@ WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% 
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
 
 
-print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,5)))
-print(paste("Bonferroni cutoff at 0.05 :",round(0.05/9658,5)))
+print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,8)))
+print(paste("Bonferroni cutoff at 0.05 :",round(0.05/9658,8)))
 ```
 
 Genome wide association results

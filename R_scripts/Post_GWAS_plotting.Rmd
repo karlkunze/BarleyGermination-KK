@@ -286,7 +286,9 @@ names()
 names(GWAS_phs)
 names(GWAS_phs$gwas.sel)
 names(GI21_sig)
-sig<-rbind(GE20_sig,GE21_sig,GE_sig,GI20_sig,GI21_sig,GI20_sig,GWAS_phs$gwas.sel)%>%rename(ID=trait)%>%filter(!ID%in%c("GE-2021-PM_96: did_not_converge"))
+phs_df<-GWAS_phs$gwas.sel
+phs_df
+sig<-rbind(GE20_sig,GE21_sig,GE_sig,GI20_sig,GI21_sig,GI20_sig,)%>%filter(!ID%in%c("GE-2021-PM_96: did_not_converge"))
 sig
 
 

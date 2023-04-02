@@ -695,7 +695,7 @@ t3
 qq.plot(gwas.table = gwasSTP$gwas.all)
 manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = FDR_thresholds(gwasSTP)[1,1],
 point.size = 1.2)
-#marker effects
+#marker fects
 sel.markers <- gwasSTP$gwas.sel$marker
 Msel <- pre.aprAA$geno.data[, sel.markers, drop = FALSE]
 Msel 
@@ -3116,7 +3116,8 @@ MQ[MQ$GID=="DH130910",]$GID<-"LIGHTNING"
 library(tidyr)
 MQ%>%pivot_longer(names_to="MQ_trait",cols=c(BG,AA,DP,FAN,sp_mean,ME,MP,ST))%>%ggplot(aes(value)) + 
         # it sets bins intead of breaks, so add 1
-        geom_histogram(bins = 51) + 
+        
+  stogram(bins = 51) + 
         # make a new "facet" for each value of `variable` (formerly column names), and 
         # use a convenient x-scale instead of the same for all 3
         facet_wrap(~Timepoint+MQ_trait,scales = "free_x")+theme_bw()
