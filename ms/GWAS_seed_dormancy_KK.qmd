@@ -62,6 +62,15 @@ setwd(quarto_path)
 
 ```
 
+```{r}
+load(paste0(path,"/","data/WMB_DH_Germination_data2020_2021.RData"))#DH2020_2021
+DH2020_2021<-DH2020_2021%>%filter(!Location=="Spring")
+marker_ef<-WinterGD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_308762","JHI_Hv50k_2016_311435")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762),"JHI_Hv50k_2016_311435"=as.factor("JHI_Hv50k_2016_311435"))
+
+df_begin<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")
+
+```
+
 # Abstract
 
 # Introduction
@@ -206,19 +215,25 @@ All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at th
 
 ```{R}
 
+load(paste0(path,"/data/Genotype_data/wmb_file.Rdata"))
+
+load(paste0(path,"/data/Genotype_data/numeric_raw.Rdata"))
+WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
 load("Rdata/WinterRelationship.Rdata")
+
 WinterPCA = eigen(WinterRelationship)
-substr(WinterGD$taxa,1,3)
+
+
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
 data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
 
 winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
   
-  mutate(family = plyr::mapvalues(substr(WinterGD$taxa,1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
+  mutate(family = plyr::mapvalues(substr(rownames(WinterGD),1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
                             to = c('Flavia/Lightning','Scala/Lightning','SY_Tepee/Lightning','Wintmalt/Lightning',
       
                                                                 'Lightning','Flavia/Lightning','SY_Tepee/Lightning','Scala/Lightning','Wintmalt/Lightning',"Check","Check","Check")),
-         taxa = WinterGD$taxa,
+         taxa = rownames(WinterGD),
          shapes = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), taxa, 'Lines'),
          size = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), 3, 2))
 
@@ -234,7 +249,8 @@ winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])", "\\1\
 library(tidyr)
 
 df_begin$Family<-gsub("DH130910","Lightning",df_begin$Family)
-df_begin_long<-df_begin%>%mutate(GI_0=ifelse(is.nan(GI_0),NA,GI_0))%>%pivot_longer(names_to="trait",cols=c("GE","GI"))%>%rename(year=Year)
+
+df_begin_long<-df_begin%>%mutate(GI_0=GI/GE)%>%mutate(GI_0=ifelse(is.nan(GI_0),NA,GI_0))%>%pivot_longer(names_to="trait",cols=c("GE","GI"))%>%rename(year=Year)
 df2<-df_begin_long%>%filter(PM_date%in%c("5","19","47","96","152"))
 
 df2$year<-"2020/2021"
@@ -248,7 +264,9 @@ df_begin_long%>%rbind(df2)%>% mutate(headerFacet = 'Dataset Year') %>%
 
 ```{r}
 
-
+WinterGD$taxa<-rownames(WinterGD)
+WinterGD<-WinterGD%>%relocate(taxa,.before=1)
+library(Hmisc)
 df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
   filter(Family %nin% c('Lightning'))   %>%
@@ -341,9 +359,7 @@ WinterPerTPGWAS2<-STP_all%>%ungroup()%>%mutate(ordinal=plyr::mapvalues(marker,fr
 library(stringr)
 
 library(ggplot2)
-WinterPerTPGWAS
 
-hist(WinterPerTPGWAS2$log10PVal)
 WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal>3.5&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
 #this GWAS TP is giving weird assocations, so I just removed it
 
@@ -366,7 +382,7 @@ WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% 
                      breaks = winterOrdinalBreaks)+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
+WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy, Index and PHS on CH 5")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  geom_vline(xintercept = 5760, color = 'red',linetype='longdash')+
   annotate(geom= 'text', x = 5760, y = 12, label = 'AlaAT1')+
@@ -391,6 +407,7 @@ For single timepoint GWAS, we found a total of 37 significant marker trait assoc
 
 ```{r}
 getwd()
+
 load("Rdata/Significant_marker_table.Rdata")
 View(marker_tableR)
 

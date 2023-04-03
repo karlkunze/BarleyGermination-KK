@@ -158,7 +158,7 @@ save(STP_all,file="data/GWA_results/STP_all.Rdata")
 save(STP_all,file="data/GWA_results/STP_all.Rdata")
 table(STP_all$ID)
 table_chr<-STP_all%>%ungroup()%>%dplyr::select(chrom,pos,ordinal)%>%arrange(chrom,pos)%>%unique()
-
+detach("package:Hmisc",unload=TRUE)
 table_chr_min<-table_chr%>%group_by(chrom)%>%summarize(min=min(pos),min_ord=min(ordinal))
 table_chr_max<-table_chr%>%group_by(chrom)%>%summarize(max=max(pos),max_ord=max(ordinal))
 table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
@@ -308,11 +308,9 @@ markers=rbind(markers1,t)%>%unique()%>%filter(maf>0.05)
 
 Genetic_map <- read_excel("~/git/naked_barley_GWAS/data/Genetic/Genetic_map.xlsx")%>%dplyr::select(snp,"physical map chr","genetic map chr",cM)%>%rename(SNP=snp)%>%mutate(cM= if_else(is.na(cM), lead(cM), cM)) %>%tidyr::fill(cM,.direction="downup")%>%mutate(SNP=gsub("-","_",SNP))%>%rename(marker=SNP,chrom="physical map chr",chromG="genetic map chr")%>%mutate(chrom=as.numeric(substr(chrom,1,1)),chromG=as.numeric(substr(chromG,1,1)))
 
-Genetic_map$SNP
-Genetic_map$cM
+
 
 marker_table<-markers%>%filter(maf>0.05)%>%arrange(chrom,pos,year,PM)%>%left_join(Genetic_map,by=c("chrom","marker"))%>%unique()%>%reframe(.by = c(chrom,marker),pos_range=ifelse(min(pos)==max(pos),max(pos),paste0(min(pos),"-",max(pos))),cm_range=ifelse(min(cM)==max(cM),min(cM),paste0(min(cM),"-",max(cM))),PM_dates = toString(unique(PM)),trait=toString(unique(trait)),year=toString(unique(year)),testmin=round(min(maf),3),testmax=round(max(maf),3),PVEmin=round(min(expl.var),3),PVEmax=round(max(expl.var),3),Pvalue=max(round(p.value,4)))%>%tidyr::drop_na(chrom)
-Viewmarker_table)
 
 ```
 #LD analysis
@@ -484,7 +482,7 @@ gdat0<-as(gdt0,"SnpMatrix")
 
 LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 5",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
 
-gmt$SNP
+
 CH5_LD_groupA_real=data.frame(SNP=gmt$SNP,Ch="5",group="A",Position=gmt$Position,ld=0.91)
 ## group 2
 gdt0<-gdt[,c(28:39)]
@@ -590,9 +588,7 @@ rownames(m3)=NULL
 
 
 test<-Genetic_map%>%right_join(m3%>%select(marker,chrom,pos),by=c("chrom","marker"))%>%tidyr::drop_na(cM)%>%unique()
-marker_table2$SNP
-View(marker_table2)
-m3
+
 
 marker_table2<-m3%>%filter(p.value<FDR_rate)%>%left_join(test%>%select(!pos),by=(c("chrom","marker")))%>%arrange(chrom,pos)%>%mutate(marker_collapse=plyr::mapvalues(marker,from=conversion$SNP,to=conversion$SNP_marker))%>%dplyr::select(!marker)%>%unique()%>%reframe(.by = c(chrom,marker_collapse),pos_range=paste0(min(pos),"-",max(pos)),cm_range=paste0(min(cM),"-",max(cM)),PM_dates = toString(unique(PM)),trait=toString(unique(trait)),year=toString(unique(year)),testmin=round(min(maf),3),testmax=round(max(maf),3),PVEmin=round(min(expl.var),3),PVEmax=round(max(expl.var),3),Pvalue=max(round(p.value,4)))%>%
 
@@ -613,44 +609,51 @@ setwd("/home/karl/git/naked_barley_GWAS/")
 # we have to do this on the linux
 #also do not add columns, that screws things up later. If you want adtnl columns merge them and use relocate at the end
 #QTL_Disease<-sig_hits_markers%>%mutate(SNP.2=SNP,Breed="1")%>%dplyr::select(SNP,SNP.2,trait,Chr,Pos,Breed,signif)%>%rename(Associated.marker=SNP,SNP.reference=SNP.2,Trait=trait,CHR=Chr,BP=Pos,Reference=signif)%>%
-  mutate(CHR=as.character(CHR),BP=as.integer(BP))
+
 QTL_Disease<-markers%>%mutate(Associated.marker=marker,SNP.reference=marker,Breed="1",CHR=chrom,BP=pos,Reference=ID)%>%select(Associated.marker,SNP.reference,trait,Breed,CHR,BP,Reference)%>%arrange(CHR,BP)
 names(QTL_Disease)
 QTL_Disease$CHR
-hc_ch1<-import_gff_gtf(db_file="data/Reference_seq/Chr1H/High-Confidence-chr1H-1..522466905.gff3",file_type = "gff")
-hc_ch2<-import_gff_gtf(db_file="data/Reference_seq/Chr2H/High-Confidence-chr2H-1..675310294.gff3",file_type = "gff")
-hc_ch3<-import_gff_gtf(db_file="data/Reference_seq/Chr3H/High-Confidence-chr3H-1..628753756.gff3",file_type = "gff")
-hc_ch4<-import_gff_gtf(db_file="data/Reference_seq/Chr4H/High-Confidence-chr4H-1..624247919.gff3",file_type = "gff")
-hc_ch5<-import_gff_gtf(db_file="data/Reference_seq/Chr5H/High-Confidence-chr5H-1..599018945.gff3",file_type = "gff")
-hc_ch6<-import_gff_gtf(db_file="data/Reference_seq/Chr6H/High-Confidence-chr6H-1..573247234.gff3",file_type = "gff")
-hc_ch7<-import_gff_gtf(db_file="data/Reference_seq/Chr7H/High-Confidence-chr7H-1..634667502.gff3",file_type = "gff")
-hc=rbind(hc_ch1,hc_ch2,hc_ch3,hc_ch4,hc_ch5,hc_ch6,hc_ch7)
-rm(hc_ch1,hc_ch2,hc_ch3,hc_ch4,hc_ch5,hc_ch6,hc_ch7)
+v3<-import_gff_gtf(db_file="data/Reference_seq/V3/Hv_Morex.pgsb.Jul2020.gff3",file_type = "gff")
 
-hc
-CDS_path<-paste0("data/Reference_seq/",list.files("data/Reference_seq",pattern="CDS-",recursive = TRUE))
+# hc_ch1<-import_gff_gtf(db_file="data/Reference_seq/Chr1H/High-Confidence-chr1H-1..522466905.gff3",file_type = "gff")
+# hc_ch2<-import_gff_gtf(db_file="data/Reference_seq/Chr2H/High-Confidence-chr2H-1..675310294.gff3",file_type = "gff")
+# hc_ch3<-import_gff_gtf(db_file="data/Reference_seq/Chr3H/High-Confidence-chr3H-1..628753756.gff3",file_type = "gff")
+# hc_ch4<-import_gff_gtf(db_file="data/Reference_seq/Chr4H/High-Confidence-chr4H-1..624247919.gff3",file_type = "gff")
+# hc_ch5<-import_gff_gtf(db_file="data/Reference_seq/Chr5H/High-Confidence-chr5H-1..599018945.gff3",file_type = "gff")
+# hc_ch6<-import_gff_gtf(db_file="data/Reference_seq/Chr6H/High-Confidence-chr6H-1..573247234.gff3",file_type = "gff")
+# hc_ch7<-import_gff_gtf(db_file="data/Reference_seq/Chr7H/High-Confidence-chr7H-1..634667502.gff3",file_type = "gff")
+hc_v3<-import_gff_gtf(db_file="data/Reference_seq/V3/Hv_Morex.pgsb.Jul2020.gff3",file_type = "gff")
+hc<-hc_v3
+rm(hc_v3)
+#hc=rbind(hc_ch1,hc_ch2,hc_ch3,hc_ch4,hc_ch5,hc_ch6,hc_ch7)
+#rm(hc_ch1,hc_ch2,hc_ch3,hc_ch4,hc_ch5,hc_ch6,hc_ch7)
 
-cds_ch1<-import_gff_gtf(db_file=CDS_path[1],file_type = "gff")
-cds_ch2<-import_gff_gtf(db_file=CDS_path[2],file_type = "gff")
-cds_ch3<-import_gff_gtf(db_file=CDS_path[3],file_type = "gff")
-cds_ch4<-import_gff_gtf(db_file=CDS_path[4],file_type = "gff")
-cds_ch5<-import_gff_gtf(db_file=CDS_path[5],file_type = "gff")
-cds_ch6<-import_gff_gtf(db_file=CDS_path[6],file_type = "gff")
-cds_ch7<-import_gff_gtf(db_file=CDS_path[7],file_type = "gff")
-cds<-rbind(cds_ch1,cds_ch2,cds_ch3,cds_ch4,cds_ch5,cds_ch6,cds_ch7)
-rm(cds_ch1,cds_ch2,cds_ch3,cds_ch4,cds_ch5,cds_ch6,cds_ch7)
-mrna_path<-paste0("data/Reference_seq/",list.files("data/Reference_seq",pattern="mRNA",recursive = TRUE))
-mrna_path
-mrna1<-import_gff_gtf(db_file=mrna_path[1],file_type = "gff")
-mrna2<-import_gff_gtf(db_file=mrna_path[2],file_type = "gff")
-mrna3<-import_gff_gtf(db_file=mrna_path[3],file_type = "gff")
-mrna4<-import_gff_gtf(db_file=mrna_path[4],file_type = "gff")
-mrna5<-import_gff_gtf(db_file=mrna_path[5],file_type = "gff")
-mrna6<-import_gff_gtf(db_file=mrna_path[6],file_type = "gff")
-mrna7<-import_gff_gtf(db_file=mrna_path[7],file_type = "gff")
 
-mrna<-rbind(mrna1,mrna2,mrna3,mrna4,mrna5,mrna6,mrna7)
-rm(mrna1,mrna2,mrna3,mrna4,mrna5,mrna6,mrna7)
+# CDS_path<-paste0("data/Reference_seq/",list.files("data/Reference_seq",pattern="CDS-",recursive = TRUE))
+# 
+# cds_ch1<-import_gff_gtf(db_file=CDS_path[1],file_type = "gff")
+# cds_ch2<-import_gff_gtf(db_file=CDS_path[2],file_type = "gff")
+# cds_ch3<-import_gff_gtf(db_file=CDS_path[3],file_type = "gff")
+# cds_ch4<-import_gff_gtf(db_file=CDS_path[4],file_type = "gff")
+# cds_ch5<-import_gff_gtf(db_file=CDS_path[5],file_type = "gff")
+# cds_ch6<-import_gff_gtf(db_file=CDS_path[6],file_type = "gff")
+# cds_ch7<-import_gff_gtf(db_file=CDS_path[7],file_type = "gff")
+# cds<-rbind(cds_ch1,cds_ch2,cds_ch3,cds_ch4,cds_ch5,cds_ch6,cds_ch7)
+# rm(cds_ch1,cds_ch2,cds_ch3,cds_ch4,cds_ch5,cds_ch6,cds_ch7)
+# mrna_path<-paste0("data/Reference_seq/",list.files("data/Reference_seq",pattern="mRNA",recursive = TRUE))
+# mrna_path
+# mrna1<-import_gff_gtf(db_file=mrna_path[1],file_type = "gff")
+# mrna2<-import_gff_gtf(db_file=mrna_path[2],file_type = "gff")
+# mrna3<-import_gff_gtf(db_file=mrna_path[3],file_type = "gff")
+# mrna4<-import_gff_gtf(db_file=mrna_path[4],file_type = "gff")
+# mrna5<-import_gff_gtf(db_file=mrna_path[5],file_type = "gff")
+# mrna6<-import_gff_gtf(db_file=mrna_path[6],file_type = "gff")
+# mrna7<-import_gff_gtf(db_file=mrna_path[7],file_type = "gff")
+# 
+# mrna<-rbind(mrna1,mrna2,mrna3,mrna4,mrna5,mrna6,mrna7)
+# rm(mrna1,mrna2,mrna3,mrna4,mrna5,mrna6,mrna7)
+mrna<-v3%>%filter(QTL_type=="mRNA")
+cds<-v3%>%filter(QTL_type=="CDS")
 
 mrna$chr<-substr(mrna$chr,4,4)#
 cds$chr<-substr(cds$chr,4,4)#
@@ -669,8 +672,8 @@ marker = "snp", interval = 2000000)
 out.genes_hc
 
 splitQTL_comment_mrna<-function(df){
-#df=out.genes_mrna
-df
+
+
   output_qtls<-as.data.frame(df)
   output_qtls$QTL_type<-as.character(output_qtls$QTL_type)
   tmp.type<-vapply(strsplit(as.character(output_qtls[grep("_Association",output_qtls$QTL_type),"QTL_type"]), "_Association"),'[',1,FUN.VALUE=character(1))
@@ -695,60 +698,49 @@ df
 output_qtls
   
   tmp.split<-stringr::str_split_fixed(output_qtls$extra_info, ";",n=Inf)
-tt<-cbind(output_qtls,tmp.split)%>%as.data.frame()
+tt<-cbind(output_qtls,tmp.split)%>%as.data.frame()%>%distinct()
 
-#   mtcars$type <- rownames(mtcars)
-# mtcars$type
-# str(tt$"3")
-#   mtcars%>%mutate()
+names(tt)[14]<-"gene_id"
+names(tt)[15]<-"parent_id"
+names(tt)[16]<-"confidence"
+names(tt)[17]<-"biotype"
+names(tt)[18]<-"significance_scores"
 
-#dplyr::filter(mtcars, grepl('Toyota|Mazda', type))
-
-names(tt)[14]<-"significance_scores"
-names(tt)[15]<-"gene_description1"
-names(tt)[16]<-"test2"
-names(tt)[17]<-"test3"
-names(tt)[18]<-"test4"
-names(tt)[19]<-"test5"
-
+names(tt)[19]<-"description"
+names(tt)[20]<-"ontology"
+names(tt)[21]<-"interfam"
+names(tt)[22]<-"interpro"
 tt$Ordinal<-1:nrow(tt)
 #View(tt)
-descr2<-tt%>%dplyr::filter(grepl('_Description2', test2),grepl('_Gene_id', test3))%>%rename(gene_description2=16,gene_ID=17,gene_ID_2=18,GO_term=19,Confidence_primary=20,Confidence_secondary=21)%>%dplyr::select(!c("9","10"))
 
-descr3<-tt%>%filter(grepl('_Description3', test3),grepl('_Gene_id', test4))%>%rename(gene_description2=16,gene_description3=17,gene_ID=18,gene_ID_2=19,GO_term=20,Confidence_primary=21,Confidence_secondary=22)%>%dplyr::select(!c("10"))
+# descr2<-tt%>%dplyr::filter(grepl('_Description2', test2),grepl('_Gene_id', test3))%>%rename(gene_description2=16,gene_ID=17,gene_ID_2=18,GO_term=19,Confidence_primary=20,Confidence_secondary=21)%>%dplyr::select(!c("9"))
+# descr2
+# descr3<-tt%>%filter(grepl('_Description3', test3),grepl('_Gene_id', test4))%>%rename(gene_description2=16,gene_description3=17,gene_ID=18,gene_ID_2=19,GO_term=20,Confidence_primary=21,Confidence_secondary=22)%>%dplyr::select(!c("10"))
+# 
+# descr4<-tt%>%filter(grepl('_Description4', test4),grepl('_Gene_id', test5))%>%rename(gene_description2=16,gene_description3=17,gene_description4=18,gene_ID=19,gene_ID_2=20,GO_term=21,Confidence_primary=22,Confidence_secondary=23)#%>%dplyr::select(!c("11"))
+# #View(descr5)
+# 
+# descr5<-tt%>%filter(grepl('_Description5',test5))%>%rename(gene_description2=16,gene_description3=17,gene_description4=18,gene_description5=19,gene_ID=20,gene_ID_2=21,GO_term=2,Confidence_primary=23,Confidence_secondary=24)
+# 
+# descr<-plyr::rbind.fill(descr2,descr3,descr4,descr5)%>%dplyr::select(-"9")
+# 
+# 
+# tt_descr1<-tt%>%filter(!Ordinal%in%descr$Ordinal)%>%rename(significance_scores=14,gene_description1=15,gene_ID=16,gene_ID_2=17,GO_term=18,Confidence_primary=19,Confidence_secondary=20)%>%dplyr::select(!c("8","9","10"))
+# 
+output_qtls<-tt%>%unique()
 
-descr4<-tt%>%filter(grepl('_Description4', test4),grepl('_Gene_id', test5))%>%rename(gene_description2=16,gene_description3=17,gene_description4=18,gene_ID=19,gene_ID_2=20,GO_term=21,Confidence_primary=22,Confidence_secondary=23)#%>%dplyr::select(!c("11"))
-#View(descr5)
-
-descr5<-tt%>%filter(grepl('_Description5',test5))%>%rename(gene_description2=16,gene_description3=17,gene_description4=18,gene_description5=19,gene_ID=20,gene_ID_2=21,GO_term=2,Confidence_primary=23,Confidence_secondary=24)
-
-descr<-plyr::rbind.fill(descr2,descr3,descr4,descr5)%>%dplyr::select(-"9")
 
 
-tt_descr1<-tt%>%filter(!Ordinal%in%descr$Ordinal)%>%rename(significance_scores=14,gene_description1=15,gene_ID=16,gene_ID_2=17,GO_term=18,Confidence_primary=19,Confidence_secondary=20)%>%dplyr::select(!c("8","9","10"))
-
-output_qtls<-plyr::rbind.fill(tt_descr1,descr)
-
-
-# str_split_fixed(output_qtls[,c(7:13,15:18)],"\\=",n=2)[,2]
 # sapply(strsplit(as.character(h$tes), "\\."), "[[", 2)
-# sapply(strsplit(output_qtls[,c(7:13,15:18)], "\\="), "[[", 1)
+#sapply(strsplit(output_qtls[,c(7:13,15:18)], "="), "[[", 1)
+output_qtls2<-output_qtls
 
+for(i in 14:22){
+  
+  output_qtls2[,i]<-stringr::str_split_fixed(output_qtls[,i], "=",n=2)[,2]
+  
+}
 
-  output_qtls[,"significance_scores"]<-stringr::str_split_fixed(output_qtls[,"significance_scores"], "=",n=2)[,2]
-
-output_qtls[,"gene_description1"]<-stringr::str_split_fixed(output_qtls[,"gene_description1"], "=",n=2)[,2]
-output_qtls[,"gene_ID"]<-stringr::str_split_fixed(output_qtls[,"gene_ID"], "=",n=2)[,2]
-output_qtls[,"gene_ID_2"]<-stringr::str_split_fixed(output_qtls[,"gene_ID_2"], "=",n=2)[,2]
-
-output_qtls[,"GO_term"]<-stringr::str_split_fixed(output_qtls[,"GO_term"], "=",n=2)[,2]
-output_qtls[,"Confidence_primary"]<-stringr::str_split_fixed(output_qtls[,"Confidence_primary"], "=",n=2)[,2]
-output_qtls[,"Confidence_secondary"]<-stringr::str_split_fixed(output_qtls[,"Confidence_secondary"], "=",n=2)[,2]
- 
-output_qtls[,"gene_description2"]<-stringr::str_split_fixed(output_qtls[,"gene_description2"], "=",n=2)[,2]
-output_qtls[,"gene_description3"]<-stringr::str_split_fixed(output_qtls[,"gene_description3"], "=",n=2)[,2]
-output_qtls[,"gene_description4"]<-stringr::str_split_fixed(output_qtls[,"gene_description4"], "=",n=2)[,2]   
-output_qtls[,"gene_description5"]<-stringr::str_split_fixed(output_qtls[,"gene_description5"], "=",n=2)[,2]  
 mrna_qtl<-output_qtls
 
   return(mrna_qtl)
@@ -873,21 +865,25 @@ library(stringr)
 cds_output
 names(mrna_output)
 #View(object)
-object<-plyr::rbind.fill(mrna_output,hc_output,cds_output)%>%tidyr::drop_na(SNP.reference)
+mrna_output[,"gene_id"]<-stringr::str_split_fixed(mrna_output[,"gene_id"], "=",n=2)[,2]
+mrna_output$gene_id
+object<-plyr::rbind.fill(mrna_output%>%rename(gene_ID=gene_id,gene_description=description),hc_output,cds_output)%>%tidyr::drop_na(SNP.reference)
+names(object)
+object[,"gene_description"]<-stringr::str_split_fixed(object[,"gene_description"], "=",n=2)[,2]
 library(stringr)
-object
-tt<-object%>%group_by(trait,SNP.reference,gene_ID)%>%dplyr::select(grep("gene_description", names(object), value=TRUE))%>%tidyr::drop_na(gene_description1)%>%ungroup() %>% mutate_if(is.character, str_trim)%>%unique() %>% mutate_if(is.character, str_trim)
+names(object)
 
-tt$gene_description<-trimws(paste0(tt$gene_description1,",",tt$gene_description2,",",tt$gene_description3,",",tt$gene_description4,",",tt$gene_description5))
+tt<-object%>%group_by(trait,SNP.reference,gene_ID)%>%dplyr::select(grep("gene_description", names(object), value=TRUE))%>%ungroup() %>% mutate_if(is.character, str_trim)%>%unique() %>% mutate_if(is.character, str_trim)
+
+# tt$gene_description<-trimws(paste0(tt$gene_description1,",",tt$gene_description2,",",tt$gene_description3,",",tt$gene_description4,",",tt$gene_description5))
 tt
 ww<-tt%>%dplyr::select(trait,SNP.reference,gene_description,gene_ID)%>%unique()%>%group_by(SNP.reference)#%>%pivot_wider(values_from="gene_description")
 
 ss<-object%>%dplyr::select(SNP.reference,CHR,BP,gene_ID,start_pos,end_pos)%>%unique()
 table(ss$CHR)
 ww
-ee<-ww%>%full_join(ss,by=c("SNP.reference","gene_ID"),relationship ="many-to-many")%>%tidyr::drop_na(trait)%>%arrange(trait,CHR,BP)%>%group_by(SNP.reference,gene_description)%>%slice(1)%>%ungroup()%>%arrange(CHR,BP)
+ee<-ww%>%full_join(ss,by=c("SNP.reference","gene_ID"),relationship ="many-to-many")%>%tidyr::drop_na(trait)%>%arrange(trait,CHR,BP)%>%group_by(SNP.reference,gene_description)%>%slice(1)%>%ungroup()%>%arrange(CHR,BP)%>%unique()
 ee
-
 setwd("~/git/BarleyGermination-KK/")
 
 library(openxlsx)
@@ -900,27 +896,31 @@ save(marker_table2,file="data/marker_table2.Rdata")
 marker_table2<-marker_table2%>%filter(MAF>0.05)
 marker_table2$Gene_candidate<-NA
 marker_table2
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_14932",]
 #CHR 2
+marker_table2[marker_table2$Chr=="2",]$Position
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_64721",]$Gene_candidate<-c("protein kinase family protein(HORVU.MOREX.r3.2HG0098680.1)")
 marker_table2[marker_table2$Chr=="2",]
-marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_64721",]$Gene_candidate<-c("Mitogen-activated protein kinase(HORVU.MOREX.r2.2HG0082040)")
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_78167, JHI_Hv50k_2016_78425, JHI_Hv50k_2016_78947",]$Gene_candidate<-"Anthocyanin 3-O-beta-glucosyltransferase	HORVU.MOREX.r3.2HG0113240.1"
 
-marker_table2[marker_table2$SNP=="SCRI_RS_135633, JHI_Hv50k_2016_90999, JHI_Hv50k_2016_141424",]$Gene_candidate<-"Dimeric alpha-amylase inhibitor(HORVU.MOREX.r2.2HG0176960)"
+
+marker_table2[marker_table2$SNP=="SCRI_RS_135633, JHI_Hv50k_2016_90999, JHI_Hv50k_2016_141424",]$Gene_candidate<-"Dimeric alpha-amylase inhibitor(HORVU.MOREX.r2.2HG0176960), mitogen-activated protein kinase 1(HORVU.MOREX.r3.2HG0135700.1),Beta-amylase(HORVU.MOREX.r3.2HG0138420.1),1,4-alpha-glucan-branching enzyme(HORVU.MOREX.r3.2HG0165780.1)"
 
 # 3H
 marker_table2[marker_table2$Chr=="3",]
 
 
 marker_table2[marker_table2$SNP=="SCRI_RS_16934",]$Gene_candidate<-"IAA-amino acid hydrolase ILR1,putative(HORVU.MOREX.r2.3HG0235350)"
-
+#4 H
 marker_table2[marker_table2$Chr=="4",]
 marker_table2[marker_table2$Chr=="4",]
-marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_262688, JHI_Hv50k_2016_262688, JHI_Hv50k_2016_262937",]$Gene_candidate<-"QGpc.StMo-4H(Protein Content)"
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_262688, JHI_Hv50k_2016_262688, JHI_Hv50k_2016_262937",]$Gene_candidate<-"Alpha amylase inhibitor protein(HORVU.MOREX.r3.4HG0409620.1).Alpha-1,4-glucan-protein synthase [UDP-forming] 1(HORVU.MOREX.r3.4HG0409970.1), QGpc.StMo-4H(Protein Content)"
 marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_275586, JHI_Hv50k_2016_275686, JHI_Hv50k_2016_276209",]$Gene_candidate<-c("	
 QDp.DiMo-4H(Diastatic Power)/QBgnm.MT2-4H(Beta Glucan)")
 
 
 #CH5
-marker_table2[marker_table2$Chr=="5",]
+marker_table2[marker_table2$Chr=="5",]$SNP
 
 
 
@@ -932,15 +932,27 @@ marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_311161",]$Gene_candidate<-"root
 
 
 marker_table2[marker_table2$Chr=="5",]$SNP
+marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_281309"),]$Gene_candidate<-"GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0424400.1)"
+marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_282781","JHI_Hv50k_2016_282768","JHI_Hv50k_2016_283159","SCRI_RS_136706","SCRI_RS_136706, JHI_Hv50k_2016_283749, JHI_Hv50k_2016_283875"),]$Gene_candidate<-"Aminotransferase-like, plant mobile domain-containing protein(HORVU.MOREX.r3.5HG0425960.1)"
 
-marker_table2[marker_table2$SNP=="Qsd1, JHI_Hv50k_2016_308790, JHI_Hv50k_2016_308859",]$Gene_candidate<-"HvAlaAT, abscisic aldehyde oxidase 3(HORVU.MOREX.r2.5HG0399320)"
+marker_table2[marker_table2$SNP=="Qsd1",]$Gene_candidate<-"HvAlaAT-Aminotransferase(HORVU.MOREX.r3.5HG0481320.1)"
 
-marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_310278, JHI_Hv50k_2016_312231, JHI_Hv50k_2016_314355",]$Gene_candidate<-c("1,4-alpha-glucan branching enzyme GlgB(HORVU.MOREX.r2.5HG0404420), GRAM-containing/ABA-responsive protein(HORVU.MOREX.r2.5HG0404090)")
+
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_308652, JHI_Hv50k_2016_308790, JHI_Hv50k_2016_308859",]$Gene_candidate<-"HvAlaAT-Aminotransferase(HORVU.MOREX.r3.5HG0481320.1), abscisic aldehyde oxidase 3(HORVU.MOREX.r2.5HG0399320)"
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_310278, JHI_Hv50k_2016_312231, JHI_Hv50k_2016_314355",]$Gene_candidate<-"GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1), 1,4-alpha-glucan branching enzymeGlgB(HORVU.MOREX.r3.5HG0488090.1),root meristem growth factor(HORVU.MOREX.r3.5HG0486840.1)"
+
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_310278, JHI_Hv50k_2016_312231, JHI_Hv50k_2016_314355",]$Gene_candidate<-"Beta-glucosidase, putative	HORVU.MOREX.r3.5HG0490890.1,Mitogen-activated protein kinase(HORVU.MOREX.r3.5HG0491520.1"
+View(marker_table2[marker_table2$Chr=="5",])
+
 
 
 marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_507218, JHI_Hv50k_2016_507370, JHI_Hv50k_2016_508103"),]$Gene_candidate<-"beta-amylase(HORVU.MOREX.r2.7HG0614220)"
 marker_table2[marker_table2$Chr=="7",]$SNP
 marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_450348"),]$Gene_candidate<-"ABA responsive binding factor(HORVU.MOREX.r2.7HG0533970)/ Glucan endo-1,3-beta-glucosidase,putative(HORVU.MOREX.r2.7HG0535140)/ Seed maturation protein(HORVU.MOREX.r2.7HG0535020)"
+
+
+
+
 
 marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_486280"),]$Gene_candidate<-"Endoglucanase(HORVU.MOREX.r2.7HG0584740)"
 
