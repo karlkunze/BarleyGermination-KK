@@ -22,10 +22,13 @@ address:
   - code: Cornell University
     address: Plant Breeding and Genetics, Bradfield Hall, Ithaca, NY 14853
 editor: visual
-format:
-  docx:
-    reference-doc: custom-reference-doc.docx
+format: html
+ # docx:
+  #  reference-doc: custom-reference-doc.docx
 link-citations: TRUE
+#execute:
+#  eval: false
+#  echo: false
 editor_options: 
   chunk_output_type: console
 crossref:
@@ -44,7 +47,7 @@ library(tidyr)
 library(knitr)
 library(png)
 
-
+library(Hmisc)
 sysname <- Sys.info()["sysname"]
 sysname
 if(sysname == "Darwin") {
@@ -186,6 +189,7 @@ phs_sum<-data.frame(year=rep("2020/2021"),trait="PHS",PM_date=c(7),Q=rep("yes",1
 model_table1<-rbind(models2020,models2021,model_combined_GI,model_combined_GE,phs_sum)%>%relocate(trait,.before = 1)
 
 ```
+
 ```{r}
 #| label: tbl-model_components
 #| tbl-cap: components
@@ -252,10 +256,10 @@ PCA_DH
 ```
 
 ```{r}
-#| label: fig-dormancy_over_time
-#| fig-cap: "geom loess curve over time for GI and GE"
-library(tidyr)
 
+library(tidyr)
+library(ggh4x)
+library(Hmisc)
 df_begin$Family<-gsub("DH130910","Lightning",df_begin$Family)
 
 df_begin_long<-df_begin%>%mutate(GI_0=GI/GE)%>%mutate(GI_0=ifelse(is.nan(GI_0),NA,GI_0))%>%pivot_longer(names_to="trait",cols=c("GE","GI"))%>%rename(year=Year)
@@ -263,7 +267,7 @@ df2<-df_begin_long%>%filter(PM_date%in%c("5","19","47","96","152"))
 
 df2$year<-"2020/2021"
 
-df_begin_long%>%rbind(df2)%>% mutate(headerFacet = 'Dataset Year') %>%
+op<-df_begin_long%>%rbind(df2)%>% mutate(headerFacet = 'Dataset Year') %>%
   ggplot(aes(x = PM_date, y = value, group = GID))+
   geom_smooth(na.rm = TRUE,se=FALSE,linewidth=0.2,colour="black")+ggh4x::facet_nested(trait~headerFacet+year, scales = 'free')+
   geom_vline(xintercept = c(12,33,68), color = 'red')+
@@ -372,8 +376,6 @@ WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal
 ```
 
 ```{r}
-#| label: fig-MM_gwas
-#| fig-cap: "Multi-Manhattan plot"
 
 
 
@@ -396,7 +398,7 @@ ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",tra
                      breaks = winterOrdinalBreaks)+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
-ALL_MM
+
 CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy, Index and PHS on CH 5")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  geom_vline(xintercept = 5760, color = 'red',linetype='longdash')+
@@ -406,7 +408,7 @@ CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",tra
   ylab('-log(p-value)')+xlab('Chromosome 5')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()+scale_x_continuous(limits = c(5000,7000)) 
 #Ch 5
-CH5_MM
+
 
 #print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,8)))
 #print(paste("Bonferroni cutoff at 0.05 :",round(0.05/9658,8)))
@@ -421,9 +423,6 @@ There is also a marker "JHI_Hv50k_2016_64721" on 2H that reaches borderline sign
 For single timepoint GWAS, we found a total of 37 significant marker trait associations associated with GE and GI across all timepoints and years. One marker per LD group of the significant single time point GWA was selected in table 1 to prevent redundancy. . The most significant association was the KASP marker for AlaAT_L214F(Qsd1) and the closely associated 50K_JHI-Hv50k-2016-276836(r=0.91) marker. Other potential hits detected in the study include Isoamylase (*HvISA3*,HORVU.MOREX.r2.5HG0404420) which is a starch-debranching enzyme located at 475796690-475807295 bp, 705025 bp distal to marker JHI-Hv50k-2016-311435. Isoamylases hydrolyze α-(1,6) glycosidic linkages and debranch amylopectin during grain filling (Gous and Fox, 2017). Shu and Rasmussen (2014) identified a MTA for amylose content highly associated with the contig MLOC_10776, which includes *HvISA3* (https://ics.hutton.ac.uk/morexGenes/). Starch with higher amylose content is hydrolyzed more slowly by amylolytic enzymes and higher amylose content has been hypothesized to be a contributing factor to grain dormancy (Chu et al., 2014). Although the role of amylose content in seed dormancy has been hypothesized, prior evidence for the role of *HvISA3* is limited. This locus may be useful for PHS resistance but a consistent decrease in GI is not desirable. Negative impacts on starch related malting quality traits like malt extract may also be present.Another gene of interest in this region is an abscisic acid responsive protein (Liu et al. 2013). Abscisic acid (ABA) is an important regulator of seed dormancy in barley: increases in ABA maintain seed dormancy and decreases in ABA reduce seed dormancy in barley (Gómez-Cadenas et. al 1999). Other potential novel loci include HvVP1 (Viviparous-1) which may be associated with JHI-Hv50k-2016-165725 on chromosome 3H and segregating in the SY Tepee family. HvVP1 is a master transcription factor regulator that controls switching between seed maturation and germination in barley (Abraham et al. 2016). \# Marker table
 
 ```{r}
-#| label: tbl-Hsig_markers
-#| tbl-cap: markers
-#| fig-cap: markes
 
 
 load("Rdata/Significant_marker_table.Rdata")
