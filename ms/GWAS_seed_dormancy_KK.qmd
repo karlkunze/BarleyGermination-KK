@@ -64,6 +64,11 @@ setwd(quarto_path)
 
 ```{r}
 load(paste0(path,"/","data/WMB_DH_Germination_data2020_2021.RData"))#DH2020_2021
+load(paste0(path,"/data/Genotype_data/wmb_file.Rdata"))
+
+load(paste0(path,"/data/Genotype_data/numeric_raw.Rdata"))
+WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
+
 DH2020_2021<-DH2020_2021%>%filter(!Location=="Spring")
 marker_ef<-WinterGD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_308762","JHI_Hv50k_2016_311435")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762),"JHI_Hv50k_2016_311435"=as.factor("JHI_Hv50k_2016_311435"))
 
@@ -128,11 +133,14 @@ In addition to measuring germination, a 120 line malting quality subset previous
 Malting quality samples were sent to the USDA Cereal Crops and research unit(CCRU) in Madison, WI. The small grain samples were frozen upon arrival. Each line was malted in single replicates at two different time points corresponding 67 days post PM and 152 post PM. Due to limits on how many tea ball samples could be malted at one time, the samples were malted in batches every week for two months. Malting procedure and analysis were performed in the methods described by @schmittMaltingExtremelySmall2011 \# summary statistics
 
 ```{r}
+#| label: tbl-H2_all
+#| tbl-cap: heritability
+#| fig-cap: heritability
 getwd()
 load("Rdata/genetic_variance_h2.Rdata")
 
 phenoS1<-flextable(sum_table,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
-phenoS1
+
 
 phenoS1<-phenoS1%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
 bold(bold = TRUE, part = "header")%>%set_caption(caption=as_paragraph(as_chunk("Summary statistics single and combined time point analysis ",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")
@@ -154,7 +162,7 @@ $$y_{} \sim 1\mu + X\beta+Z_{1}u + Q\delta + \epsilon$$
 
 Where $y$ is the response variable for GI, $GI_{base}$ or GE, $\mu$ is the overall mean, $\beta$ is a vector of fixed effects(i.e. Location, replication), $u$ is the vector of addivitive genotype effects assoicated with the genomic additive relationship matrix with $u \sim N(0,G_{A}\sigma^2_{A})$, $Q$ is a matrix of vectors describing population structure and $\delta$ corresponds to the number of vectors(PCAs) of the Q matrix to be included to account for population structure and $\epsilon ~N(0,E\sigma^2)$ where $E$ is either a incidence matrix corresponding independently and identically distributed residuals or a heteroscadistic error structure. A summary of model terms included for each timepoint is presented in table 2 both for within years and across years. #Model terms
 
-```{r,eval=FALSE}
+```{r}
 model_2020_GI<-data.frame(year=rep("2020",5),trait=rep("GI",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location + Rep","Location",NA,NA,NA),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=rep("yes",5))
 
 model_2020_GE<-data.frame(year=rep("2020",5),trait=rep("GE",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location","Location","Location:Rep + Location + Rep","Location","Location"),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=c("yes","yes","yes","no","yes"))
@@ -177,10 +185,12 @@ phs_sum<-data.frame(year=rep("2020/2021"),trait="PHS",PM_date=c(7),Q=rep("yes",1
 
 model_table1<-rbind(models2020,models2021,model_combined_GI,model_combined_GE,phs_sum)%>%relocate(trait,.before = 1)
 
-model_table1
+```
+```{r}
+#| label: tbl-model_components
+#| tbl-cap: components
+#| fig-cap: components
 E1_ft<-flextable(model_table1,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
-E1_ft
-
 E1_ft<-E1_ft%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
 bold(bold = TRUE, part = "header")%>%set_caption(caption=as_paragraph(as_chunk("Summary of the fixed, random and residual model terms fitted each timepoint across germination energy and index for genome wide assocation modeling ",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%
 #E1_ft<-E1_ft%>%add_footer_lines(E1_ft, values = "")
@@ -191,7 +201,7 @@ footnote(i = c(1), j = c(1),
             part = "header")
 
 E1_ft_2<-E1_ft%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")
-E1_ft_2
+
 # 
 # footnote(i = c(1), j = c(2),
 #             value = as_paragraph(
@@ -203,8 +213,6 @@ E1_ft_2
 E1_ft_2
 ```
 
-
-
 the package @ASRgwas
 
 We previously reported development of a high-throughput Kompetitive Allele Specific Primer (KASP) marker AlaAT1_L214F for the causal mutation in *HvAlaAT1* discovered by Sato et al. (2016). We also developed KASP assays for a SNP in the 5' UTR of *HvGA20ox1* (GA20ox1_331_5UTR), the E165Q mutation in *HvMKK3* identified in Vetch et al. (2020) for both spring barley and winter barley. A summary of the winter barley haplotypes for the parent lines and checks are found in QTL x environment modeling of malting barley preharvest sprouting (Sweeney et al. 2021). All experimental lines and parent genotypes were monomorphic for dormant HvMKK3. The check lines Charles and Endeavor used as a phs susceptibility check in 2020 and 2021 respectively, have the highly non-dormant (N\*) allele for MKK3 and the dormant AlaAT(D) allele, however we cannot make specific conclusions about this haplotype given the low representation in the winter barley population.
@@ -213,19 +221,18 @@ All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at th
 
 # Results
 
-```{R}
+```{r}
+#| label: fig-PCA_DH
+#| fig-cap: "Principal components analysis plot"
 
-load(paste0(path,"/data/Genotype_data/wmb_file.Rdata"))
-
-load(paste0(path,"/data/Genotype_data/numeric_raw.Rdata"))
-WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
+library(ggplot2)
 load("Rdata/WinterRelationship.Rdata")
 
 WinterPCA = eigen(WinterRelationship)
 
 
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
-data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
+#data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
 
 winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
   
@@ -237,15 +244,16 @@ winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>%
          shapes = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), taxa, 'Lines'),
          size = ifelse(taxa %in% toupper(c('Lightning', 'Flavia','Tepee','Wintmalt','Scala')), 3, 2))
 
-
-winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", 
+PCA_DH<-winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", 
      tolower(winterlinePCAvalues$shapes),
      perl = TRUE),size=ifelse(size==2,3,4))%>%filter(family !=c('Check')) %>%
   ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(shape=guide_legend(title = "Variety/Experimental Line"),size="none",color=guide_legend(title="Family/Population"))+xlab(as.character(paste0("PC1: ",round(WinterPVEPCA[1]*100,2),"%")))+ylab(as.character(paste0("PC2: ",round(WinterPVEPCA[2]*100,2),"%")))+ggtitle(lab="Principal component analysis plot of the \n NY winter malting barley double haploid population")+theme(plot.title = element_text(hjust = 0.5))+scale_x_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))+scale_y_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))
-
+PCA_DH
 ```
 
 ```{r}
+#| label: fig-dormancy_over_time
+#| fig-cap: "geom loess curve over time for GI and GE"
 library(tidyr)
 
 df_begin$Family<-gsub("DH130910","Lightning",df_begin$Family)
@@ -257,33 +265,41 @@ df2$year<-"2020/2021"
 
 df_begin_long%>%rbind(df2)%>% mutate(headerFacet = 'Dataset Year') %>%
   ggplot(aes(x = PM_date, y = value, group = GID))+
-  geom_smooth(na.rm = TRUE,se=FALSE,linewidth=0.2,colour="black")+facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_smooth(na.rm = TRUE,se=FALSE,linewidth=0.2,colour="black")+ggh4x::facet_nested(trait~headerFacet+year, scales = 'free')+
   geom_vline(xintercept = c(12,33,68), color = 'red')+
   labs(title = 'Germination Energy and Index over time by individual genotype')+theme_bw()
 ```
 
 ```{r}
+#| label: fig-AlaAT Distributions
+#| fig-cap: "Qsd1 distribution"
+library(Hmisc)
 
 WinterGD$taxa<-rownames(WinterGD)
-WinterGD<-WinterGD%>%relocate(taxa,.before=1)
-library(Hmisc)
+WinterGD<-WinterGD%>%relocate(taxa,.before = 1)
 df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
+  plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Nondormant','Dormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
   filter(Family %nin% c('Lightning'))   %>%
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
   filter(!(trait =='GE' &value>1.05)) %>%
   ggplot(aes(x=PM_date,y=value,fill = Qsd1))+
-geom_boxplot(outlier.shape =NA)+facet_nested(trait~Family+year, scales = 'free')+
+geom_boxplot(outlier.shape =NA)+ggh4x::facet_nested(trait~Family+year, scales = 'free')+
 
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination rates by grouping of AlaAT"))+
-theme_bw()+theme(axis.text.x = element_text(angle = 45),plot.title = element_text(hjust=0.5))
+theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))+guides(fill=guide_legend(title="AlaAT"))
+```
+
+```{r}
+#| label: fig-PHS_dist
+#| fig-cap: "PHS"
+
 #PHS
 
 phs_setup<-df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Dormant','Nondormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
   filter(Family %nin% c('Lightning'))   %>%select(phs,Qsd1,taxa,SourcePLOT,Location,year)%>%unique()
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
-phs_setup%>%group_by(taxa)%>%
+phs_dist<-phs_setup%>%group_by(taxa)%>%
   ggplot(aes(phs, fill = Qsd1))+
  
   geom_histogram(binwidth = 0.2,col=I("black"))+
@@ -294,16 +310,15 @@ theme_bw()+theme(axis.text.x = element_text(angle = 0),plot.title = element_text
      annotate('rect', xmin=4, xmax=7, ymin=0, ymax=1000, alpha=.1, fill='red')
  
 
-
+phs_dist
  # stat_bin(aes(y=(phs)/sum(phs), 
  #    label=round((phs)/sum(phs),2)),
  #    geom="text", size=4, binwidth = 0.1, vjust=-1.5)
 ```
+
 Pre-harvest sprouting
 
-
-
-For the 2020 year, we only did a subsample of phs scoring. While the 2020 data did follow the trend explained for the 2021 results, we did not have enough observations to determine whether all experimental lines in the 2020 year were resistant or susceptible to phs in the 2020 environment mainly due to low variation and sample size. In our first complete year observation of the 435 unique lines in our trials, we found that 95% of our experimental lines were pre-harvest sprouting resistant (0-2 score) across two locations. Approximately 4.4 % were somewhat resistant (2-4) and only 1.6 % of our lines were PHS susceptible (above 4). The low mean of phs for most of the lines is encouraging, however phs needs to be tested in at least more than one year to account for different environmental effects. This is particularly important given the significant increased dormancy we observed for the 2021 year. Given the low variation of phs scores, correlations were low to most of the GE and GI timepoints. PHS was only moderately correlated with the first timepoint (PM 5) for GE(0.633) and GI(0.683). Even with a week of after ripening, correlation with phs scores dropped significantly at time point 1.5(12 days post PM) for GE(0.367) and GI(0.415). This suggests that for our winter barley population, there is potential to select for increased dormancy break while maintaining PHS resistance. Broad sense heritability for all germination traits, timepoints, years and combinations were very high(0.9). Heritability dropped slight for GE at later time points due to reduced variation but still retained heritability values a minimum~0.75
+For the 2020 year, we only did a subsample of phs scoring. While the 2020 data did follow the trend explained for the 2021 results, we did not have enough observations to determine whether all experimental lines in the 2020 year were resistant or susceptible to phs in the 2020 environment mainly due to low variation and sample size. In our first complete year observation of the 435 unique lines in our trials, we found that 95% of our experimental lines were pre-harvest sprouting resistant (0-2 score) across two locations. Approximately 4.4 % were somewhat resistant (2-4) and only 1.6 % of our lines were PHS susceptible (above 4). The low mean of phs for most of the lines is encouraging, however phs needs to be tested in at least more than one year to account for different environmental effects. This is particularly important given the significant increased dormancy we observed for the 2021 year. Given the low variation of phs scores, correlations were low to most of the GE and GI timepoints. PHS was only moderately correlated with the first timepoint (PM 5) for GE(0.633) and GI(0.683). Even with a week of after ripening, correlation with phs scores dropped significantly at time point 1.5(12 days post PM) for GE(0.367) and GI(0.415). This suggests that for our winter barley population, there is potential to select for increased dormancy break while maintaining PHS resistance. Broad sense heritability for all germination traits, timepoints, years and combinations were very high(0.9). Heritability dropped slight for GE at later time points due to reduced variation but still retained heritability values a minimum\~0.75
 
 #making a table for significant effects
 
@@ -312,24 +327,24 @@ For the 2020 year, we only did a subsample of phs scoring. While the 2020 data d
 ```{r}
 
 load(paste0(path,"/data/GWA_results/STP_all.Rdata"))
-library(stringr)
+
 
 
 ord_list<-STP_all[STP_all$ID=="GI-2020/2021-PM_152",c("chrom","pos","marker","ordinal")]
 ord_list<-ord_list%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
 table_chr<-STP_all%>%ungroup()%>%filter()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
-table_chr
+
 table_chr_min<-table_chr%>%group_by(chrom)%>%summarise(min=min(pos),min_ord=min(ordinal))
 table_chr_max<-table_chr%>%group_by(chrom)%>%summarise(max=max(pos),max_ord=max(ordinal))
 table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
-table_chr
+
 
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$notes<-"GE-2021-PM_96: did_not_converge"
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
-table(STP_all$ID)
+
 
 STP_all$ID<-gsub("GI_0","GI0",STP_all$ID)
-
+library(stringr)
 STP_all<-STP_all%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
 WinterPerTPGWAS2<-STP_all
 ###
@@ -338,7 +353,6 @@ WinterPerTPGWAS2<-STP_all
 
 Chr_breaks=table_chr$max_ord-table_chr$min_ord
 ChrTable<-Chr_breaks
-ChrTable
 
 chrLabel = c(1:7, 'UN')
 winterOrdinalBreaks = c(ChrTable[1]/2)
@@ -349,19 +363,19 @@ for (i in 2:8){
  winterOrdinalBreaks[i] = sum(ChrTable[1:i-1])+ChrTable[i]/2
  winterChrLines[i] = sum(ChrTable[1:i])
 }
-winterChrLines
 
-table(STP_all$ID)
-winterOrdinalBreaks
-STP_all$ordinal
 
 WinterPerTPGWAS2<-STP_all%>%ungroup()%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))
-library(stringr)
-
-library(ggplot2)
 
 WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal>3.5&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
 #this GWAS TP is giving weird assocations, so I just removed it
+```
+
+```{r}
+#| label: fig-MM_gwas
+#| fig-cap: "Multi-Manhattan plot"
+
+
 
 #False discovery rate
 #all P values are FDR adjusted, to find the p-value of the FDR rate, I found the max p value for which the FDR p value is less than 0.05, code is below
@@ -370,10 +384,10 @@ FDR_rate<-max(WinterPerTPGWAS2[WinterPerTPGWAS2$fdr.pvalues<0.051,]$p.value,na.r
 #even the line is slightly more conservative than the true FDR rate since the nearest FDR value below 0.05 is 0.03. This is important because while we do not want false positive(QQ plots should be used for this), we also shouldn't be over stringent with Bonferonni cutoff, we elimate
 #ALaAT_ord<-unique(WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal)
 ALaAT_ord=WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal%>%unique()
-ALaAT_ord
+
 WinterPerTPGWAS2[WinterPerTPGWAS2$trait=="PHS",]$PM<-4
 #All chromosomes
-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
+ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='longdash')+
   annotate(geom= 'text', x = ALaAT_ord, y = 12, label = 'AlaAT1')+
@@ -382,7 +396,8 @@ WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% 
                      breaks = winterOrdinalBreaks)+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy, Index and PHS on CH 5")+
+ALL_MM
+CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy, Index and PHS on CH 5")+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  geom_vline(xintercept = 5760, color = 'red',linetype='longdash')+
   annotate(geom= 'text', x = 5760, y = 12, label = 'AlaAT1')+
@@ -391,10 +406,10 @@ WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% 
   ylab('-log(p-value)')+xlab('Chromosome 5')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()+scale_x_continuous(limits = c(5000,7000)) 
 #Ch 5
+CH5_MM
 
-
-print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,8)))
-print(paste("Bonferroni cutoff at 0.05 :",round(0.05/9658,8)))
+#print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,8)))
+#print(paste("Bonferroni cutoff at 0.05 :",round(0.05/9658,8)))
 ```
 
 Genome wide association results
@@ -406,12 +421,17 @@ There is also a marker "JHI_Hv50k_2016_64721" on 2H that reaches borderline sign
 For single timepoint GWAS, we found a total of 37 significant marker trait associations associated with GE and GI across all timepoints and years. One marker per LD group of the significant single time point GWA was selected in table 1 to prevent redundancy. . The most significant association was the KASP marker for AlaAT_L214F(Qsd1) and the closely associated 50K_JHI-Hv50k-2016-276836(r=0.91) marker. Other potential hits detected in the study include Isoamylase (*HvISA3*,HORVU.MOREX.r2.5HG0404420) which is a starch-debranching enzyme located at 475796690-475807295 bp, 705025 bp distal to marker JHI-Hv50k-2016-311435. Isoamylases hydrolyze α-(1,6) glycosidic linkages and debranch amylopectin during grain filling (Gous and Fox, 2017). Shu and Rasmussen (2014) identified a MTA for amylose content highly associated with the contig MLOC_10776, which includes *HvISA3* (https://ics.hutton.ac.uk/morexGenes/). Starch with higher amylose content is hydrolyzed more slowly by amylolytic enzymes and higher amylose content has been hypothesized to be a contributing factor to grain dormancy (Chu et al., 2014). Although the role of amylose content in seed dormancy has been hypothesized, prior evidence for the role of *HvISA3* is limited. This locus may be useful for PHS resistance but a consistent decrease in GI is not desirable. Negative impacts on starch related malting quality traits like malt extract may also be present.Another gene of interest in this region is an abscisic acid responsive protein (Liu et al. 2013). Abscisic acid (ABA) is an important regulator of seed dormancy in barley: increases in ABA maintain seed dormancy and decreases in ABA reduce seed dormancy in barley (Gómez-Cadenas et. al 1999). Other potential novel loci include HvVP1 (Viviparous-1) which may be associated with JHI-Hv50k-2016-165725 on chromosome 3H and segregating in the SY Tepee family. HvVP1 is a master transcription factor regulator that controls switching between seed maturation and germination in barley (Abraham et al. 2016). \# Marker table
 
 ```{r}
-getwd()
+#| label: tbl-Hsig_markers
+#| tbl-cap: markers
+#| fig-cap: markes
+
 
 load("Rdata/Significant_marker_table.Rdata")
-View(marker_tableR)
 
 
+
+sig_markersAll<-flextable(marker_tableR,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
+sig_markersAll
 ```
 
 ### Role of alanine amino transferase
