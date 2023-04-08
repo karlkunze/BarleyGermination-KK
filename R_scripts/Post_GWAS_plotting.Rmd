@@ -24,8 +24,6 @@ load("data/Genotype_data/ASRgwas_results/Single_TP_GI_cpmbined_results.Rdata")#G
 load("data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")#GE_STP_combined
 #phs
 load("data/Genotype_data/ASRgwas_results/PHS_GWAS_results.Rdata")
-
-
 rep_str = c('GI'='GE')
 GE_STP_combined[[5]]$trait<-str_replace_all(GE_STP_combined[[5]]$trait,rep_str)
 GE_STP_combined[[3]]$trait<-str_replace_all(GE_STP_combined[[3]]$trait,rep_str)
@@ -89,7 +87,7 @@ mr_phs<-DH2020_2021%>%dplyr::select(phs,Location,Year)%>%reframe(mean=round(mean
 
 sum_table[sum_table$trait=="PHS",c("mean","range")]<-mr_phs[1,]
 sum_table[sum_table$trait=="PHS",c("mean","range")]
-
+View(sum_table)
 save(sum_table,file="ms/Rdata/genetic_variance_h2.Rdata")
 
 ```

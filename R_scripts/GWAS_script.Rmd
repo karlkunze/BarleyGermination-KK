@@ -17,7 +17,7 @@ library(ggh4x)
 ```
 #data upload
 ```{r}
-
+setwd("C:/Users/kars8/git/BarleyGermination-KK")
 
 load("data/Phenotype_Data/AllDHBluesPerYear_first_step.Rdata")
 load("data/Phenotype_Data/Heritability_first_step.Rdata")
@@ -518,8 +518,9 @@ grep("L",colnames(myGD20_prune))
 ```
 #PHS
 ```{r}
+library(dplyr)
 #we need to include
-phs<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")%>%select(GID,Location,SourcePLOT,Row,Check,Family,Year,phs)%>%left_join(marker_ef,by="GID")
+phs<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")%>%dplyr::select(GID,Location,SourcePLOT,Row,Check,Family,Year,phs)%>%left_join(marker_ef,by="GID")
 
 simple<-phs%>%unique()
 simple
