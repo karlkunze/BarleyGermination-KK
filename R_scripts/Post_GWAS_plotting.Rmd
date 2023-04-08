@@ -24,8 +24,11 @@ load("data/Genotype_data/ASRgwas_results/Single_TP_GI_cpmbined_results.Rdata")#G
 load("data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")#GE_STP_combined
 #phs
 load("data/Genotype_data/ASRgwas_results/PHS_GWAS_results.Rdata")
+<<<<<<< HEAD
 
 library(stringr)
+=======
+>>>>>>> 30bb5687e540bdf1979faad85e37de80d9f31b5c
 rep_str = c('GI'='GE')
 GE_STP_combined[[5]]$trait<-str_replace_all(GE_STP_combined[[5]]$trait,rep_str)
 GE_STP_combined[[3]]$trait<-str_replace_all(GE_STP_combined[[3]]$trait,rep_str)
