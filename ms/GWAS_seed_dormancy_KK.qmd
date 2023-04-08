@@ -248,11 +248,14 @@ gd_Q$taxa<-rownames(gd_Q)
 
 #PHS
 #Figure 1
-
+df_begin_long
+library(Hmisc)
 phs_setup<-df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
-  plyr::join(gd_Q[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(AlaAT= ifelse(Qsd1==2,'NonDormant','Dormant')) %>% plyr::join(gd_Q[,c('taxa','JHI_Hv50k_2016_8507')]) %>% filter(JHI_Hv50k_2016_8507!= 1) %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
+  plyr::join(gd_Q[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(AlaAT= ifelse(Qsd1==2,'Dormant','Non Dormant')) %>% plyr::join(gd_Q[,c('taxa','JHI_Hv50k_2016_8507')])%>%
   filter(Family %nin% c('Lightning'))  %>%dplyr::select(phs,Qsd1,AlaAT,taxa,SourcePLOT,Location,year)%>%unique()
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
+# %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
+phs_setup
 library(ggplot2)
 phs_dist<-phs_setup%>%group_by(taxa)%>%
   ggplot(aes(phs, fill = AlaAT))+
@@ -260,9 +263,9 @@ phs_dist<-phs_setup%>%group_by(taxa)%>%
   geom_histogram(binwidth = 0.2,col=I("black"))+
   labs(x="PHS score(0-9)",y="Frequecny")+ggtitle(label = paste0("Hisogram of Pre-harvest sprouting values for 2020/2021"))+
 theme_bw()+theme(axis.text.x = element_text(angle = 0),plot.title = element_text(hjust=0.5))+
-    annotate('rect', xmin=-0.1, xmax=2, ymin=0, ymax=500, alpha=.1, fill='green')+
-    annotate('rect', xmin=2, xmax=4, ymin=0, ymax=500, alpha=.1, fill='yellow')+
-     annotate('rect', xmin=4, xmax=7, ymin=0, ymax=500, alpha=.1, fill='red')
+    annotate('rect', xmin=-0.1, xmax=2, ymin=0, ymax=1000, alpha=.1, fill='green')+
+    annotate('rect', xmin=2, xmax=4, ymin=0, ymax=1000, alpha=.1, fill='yellow')+
+     annotate('rect', xmin=4, xmax=7, ymin=0, ymax=1000, alpha=.1, fill='red')
  
 
 phs_dist
@@ -278,7 +281,8 @@ phenoS1
 
 Preharvest sprouting scores presented were averaged across years as there was a lack of sufficent phs data in the 2020 year alone. PHS score distribution was skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. . A geom smooth plot using a GLM loess method was used to visualize the timepoint data for GE and GI within and across years.(Figure loess) Mean GE increased at early timepoints and and reached near 100% GE at later timepoints. Mean GE increased at earlier timepoints in 2020 compared to 2021 Mean GI was initially low at early timepoints and platued near 5.5 d. Mean GI increased earlier in 2020 compared to 2021. Experimental checks Endeavor and Charles had consistent mean GE values of 0.8 and mean GI values of 7 across all timepoints and years. GI values for winter experimental lines platued near 5.5-6, compared to experimental checks Endeavor and Charles, as well as spring barley lines observed in 2020 and spring lines observed in the same experimental conditions as the winters in 2021. Dormancy loss occured at approximately $PM_{47}$ to $PM_{50}$ in 2020 and between $PM_{70}$ to $PM_90$ for 2021.
 
-##Correlations and heritaibliy Correlation between GE, GI and PHS was moderate to high across early and moderate timepoints, indicating a strong genetic control for these traits. Moderate narrow sense heritability was observed for pre-harvest sprouting in the 2020 and 2021 years(h2 = 0.37) (Table S1). Heritability for GE was high in early timepoints and peaked at PM_19 in 2020 and PM_33 in 2021. Across years, heritability was highest at the earliest timepoint PM_5.
+##Correlations and heritaibliy C
+Phenotypic correlation between GE, GI and PHS was moderate to high across early and moderate timepoints, and given the high heritability associated per trait, genetic control is a larger contributer to the variance. Moderate narrow sense heritability was observed for pre-harvest sprouting in the 2020 and 2021 years(h2 = 0.37) (Table S1). Heritability for GE was high in early timepoints and peaked at PM_19 in 2020 and PM_33 in 2021. Across years, heritability was highest at the earliest timepoint PM_5.
 
 ```{r}
 # Figure 3
