@@ -225,18 +225,23 @@ All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at th
 
 df_begin$Family<-gsub("DH130910","Lightning",df_begin$Family)
 
-df_begin_long<-df_begin%>%mutate(GI_0=GI/GE)%>%mutate(GI_0=ifelse(is.nan(GI_0),NA,GI_0))%>%pivot_longer(names_to="trait",cols=c("GE","GI","GI_0"))%>%rename(year=Year)
+df_begin_long<-df_begin%>%mutate(GI_0=GI/GE)%>%mutate(GI_0=ifelse(is.nan(GI_0),NA,GI_0))%>%pivot_longer(names_to="trait",cols=c("GE","GI"))%>%rename(year=Year)
 df2<-df_begin_long%>%filter(PM_date%in%c("5","19","47","96","152"))
 
-df_begin%>%group_by(Year,PM_date)%>%dplyr::summarize(cor(GE,GI_0,use="pairwise.complete.obs"))
+
 df2$year<-"2020/2021"
 library(arm)
 gd_Q<-as.data.frame(WinterGD[,c("Qsd1","JHI_Hv50k_2016_8507")])
 
 gd_Q$taxa<-rownames(gd_Q)
 
+###
+
+
+
 
 ```
+
 ```{r}
 #| label: fig-PHS_dist
 #| fig-cap: "PHS"
@@ -271,14 +276,9 @@ phenoS1
 
 ## Phenotypic Distribution
 
+Preharvest sprouting scores presented were averaged across years as there was a lack of sufficent phs data in the 2020 year alone. PHS score distribution was skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. . A geom smooth plot using a GLM loess method was used to visualize the timepoint data for GE and GI within and across years.(Figure loess) Mean GE increased at early timepoints and and reached near 100% GE at later timepoints. Mean GE increased at earlier timepoints in 2020 compared to 2021 Mean GI was initially low at early timepoints and platued near 5.5 d. Mean GI increased earlier in 2020 compared to 2021. Experimental checks Endeavor and Charles had consistent mean GE values of 0.8 and mean GI values of 7 across all timepoints and years. GI values for winter experimental lines platued near 5.5-6, compared to experimental checks Endeavor and Charles, as well as spring barley lines observed in 2020 and spring lines observed in the same experimental conditions as the winters in 2021. Dormancy loss occured at approximately $PM_{47}$ to $PM_{50}$ in 2020 and between $PM_{70}$ to $PM_90$ for 2021.
 
- Preharvest sprouting scores presented were averaged across years as there was a lack of sufficent phs data in the 2020 year alone. PHS score distribution was skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. . A geom smooth plot using a GLM loess method was used to visualize the timepoint data for GE and GI within and across years.(Figure loess) Mean GE increased at early timepoints and and reached near 100% GE at later timepoints. Mean GE increased at earlier timepoints in 2020 compared to 2021 Mean GI was initially low at early timepoints and platued near 5.5 d. Mean GI increased earlier in 2020 compared to 2021. Experimental checks Endeavor and Charles had consistent mean GE values of 0.8 and mean GI values of 7 across all timepoints and years. GI values for winter experimental lines platued near 5.5-6, compared to experimental checks Endeavor and Charles, as well as spring barley lines observed in 2020 and spring lines observed in the same experimental conditions as the winters in 2021. Dormancy loss occured at approximately $PM_{47}$ to $PM_{50}$ in 2020 and between $PM_{70}$ to $PM_90$ for 2021.
-
-
-##Correlations and heritaibliy
-Correlation between GE, GI and PHS was moderate to high across early and moderate timepoints, indicating a strong genetic control for these traits. Moderate narrow sense heritability was observed for pre-harvest sprouting in the 2020 and 2021 years(h2 = 0.37) (Table S1). Heritability for GE was high in early timepoints and peaked at PM_19 in 2020 and PM_33 in 2021. Across years, heritability was highest at the earliest timepoint PM_5. 
-
-
+##Correlations and heritaibliy Correlation between GE, GI and PHS was moderate to high across early and moderate timepoints, indicating a strong genetic control for these traits. Moderate narrow sense heritability was observed for pre-harvest sprouting in the 2020 and 2021 years(h2 = 0.37) (Table S1). Heritability for GE was high in early timepoints and peaked at PM_19 in 2020 and PM_33 in 2021. Across years, heritability was highest at the earliest timepoint PM_5.
 
 ```{r}
 # Figure 3
@@ -297,16 +297,14 @@ op
 ```
 
 ## Genetics
+
 ### KASP marker results
 
 THe population for this experiment used a modified NAM with a common parent Lightning crossed to four malting barley parents. KASP marker analysis revealed that the common parent Lightning and parent Flavia contained the dormant "C" allele for AlaAT and parents KWS Scala, SY Tepee and Wintmalt containing the non dormant "G" allele, making Lightning the donor for the dormant AlaAT. Experimental lines and the parents were monomorhpic for the dormant MKK3 allele, a loci identified in spring malting barley to be indicative of high malting quality but also high PHS susceptiblity. Check varities Charles and Endeavor have a super non dormant allele for MKK3, which provided a consistent check for PHS and germination, however given the low frequency of the haplotype in the experimental population, we cannot make further assertions about the role of HvMKK3 here.
 
 ### Population structure
 
-Principal component analysis
-Principal component analysis revealed variation attributed to the first, second and third PCs at 14.55% and 5.69 and 4.9 % respectively. The PCA plot displays the first two PCs on the x and y axis. The first component separated SY Tepee populations from the wintmalt, KWS Scala and Flavia populations, with Lightning being a common intermediate between the two parents. Position of genotypes remaineds largely unchanged when separate recombinant inbred lines of crosses not including Lightning were included(data not shown). Wintmalt, Scala and Flavia some some degree of relatedness. 
-
-
+Principal component analysis Principal component analysis revealed variation attributed to the first, second and third PCs at 14.55% and 5.69 and 4.9 % respectively. The PCA plot displays the first two PCs on the x and y axis. The first component separated SY Tepee populations from the wintmalt, KWS Scala and Flavia populations, with Lightning being a common intermediate between the two parents. Position of genotypes remaineds largely unchanged when separate recombinant inbred lines of crosses not including Lightning were included(data not shown). Wintmalt, Scala and Flavia some some degree of relatedness.
 
 ```{r}
 #| label: fig-PCA_DH
@@ -342,13 +340,13 @@ PCA_DH<-winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])
 PCA_DH
 ```
 
-
 ### Model fitting using asrGWAS
-Single step genome wide association was conducted using the package ASRgwas as fitting single step models reduce the amount of information loss associated when using fixed effect responses without weights, or using random effects models where BLUPS are either not deregressed and shrunk twice or degressed but partial shrinkage occurs regardless. Fitting single step models for each timepoint produced challenges however, as models did not converge for every timepoint trait combination. Additional challenges included variation was low, or non genetic terms such as row, location, or user phenotyping error from the replication term. 
 
+Single step genome wide association was conducted using the package ASRgwas as fitting single step models reduce the amount of information loss associated when using fixed effect responses without weights, or using random effects models where BLUPS are either not deregressed and shrunk twice or degressed but partial shrinkage occurs regardless. Fitting single step models for each timepoint produced challenges however, as models did not converge for every timepoint trait combination. Additional challenges included variation was low, or non genetic terms such as row, location, or user phenotyping error from the replication term.
 
 ### Genome wide association analysis
-Usining a false discovery rate of alpha=0.05, 75 marker trait associations were identifed across the genome. P-values within each timepoint were adjusted for false discovery using the p-adjust function. The highest raw p-value below the FDR adjusted p value threshold of 0.05 was 0.0003(). Given the highly structured breeding populations, the LD in this population was high and markers, in LD were contacted to a single row if r2=0.9 between markers. Markers are presented as a range in base pair positions of signficant MTA 2, as we do not have enough resolution to determine where specificially a casual variant would be within a specific linkage block. After accounting for markers in high LD, 36 markers were identified. The AlaAT KASP marker and markers associated in the same LD block contributed between 8-30 % PVE. In addition to the LD block associated with AlaAT, another region located in the 480 MB region was identified as significant, with PVE ranging between 8-40%. This LD block was also correlated with 
+
+Usining a false discovery rate of alpha=0.05, 75 marker trait associations were identifed across the genome. P-values within each timepoint were adjusted for false discovery using the p-adjust function. The highest raw p-value below the FDR adjusted p value threshold of 0.05 was 0.0003(). Given the highly structured breeding populations, the LD in this population was high and markers, in LD were contacted to a single row if r2=0.9 between markers. Markers are presented as a range in base pair positions of signficant MTA 2, as we do not have enough resolution to determine where specificially a casual variant would be within a specific linkage block. After accounting for markers in high LD, 36 markers were identified. The AlaAT KASP marker and markers associated in the same LD block contributed between 8-30 % PVE. In addition to the LD block associated with AlaAT, another region located in the 480 MB region was identified as significant, with PVE ranging between 8-40%. This LD block was also correlated with
 
 ```{r}
 #| label: fig-AlaAT Distributions
@@ -371,8 +369,6 @@ geom_boxplot(outlier.shape =NA)+ggh4x::facet_nested(trait~Family+year, scales = 
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination rates by grouping of AlaAT"))+
 theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))+guides(fill=guide_legend(title="JHI_Hv50k_2016_310278"))
 ```
-
-
 
 #manhattan plot
 
@@ -488,10 +484,10 @@ Alanine amino transferase played a significant role in dormancy break in our win
 The observed dormancy for most non dormant haplotypes at earlier post physiological maturity (PM) days is encouraging for balancing the selection of high germination rate and maintaining initial seed dormancy for PHS. If we assume that a malster, at the earliest, would start malting barley approximately 47 days after harvest from the field, we will want to select lines that maintain dormancy until 50-60 days post PM. Most non-dormant AlaAT haplotypes fit this profile for the 2020 and 2021 crop year. However, given the substantial dormancy we observed in 2021, we must be careful in considering how it relates to our PHS values observed for that same year. PHS will need to be tested in multiple years where conditions would develop less dormant barley. If we continue to have low PHS mean and variation across multiple years with potentially differing levels of dormancy per year, we can then focus the selection pressure to increase germination rate with less concern of reducing our PHS resistance for the given AlaAT haplotypes.
 
 # Discussion
+
 ##phenotypes
 
-For the 2020 year, we only did a subsample of phs scoring. While the 2020 data did follow the trend explained for the 2021 results, we did not have enough observations to determine whether all experimental lines in the 2020 year were resistant or susceptible to phs in the 2020 environment mainly due to low variation and sample size. In our first complete year observation of the 435 unique lines in our trials,  (above 4). The low mean of phs for most of the lines is encouraging, however phs needs to be tested in at least more than one year to account for different environmental effects. This is particularly important given the significant increased dormancy we observed for the 2021 year. Given the low variation of phs scores, correlations were low to most of the GE and GI timepoints. PHS was only moderately correlated with the first timepoint (PM 5) for GE(0.633) and GI(0.683). Even with a week of after ripening, correlation with phs scores dropped significantly at time point 1.5(12 days post PM) for GE(0.367) and GI(0.415). This suggests that for our winter barley population, there is potential to select for increased dormancy break while maintaining PHS resistance. Broad sense heritability for all germination traits, timepoints, years and combinations were very high(0.9). Heritability dropped slight for GE at later time points due to reduced variation but still retained heritability values a minimum\~0.75.
-## Distrbutions
+For the 2020 year, we only did a subsample of phs scoring. While the 2020 data did follow the trend explained for the 2021 results, we did not have enough observations to determine whether all experimental lines in the 2020 year were resistant or susceptible to phs in the 2020 environment mainly due to low variation and sample size. In our first complete year observation of the 435 unique lines in our trials, (above 4). The low mean of phs for most of the lines is encouraging, however phs needs to be tested in at least more than one year to account for different environmental effects. This is particularly important given the significant increased dormancy we observed for the 2021 year. Given the low variation of phs scores, correlations were low to most of the GE and GI timepoints. PHS was only moderately correlated with the first timepoint (PM 5) for GE(0.633) and GI(0.683). Even with a week of after ripening, correlation with phs scores dropped significantly at time point 1.5(12 days post PM) for GE(0.367) and GI(0.415). This suggests that for our winter barley population, there is potential to select for increased dormancy break while maintaining PHS resistance. Broad sense heritability for all germination traits, timepoints, years and combinations were very high(0.9). Heritability dropped slight for GE at later time points due to reduced variation but still retained heritability values a minimum\~0.75. \## Distrbutions
 
 Important point- cooler temperatures during grainfill for winter barley could be a pereptual inducment of longer dormancy
 

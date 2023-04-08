@@ -11,7 +11,7 @@ editor_options:
 library(dplyr)
 library(asreml)
 getwd()
-setwd("/home/karl/git/BarleyGermination-KK/")
+setwd("C:/Users/kars8/git/BarleyGermination-KK/")
 #2020
 load("data/Genotype_data/ASRgwas_results/Single_TP_GI_2020_results.Rdata")
 
@@ -24,11 +24,7 @@ load("data/Genotype_data/ASRgwas_results/Single_TP_GI_cpmbined_results.Rdata")#G
 load("data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")#GE_STP_combined
 #phs
 load("data/Genotype_data/ASRgwas_results/PHS_GWAS_results.Rdata")
-<<<<<<< HEAD
 
-library(stringr)
-=======
->>>>>>> 30bb5687e540bdf1979faad85e37de80d9f31b5c
 rep_str = c('GI'='GE')
 GE_STP_combined[[5]]$trait<-str_replace_all(GE_STP_combined[[5]]$trait,rep_str)
 GE_STP_combined[[3]]$trait<-str_replace_all(GE_STP_combined[[3]]$trait,rep_str)
@@ -97,6 +93,41 @@ save(sum_table,file="ms/Rdata/genetic_variance_h2.Rdata")
 
 ```
 ```{r}
+df3<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%mutate(type="base_data_single_step")
+
+df3[!df3$PM_date==5,]$phs<-0
+df_phs<-df3%>%filter(PM_date==5)%>%dplyr::select(PM_date,GID,phs,Year)%>%group_by(Year,GID)%>%summarise(phs_m=mean(phs,na.rm=TRUE))%>%mutate(PM_date=as.factor(5))%>%ungroup()
+df_phs
+df3
+df3$PM_date
+cor<-df3%>%dplyr::select(GID,SourcePLOT,PM_date,phs,Year,GE,GI)%>%ungroup()%>%unique()%>%arrange(PM_date)%>%group_by(PM_date,Year,GID)%>%reframe(GI=mean(GI),GE=mean(GE),phs=mean(phs))%>%mutate(PM_date=paste("PM",as.character(PM_date)))%>%pivot_wider(names_from ="PM_date",values_from = c("GE","GI","phs"))
+cor
+
+phs_5<-cor[grep("phs",colnames(cor))]$"phs_PM 5"
+
+vb<-cor%>%dplyr::select(!grep("phs",(colnames(cor))))%>%cbind(phs=phs_5)%>%relocate(phs,.after=GID)
+vb
+library(rstatix)
+names(vb)
+vb_m<-as.matrix(vb[,-c(1,2)])
+vb_m
+object<-round(cor(vb_m,use="pairwise.complete.obs",method="spearman"),2)
+object.pval<-cor.test(vb_m)
+vb_m
+object<-rcorr(as.matrix(vb_m),type="pearson")
+
+?rcorr()
+diag(object) <- NA 
+object%>% cor_get_pval()
+
+round(object$P,2)%>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("Variable") %>%
+  flextable::flextable(theme="zebra")
+
+```
+
+```{r}
 convert<-function(df){
 var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(),fdr.pvalues=p.adjust(p.value,method="fdr"))
 
@@ -133,6 +164,7 @@ return(var_test)
 
 
 GE20<-convert(GE_2020_GWAS)
+
 table(GE20$ID)
 GI20<-convert(GI_2020_GWAS)
 table(GI20$ID)
@@ -160,9 +192,42 @@ STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge"&STP_all$p.value<0.0004&!is
 
 save(STP_all,file="data/GWA_results/STP_all.Rdata")
 ```
+#need to extract values here for genetic correlations
 ```{r}
-save(STP_all,file="data/GWA_results/STP_all.Rdata")
-table(STP_all$ID)
+
+
+
+#BLUP_vals<-function(df){
+df<-GE_2020_GWAS
+
+st<-df[[1]]$mod
+
+
+
+predict.asreml(df[[1]]$mod$coefficients)
+df[[1]]$mod$coefficients
+df[[1]]$mod$coefficients$random
+var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
+
+var_test$ID<-df[[1]]$trait
+
+#env_n<-length(table(BSR.df$Env))
+for(i in (2:length(df))-1){
+#i<-3
+app<-df[[1+i]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
+app
+app$ID<-df[[i+1]]$trait
+  var_test<- rbind(var_test,app)
+}
+return(var_test)
+}
+
+
+
+```
+
+```{r}
+#STP_all
 table_chr<-STP_all%>%ungroup()%>%dplyr::select(chrom,pos,ordinal)%>%arrange(chrom,pos)%>%unique()
 detach("package:Hmisc",unload=TRUE)
 
