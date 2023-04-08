@@ -705,7 +705,7 @@ gwasFIN
 #change here
 GI2020_PM19<-gwasSTP
 tpm
-
+paste0(tr,"-",ty,"-PM_",tpm)
 GI2020_PM19$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GI2020_PM19$FDR_rate<-FDR_thresholds(gwasSTP)
 GI_2020$PM_date
@@ -1002,6 +1002,7 @@ gwasFIN
 tr
 tpm
 ty
+paste0(tr,"-",ty,"-PM_",tpm)
 GE2020_PM19<-gwasSTP
 GE2020_PM19$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GE2020_PM19$trait
@@ -1061,6 +1062,7 @@ ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
 tr
 tpm
 ty
+paste0(tr,"-",ty,"-PM_",tpm)
 GE2020_PM47<-gwasSTP
 GE2020_PM47$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GE2020_PM47$trait
@@ -1171,7 +1173,7 @@ point.size = 1.2)
 #signif marker analysis
 sel.markers <- gwasSTP$gwas.sel$marker
 sel.markers
-Msel <- pre.aprA$geno.data[, sel.markers[c(1:5)], drop = FALSE]
+Msel <- pre.aprAA$geno.data[, sel.markers[c(1:5)], drop = FALSE]
 Msel 
 gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel,
 ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
@@ -1189,11 +1191,11 @@ table(GE_2020$PM_date)
 ### GE 2020 list
 
 GE_2020_GWAS<-list(GE2020_PM5,GE2020_PM19,GE2020_PM47,GE2020_PM96,GE2020_PM152)
-GE2020
+
 ```
 #SAVING GE2020 and GI2020 Single Timepoint GWAS
 ```{r}
-GI_2020
+
 
 save(GI_2020_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_2020_results.Rdata")
 save(GE_2020_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_2020_results.Rdata")
@@ -2334,10 +2336,10 @@ table(GE_2021$PM_date)
 ```{r}
 
 
-GI_2021_GWAS=list(GI2021_PM5,GI2021_PM19,GI2021_PM33,GI2021_PM47,GI2021_PM68,GI2021_PM96,GI2021_PM152)
+GI_2021_GWAS=list(GI2021_PM5,GI2021_PM12,GI2021_PM19,GI2021_PM33,GI2021_PM47,GI2021_PM68,GI2021_PM96,GI2021_PM152)
 save(GI_2021_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_2021_results.Rdata")
 
-GE_2021_GWAS=list(GE2021_PM5,GE2021_PM12,GE2021_PM33,GE2021_PM68,GE2021_PM96,GE2021_PM152)
+GE_2021_GWAS=list(GE2021_PM5,GE2021_PM12,GE2021_PM19,GE2021_PM33,GE2021_PM47,GE2021_PM68,GE2021_PM96,GE2021_PM152)
 save(GE_2021_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_2021_results.Rdata")
 
 ```
