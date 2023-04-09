@@ -107,23 +107,110 @@ phs_5<-cor[grep("phs",colnames(cor))]$"phs_PM 5"
 
 vb<-cor%>%dplyr::select(!grep("phs",(colnames(cor))))%>%cbind(phs=phs_5)%>%relocate(phs,.after=GID)
 vb
-library(rstatix)
+
 names(vb)
 vb_m<-as.matrix(vb[,-c(1,2)])
 vb_m
-object<-round(cor(vb_m,use="pairwise.complete.obs",method="spearman"),2)
-object.pval<-cor.test(vb_m)
-vb_m
-object<-rcorr(as.matrix(vb_m),type="pearson")
+pheno_cor<-round(cor(vb_m,use="pairwise.complete.obs",method="spearman"),2)
+
+pheno_object<-Hmisc::rcorr(as.matrix(pheno_cor),type="pearson")
 
 ?rcorr()
-diag(object) <- NA 
-object%>% cor_get_pval()
+diag(pheno_object$r) <- NA 
+pheno_object$r[upper.tri(pheno_object$r)] <- NA
+diag(pheno_object$P) <- NA 
+pheno_object$P[upper.tri(pheno_object$P)] <- NA
 
-round(object$P,2)%>%
+round(pheno_object$r,2)%>%
   as.data.frame() %>%
   tibble::rownames_to_column("Variable") %>%
   flextable::flextable(theme="zebra")
+
+```
+#need to extract values here for genetic correlations
+```{r}
+
+
+
+BLUP_vals<-function(df){
+#df<-GE_2020_GWAS
+
+BLUP_var<-df[[1]]$BLUPS$pvals
+
+BLUP_var$ID<-df[[1]]$trait
+
+#env_n<-length(table(BSR.df$Env))
+for(i in (2:length(df))-1){
+#i<-3
+app<-df[[1+i]]$BLUPS$pvals
+app$ID<-df[[i+1]]$trait
+  BLUP_var<- rbind(BLUP_var,app)
+}
+return(BLUP_var)
+}
+
+
+GI20_BLUPS<-BLUP_vals(GI_2020_GWAS)
+GE20_BLUPS<-BLUP_vals(GE_2020_GWAS)
+
+GI21_BLUPS<-BLUP_vals(GI_2021_GWAS)
+GE21_BLUPS<-BLUP_vals(GE_2021_GWAS)
+
+GI_C_BLUPS<-BLUP_vals(GI_STP_combined)
+
+
+GE_C_BLUPS<-BLUP_vals(GE_STP_combined)
+#accidently labeled GE with GI here, see if I can change this
+
+
+PHS_BLUP<-GWAS_phs$BLUPS$pvals
+
+PHS_BLUP$ID<-GWAS_phs$trait
+GE21_BLUPS[grep("did",GE21_BLUPS$ID),]$ID<-"GE-2021-PM_96"
+
+STP_all_BLUP<-rbind(GE20_BLUPS,GI20_BLUPS,GE21_BLUPS,GI21_BLUPS,GI_C_BLUPS,GE_C_BLUPS,PHS_BLUP)%>%mutate(notes="BLUP values")
+STP_all_BLUP$ID<-gsub("GI_0","GI",STP_all_BLUP$ID)
+
+STP_all_BLUP<-STP_all_BLUP%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%arrange(year,trait,PM)
+PM2021<-STP_all_BLUP%>%filter(year=="2021",PM%in%c("12","33","68"))%>%droplevels()
+table(PM2021$PM)
+comb<-STP_all_BLUP%>%filter(year=="2020/2021")%>%rbind(PM2021)%>%mutate(year="2020/2021")%>%arrange(PM)
+comb[comb$PM==3,]$PM<-5
+test<-comb%>%mutate(PM_date=paste("PM",as.character(PM)))%>%dplyr::select(!c(status,ID,std.error))%>%pivot_wider(names_from ="trait",values_from = c("predicted.value"))%>%select(!PM)%>%pivot_wider(names_from = "PM_date",values_from = c("PHS","GE","GI"))
+#View(test)
+phs<-test%>%dplyr::select(grep("PHS",colnames(test)))%>%dplyr::select("PHS_PM 5")%>%rename(phs="PHS_PM 5")
+#View(test)
+gen_cor<-test%>%dplyr::select(!grep("PHS",colnames(.)))%>%cbind(phs)%>%relocate(phs,.after ="year" )
+#View(gen_cor)
+library(Hmisc)
+
+rcor_object<-rcorr(as.matrix(gen_cor[,-c(1:3)]))
+rcor_object$r[lower.tri(rcor_object$r)] <- NA
+rcor_object$P[lower.tri(rcor_object$P)] <- NA
+rcor_object$r[lower.tri(rcor_object$r)]
+new <- pheno_object$r
+View(new)
+
+new[upper.tri(new)] <- rcor_object$r[upper.tri(rcor_object$r)]
+
+ne_p<-pheno_object$P
+pheno_object$P
+ne_p[upper.tri(ne_p)] <- rcor_object$P[upper.tri(rcor_object$P)]
+View(ne_p)
+#View(object$r)
+library(flextable)
+save(new,file="ms/Rdata/geno_corr.Rdata")
+save(ne_p,file="ms/Rdata/p_corr.Rdata")
+round(new,2)%>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("Variable") %>%flextable()
+ 
+round(ne_p,2)%>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("Variable") %>%
+  flextable::flextable(theme="zebra")
+
+
 
 ```
 
@@ -145,21 +232,7 @@ return(var_test)
 }
 
 
-convert<-function(df){
-var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
 
-var_test$ID<-df[[1]]$trait
-
-#env_n<-length(table(BSR.df$Env))
-for(i in (2:length(df))-1){
-#i<-3
-app<-df[[1+i]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
-app
-app$ID<-df[[i+1]]$trait
-  var_test<- rbind(var_test,app)
-}
-return(var_test)
-}
 
 
 
@@ -180,8 +253,6 @@ GE_C<-convert(GE_STP_combined)
 
 GE_C$ID<-gsub("GI","GE",GE_C$ID)
 
-library(stringr)
-
 PHS<-GWAS_phs$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
 
 PHS$ID<-GWAS_phs$trait
@@ -192,39 +263,7 @@ STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge"&STP_all$p.value<0.0004&!is
 
 save(STP_all,file="data/GWA_results/STP_all.Rdata")
 ```
-#need to extract values here for genetic correlations
-```{r}
 
-
-
-#BLUP_vals<-function(df){
-df<-GE_2020_GWAS
-
-st<-df[[1]]$mod
-
-
-
-predict.asreml(df[[1]]$mod$coefficients)
-df[[1]]$mod$coefficients
-df[[1]]$mod$coefficients$random
-var_test<-df[[1]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
-
-var_test$ID<-df[[1]]$trait
-
-#env_n<-length(table(BSR.df$Env))
-for(i in (2:length(df))-1){
-#i<-3
-app<-df[[1+i]]$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
-app
-app$ID<-df[[i+1]]$trait
-  var_test<- rbind(var_test,app)
-}
-return(var_test)
-}
-
-
-
-```
 
 ```{r}
 #STP_all

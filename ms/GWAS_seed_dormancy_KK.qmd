@@ -274,6 +274,32 @@ phs_dist
  #    geom="text", size=4, binwidth = 0.1, vjust=-1.5)
 phenoS1
 ```
+```{r}
+load("Rdata/geno_corr.Rdata")
+load("Rdata/p_corr.Rdata")
+new
+vb<-new%>%round(2)%>%as.data.frame(row.names(new))%>% tibble::rownames_to_column("Variable")%>%flextable()%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
+std_border = fp_border(color="black")
+vb
+vb<-vb%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
+bold(bold = TRUE, part = "header")%>%bold(bold = TRUE, part = "body",j=1)%>%
+  set_caption(caption=as_paragraph(as_chunk("Phenotypic and Genotypic correlations between preharvest sprouting(PHS),germination energy(GE) and germination index(GI) at post physiological maturity(PM) timepoints. The lower diagnol corresponds to phenotypic correlation and the upper diagnial corresponds to genotypic correlations",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")%>%hline(part="body",i=c(1,8) ,border = std_border )%>%vline(part="body",j=c(2,10) ,border = std_border )
+
+
+corr_table<-vb%>% add_footer_lines(values = "")%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")%>%compose(value= as_paragraph(as_i("Note:"),"phs, preharvest sprouting; GE Germination Energy; GI Germination Index; PM Physiological maturity date"), part = "footer")%>%align(align = c("left"),part = "footer")%>%fontsize(size = 8, part = "footer")%>%
+  footnote(i = c(1), j = c(4,6,8,12,14,16),
+            value = as_paragraph(
+              c("Timepoints were only measured in 2021")),
+            ref_symbols = c("a"),
+            part = "header")
+
+
+corr_table
+
+
+#upper is geno, lower is pheno
+
+```
 
 # Results
 
@@ -281,8 +307,9 @@ phenoS1
 
 Preharvest sprouting scores presented were averaged across years as there was a lack of sufficent phs data in the 2020 year alone. PHS score distribution was skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. . A geom smooth plot using a GLM loess method was used to visualize the timepoint data for GE and GI within and across years.(Figure loess) Mean GE increased at early timepoints and and reached near 100% GE at later timepoints. Mean GE increased at earlier timepoints in 2020 compared to 2021 Mean GI was initially low at early timepoints and platued near 5.5 d. Mean GI increased earlier in 2020 compared to 2021. Experimental checks Endeavor and Charles had consistent mean GE values of 0.8 and mean GI values of 7 across all timepoints and years. GI values for winter experimental lines platued near 5.5-6, compared to experimental checks Endeavor and Charles, as well as spring barley lines observed in 2020 and spring lines observed in the same experimental conditions as the winters in 2021. Dormancy loss occured at approximately $PM_{47}$ to $PM_{50}$ in 2020 and between $PM_{70}$ to $PM_90$ for 2021.
 
-##Correlations and heritaibliy C
-Phenotypic correlation between GE, GI and PHS was moderate to high across early and moderate timepoints, and given the high heritability associated per trait, genetic control is a larger contributer to the variance. Moderate narrow sense heritability was observed for pre-harvest sprouting in the 2020 and 2021 years(h2 = 0.37) (Table S1). Heritability for GE was high in early timepoints and peaked at PM_19 in 2020 and PM_33 in 2021. Across years, heritability was highest at the earliest timepoint PM_5.
+##Correlations and heritaibliy 
+Phenotypic correlation between GE and GI was high between 
+Moderate narrow sense heritability was observed for pre-harvest sprouting in the 2020 and 2021 years(h2 = 0.37) (Table S1). Heritability for GE was high in early timepoints and peaked at PM_19 in 2020 and PM_33 in 2021. Across years, heritability was highest at the earliest timepoint PM_5.
 
 ```{r}
 # Figure 3
