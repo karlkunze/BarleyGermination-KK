@@ -47,6 +47,7 @@ DH2020_2021[DH2020_2021$taxa%in%c("Charles","Endeavor"),]$Check<-"2"
 ## H2 visualization
 ```{r}
 library(dplyr)
+
 DH_H2%>%
    ggplot(aes(x = TP, y = ah2, fill = trait)) +geom_bar(stat = 'identity', position = 'dodge')+
   facet_wrap(vars(Year), ncol = 1)+theme_bw()+labs(title= 'Narrow sense heritability\nover time and datasets')
@@ -509,6 +510,7 @@ theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_tex
 #Single Timepoint GWAS
 
 ```{r}
+
 GI_all<-df_begin
 hist(df_begin$phs)
 GI_2020<-GI_all%>%filter(Year=="2020")%>%droplevels()
@@ -523,7 +525,7 @@ library(dplyr)
 phs<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")%>%dplyr::select(GID,Location,SourcePLOT,Row,Check,Family,Year,phs)%>%left_join(marker_ef,by="GID")
 
 simple<-phs%>%unique()
-simple
+simple$Check<-as.factor(simple$Check)
 
 genoM
 
@@ -537,16 +539,18 @@ print(paste0("data input: ",simple$type%>%unique()))
 
 simple$ND<-as.character(simple$Check)
 simple[simple$GID=="ENDEAVOR",]$phs<-8
-simple$ND
-pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",
+
+pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",fixed="Check",
 resp = "phs", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
 fixed="Check"
+
 random=NULL
 
 resid=NULL
+pre.aprAA$pheno.data$Check
 pre.aprAA$pheno.data$phs
 hist(pre.aprAA$pheno.data$phs)
 gwasSTP.phs<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "phs",
@@ -554,14 +558,14 @@ gwasSTP.phs<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "phs",
 Q = NULL, npc = 4, geno.data = pre.aprAA$geno.data,
 map.data = pre.aprAA$map.data,bonferroni = TRUE,fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
 library(asreml)
-wald.asreml(gwasSTP.phs$mod)
-gwasSTP.phs$heritability
-summary(gwasSTP.phs$mod)$varcomp
-FDR_thresholds(gwasSTP)
+gwasSTP.phs$mod
 
-gwasSTP.phs$heritability
-gwasSTP.phs$gwas.sel
-plot(gwasSTP$mod)
+
+
+
+
+
+
 qq.plot(gwas.table = gwasSTP.phs$gwas.all)
 manhattan.plot(gwas.table = gwasSTP.phs$gwas.all, pvalue.thr = FDR_thresholds(gwasSTP)[1,1],
 point.size = 1.2)
@@ -569,6 +573,12 @@ point.size = 1.2)
 FDR_thresholds(gwasSTP)[1,1]
 tr
 GWAS_phs<-gwasSTP.phs
+
+pre<-gwasSTP.phs$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)")
+BLUPS
+GWAS_phs$BLUPS<-BLUPS
 
 GWAS_phs$trait<-paste0("PHS","-","2020/2021","-PM_","3")
 GWAS_phs$trait
@@ -647,6 +657,12 @@ tr<-"GI";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%un
 qq.plot(gwas.table = gwasSTP$gwas.all)
 manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = FDR_thresholds(gwasSTP)[1,1],
 point.size = 1.2)
+
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+
+gwasSTP$BLUPS<-BLUPS
 #change here
 
 GI2020_PM5<-gwasSTP
@@ -704,6 +720,12 @@ gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel,
 ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
 gwasFIN 
 #change here
+
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 GI2020_PM19<-gwasSTP
 tpm
 paste0(tr,"-",ty,"-PM_",tpm)
@@ -769,6 +791,11 @@ ref.vc = 1, pvalue.thr = 0.01, maxiter.update = 4)
 gwasFIN
 
 #change here
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 tpm
 GI2020_PM47<-gwasSTP
 paste0(tr,"-",ty,"-PM_",tpm)
@@ -821,6 +848,11 @@ gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel[,c(1,length
 ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
 gwasFIN
 #change here
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 tpm
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2020_PM96<-gwasSTP
@@ -875,6 +907,11 @@ gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel[,c(1,length
 ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
 gwasFIN
 #change here
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 tpm
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2020_PM152<-gwasSTP
@@ -935,12 +972,18 @@ t3
 tr<-"GE";ty<-as.character(t3$Year)%>%unique();tpm<-as.character(t3$PM_date)%>%unique()
 tpm
 wald.asreml(gwasSTP$mod)
-
+gwasSTP$heritability
 qq.plot(gwas.table = gwasSTP$gwas.all)
 manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = 1e-05,
 point.size = 1.2)
 #change here
-tr
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
+
 paste0(tr,"-",ty,"-PM_",tpm)
 GE2020_PM5<-gwasSTP
 GE2020_PM5$trait<-paste0(tr,"-",ty,"-PM_",tpm)
@@ -1000,6 +1043,12 @@ ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
 gwasFIN 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 tr
 tpm
 ty
@@ -1060,6 +1109,12 @@ ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 tr
 tpm
 ty
@@ -1122,6 +1177,12 @@ ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 tr
 tpm
 ty
@@ -1130,6 +1191,7 @@ GE2020_PM96$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GE2020_PM96$trait
 table(GE_2020$PM_date)
 ### GE 2020 152
+
 
 
 simple<-GE_2020%>%filter(PM_date=="152")
@@ -1181,6 +1243,12 @@ ref.vc = 1, pvalue.thr = 0.0001, maxiter.update = 4)
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 tr
 tpm
 ty
@@ -1206,8 +1274,8 @@ save(GE_2020_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GE_2020_res
 ```{r}
 GI_all<-df_begin
 
-
-GI_all
+dim<-as.matrix(genoD)
+GI_all$GID
 ## 2020
 
 GI_2021<-GI_all%>%filter(Year=="2021")%>%droplevels()
@@ -1216,7 +1284,7 @@ table(GI_2021$PM_date)
 
 ### 2021 GI PM 5
 simple<-GI_2021%>%filter(PM_date=="5")
-simple$Maturity_date
+
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
 
 
@@ -1229,11 +1297,14 @@ simple$ND<-as.character(simple$Check)
 simple$GI_l<-simple$GI^1
 hist(simple$GI_l)
 simple
+
 pre.aprAA <- pre.gwas(pheno.data=simple, indiv = "GID",
 resp = "GI", geno.data = gd,map.data = genoMp,
-maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
-method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.1,
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.05)
 ##
+table(gd)
+pre.aprAA$pheno.data
 pre.aprAA$pheno.data$Day1Germ
 fixed=NULL
 rand=NULL
@@ -1243,6 +1314,7 @@ gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GI",
 Q = pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
 map.data = pre.aprAA$map.data, pvalue.thr = 1e-5,
 bonferroni = FALSE,fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb')
+pre.aprAA$pheno.data$GID
 summary(gwasSTP$mod)$varcomp
 wald.asreml(gwasSTP$mod)
 t3<-simple[,c("GI","Year","PM_date")]
@@ -1255,7 +1327,19 @@ qq.plot(gwas.table = gwasSTP$gwas.all)
 manhattan.plot(gwas.table = gwasSTP$gwas.all, pvalue.thr = 1e-05,
 point.size = 1.2)
 #change here
+
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
+
+
+
+
 GI2021_PM5<-gwasSTP
 GI2021_PM5$trait<-paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM5$trait
@@ -1313,6 +1397,14 @@ gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel,
 ref.vc = 1, pvalue.thr = 0.01, maxiter.update = 4)
 gwasFIN
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
+
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM12<-gwasSTP
 GI2021_PM12$trait<-paste0(tr,"-",ty,"-PM_",tpm)
@@ -1370,6 +1462,14 @@ gwasFIN <- select.marker(gwas.object = gwasSTP, geno.data.sel = Msel,
 ref.vc = 1, pvalue.thr = 0.01, maxiter.update = 4)
 gwasFIN
 #change here
+#had to remove residual
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM19<-gwasSTP
 GI2021_PM19$trait<-paste0(tr,"-",ty,"-PM_",tpm)
@@ -1433,6 +1533,13 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM33
 GI2021_PM33<-gwasSTP
@@ -1495,6 +1602,13 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM47
 GI2021_PM47<-gwasSTP
@@ -1559,6 +1673,13 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM68
 GI2021_PM68<-gwasSTP
@@ -1625,6 +1746,15 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$residual=~units
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM96
 GI2021_PM96<-gwasSTP
@@ -1691,6 +1821,15 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$residual=~units
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GI2021_PM152
 GI2021_PM152<-gwasSTP
@@ -1763,6 +1902,16 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$residual=~units
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
+
 paste0(tr,"-",ty,"-PM_",tpm)
 GE2021_PM5
 GE2021_PM5<-gwasSTP
@@ -1830,6 +1979,15 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$residual=~units
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GE2021_PM12
 GE2021_PM12<-gwasSTP
@@ -1862,9 +2020,9 @@ resp = "GE", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
 method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
 ##
-pre.aprAA $pheno.data
+pre.aprAA$pheno.data
 rand=NULL
-fixed=c("Qsd1","JHI_Hv50k_2016_308762")
+fixed=NULL
 resid=NULL
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
@@ -1903,6 +2061,15 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$residual=~units
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GE2021_PM19
 GE2021_PM19<-gwasSTP
@@ -1981,6 +2148,15 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$residual=~units
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GE2021_PM33
 GE2021_PM33<-gwasSTP
@@ -2020,7 +2196,7 @@ table(GE_2021$PM_date)
 ###GE 2021 47
 
 ```{r}
-
+rownames(dim)
 
 simple<-GE_2021%>%filter(PM_date=="47")
 simple
@@ -2087,6 +2263,15 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre$call$residual=~units
+pre$call$data<-pre.aprAA$pheno.data
+length(table(simple$GID))
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 paste0(tr,"-",ty,"-PM_",tpm)
 GE2021_PM47
 GE2021_PM47<-gwasSTP
@@ -2122,16 +2307,16 @@ names(simple)
 pre.aprAA <- pre.gwas(pheno.data=simple%>%filter(!ND=="2")%>%droplevels(), indiv = "GID",
 resp = "GE", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
-method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20,diagonal.thr.large = 2,diagonal.thr.small=0)
 ##
 hist(pre.aprAA $pheno.data$GE)
 rand=NULL
-fixed=c("Location:Row","Row")
+fixed=c("Location:Row")
 resid=NULL
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
-Q =  pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,
+Q =  pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
 map.data = pre.aprAA$map.data, bonferroni = FALSE,
 fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb',pvalue.thr =p.val )
 
@@ -2168,6 +2353,18 @@ gwasFIN
 
 
 #change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
+
 paste0(tr,"-",ty,"-PM_",tpm)
 GE2021_PM68
 GE2021_PM68<-gwasSTP
@@ -2203,17 +2400,17 @@ names(simple)
 pre.aprAA <- pre.gwas(pheno.data=simple%>%filter(!ND=="2")%>%droplevels(), indiv = "GID",
 resp = "GE", geno.data = gd,map.data = genoMp,
 maf = maf_lim, marker.callrate = 0.2, ind.callrate = 0.2,
-method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20)
+method = "VanRaden", rename.markers = TRUE, impute = FALSE, Q.method = "K",heterozygosity = 0.20,diagonal.thr.large = 2,diagonal.thr.min=0)
 ##
 
 rand=NULL
 fixed=c("Location:Row","Location")
-resid="Location"
+resid=NULL
 
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
-Q =  pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,
+Q =  pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
 map.data = pre.aprAA$map.data, bonferroni = FALSE,
 fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb',maxiter.update = 10,pvalue.thr = p.val)
 
@@ -2250,7 +2447,19 @@ gwasFIN
 
 
 #change here
-paste0(tr,"-",ty,"-PM_",tpm,"did not covnver")
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
+paste0(tr,"-",ty,"-PM_",tpm)
 GE2021_PM96
 GE2021_PM96<-gwasSTP
 GE2021_PM96$trait<-paste0(tr,"-",ty,"-PM_",tpm,": did_not_converge")
@@ -2289,7 +2498,7 @@ resid=NULL
 ####warning binomial will crash the computer
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
-Q =  pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,
+Q =  pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,
 map.data = pre.aprAA$map.data, bonferroni = TRUE,
 fixedf = fixed,residual=resid,randomf = rand,workspace='2Gb')
 
@@ -2326,6 +2535,19 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
+
 paste0(tr,"-",ty,"-PM_",tpm)
 GE2021_PM152
 GE2021_PM152<-gwasSTP
@@ -2414,6 +2636,18 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 
 paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
@@ -2489,13 +2723,25 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
 GI_19<-gwasSTP
 GI_19$trait<-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
 GI_19$trait
-table(GI_2020$PM_date)
+
 ```
 ## GI 47 PM
 ```{r}
@@ -2562,6 +2808,18 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GI
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
@@ -2635,6 +2893,18 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GI
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
@@ -2647,7 +2917,7 @@ GI_96$trait
 ```{r}
 GI_all<-df_begin
 GI_all$Year
-##GI PM 96
+##GI PM 152
 simple<-GI_all%>%filter(PM_date=="152")
 simple
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
@@ -2708,6 +2978,18 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
@@ -2756,7 +3038,7 @@ resid=NULL
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
-Q = pre.aprAA$Q, npc = 5, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
+Q = pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
 map.data = pre.aprAA$map.data, pvalue.thr =5e-05,
 fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
 
@@ -2790,6 +3072,18 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
@@ -2864,6 +3158,18 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
@@ -2937,11 +3243,23 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
 GE_47<-gwasSTP
-GE_47$trait<-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_47$trait<-paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 GE_47$trait
 table(GE_all$PM_date)
 ```
@@ -2976,7 +3294,7 @@ resid="Year"
 table(pre.aprAA$pheno.data$Year)
 gwasSTP<- gwas.asreml(pheno.data = pre.aprAA$pheno.data,resp = "GE",
  gen = "GID", Kinv = pre.aprAA$Kinv,
-Q = pre.aprAA$Q, npc = 7, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
+Q = pre.aprAA$Q, npc = 2, geno.data = pre.aprAA$geno.data,bonferroni = FALSE,
 map.data = pre.aprAA$map.data, pvalue.thr =5e-05,
 fixedf = fixed,residual=resid,randomf = random,workspace='2Gb')
 
@@ -3008,11 +3326,23 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
 GE_96<-gwasSTP
-GE_96$trait<-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_96$trait<-paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 GE_96$trait
 table(GE_all$PM_date)
 ```
@@ -3021,7 +3351,7 @@ table(GE_all$PM_date)
 ```{r}
 GE_all<-df_begin
 GE_all$Year
-##GI PM 5
+##GE PM 152
 simple<-GE_all%>%filter(PM_date=="152")
 simple
 gd=dim;genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
@@ -3080,11 +3410,23 @@ gwasFIN
 
 
 #change here
+#change here
+gwasSTP$heritability
+pre<-gwasSTP$mod
+pre.aprAA$pheno.data$GE
+pre$call$data<-pre.aprAA$pheno.data%>%unique()
+
+length(table(simple$GID))
+gwasSTP$mod$call
+
+BLUPS<-predict.asreml(pre,classify ="vm(GID, pre.aprAA$Kinv$GID)",aliased = TRUE)
+BLUPS
+gwasSTP$BLUPS<-BLUPS
 
 paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 
 GE_152<-gwasSTP
-GE_152$trait<-paste0(paste0("GI-",ty[1],"/",ty[2]),"-","PM_",tpm)
+GE_152$trait<-paste0(paste0("GE-",ty[1],"/",ty[2]),"-","PM_",tpm)
 GE_152$trait
 table(GE_all$PM_date)
 ```
@@ -3109,7 +3451,7 @@ patht<-paste0(patht,"NY-winter-barley-analysis/")
 load("data/MQ/WMB21_Master_Cornell.Rdata")
 View(MQ_WMB21)
 dim<-genoD%>%as.matrix()
-
+dim
 ```
 
 ```{r}
