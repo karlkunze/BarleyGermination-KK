@@ -88,7 +88,7 @@ mr_phs<-DH2020_2021%>%dplyr::select(phs,Location,Year)%>%reframe(mean=round(mean
 
 sum_table[sum_table$trait=="PHS",c("mean","range")]<-mr_phs[1,]
 sum_table[sum_table$trait=="PHS",c("mean","range")]
-View(sum_table)
+#View(sum_table)
 save(sum_table,file="ms/Rdata/genetic_variance_h2.Rdata")
 
 ```
@@ -176,7 +176,7 @@ PM2021<-STP_all_BLUP%>%filter(year=="2021",PM%in%c("12","33","68"))%>%droplevels
 table(PM2021$PM)
 comb<-STP_all_BLUP%>%filter(year=="2020/2021")%>%rbind(PM2021)%>%mutate(year="2020/2021")%>%arrange(PM)
 comb[comb$PM==3,]$PM<-5
-test<-comb%>%mutate(PM_date=paste("PM",as.character(PM)))%>%dplyr::select(!c(status,ID,std.error))%>%pivot_wider(names_from ="trait",values_from = c("predicted.value"))%>%select(!PM)%>%pivot_wider(names_from = "PM_date",values_from = c("PHS","GE","GI"))
+test<-comb%>%mutate(PM_date=paste("PM",as.character(PM)))%>%dplyr::select(!c(status,ID,std.error))%>%pivot_wider(names_from ="trait",values_from = c("predicted.value"))%>%dplyr::select(!PM)%>%pivot_wider(names_from = "PM_date",values_from = c("PHS","GE","GI"))
 #View(test)
 phs<-test%>%dplyr::select(grep("PHS",colnames(test)))%>%dplyr::select("PHS_PM 5")%>%rename(phs="PHS_PM 5")
 #View(test)
@@ -189,14 +189,14 @@ rcor_object$r[lower.tri(rcor_object$r)] <- NA
 rcor_object$P[lower.tri(rcor_object$P)] <- NA
 rcor_object$r[lower.tri(rcor_object$r)]
 new <- pheno_object$r
-View(new)
+#View(new)
 
 new[upper.tri(new)] <- rcor_object$r[upper.tri(rcor_object$r)]
 
 ne_p<-pheno_object$P
 pheno_object$P
 ne_p[upper.tri(ne_p)] <- rcor_object$P[upper.tri(rcor_object$P)]
-View(ne_p)
+#View(ne_p)
 #View(object$r)
 library(flextable)
 save(new,file="ms/Rdata/geno_corr.Rdata")
@@ -236,19 +236,19 @@ return(var_test)
 
 
 
-GE20<-convert(GE_2020_GWAS)
+GE20<-convert(GE_2020_GWAS)%>%unique()
 
 table(GE20$ID)
-GI20<-convert(GI_2020_GWAS)
+GI20<-convert(GI_2020_GWAS)%>%unique()
 table(GI20$ID)
-GE21<-convert(GE_2021_GWAS)
+GE21<-convert(GE_2021_GWAS)%>%unique()
 table(GE21$ID)
-GI21<-convert(GI_2021_GWAS)
+GI21<-convert(GI_2021_GWAS)%>%unique()
 table(GI21$ID)
-GI_C<-convert(GI_STP_combined)
+GI_C<-convert(GI_STP_combined)%>%unique()
 
 table(GI_C$ID)
-GE_C<-convert(GE_STP_combined)
+GE_C<-convert(GE_STP_combined)%>%unique()
 #accidently labeled GE with GI here, see if I can change this
 
 GE_C$ID<-gsub("GI","GE",GE_C$ID)
@@ -259,7 +259,7 @@ PHS$ID<-GWAS_phs$trait
 
 STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C,PHS)%>%mutate(notes="none")%>%group_by(ID)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
 
-STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge"&STP_all$p.value<0.0004&!is.na(STP_all$p.value),]$p.value<-1
+#STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge"&STP_all$p.value<0.0004&!is.na(STP_all$p.value),]$p.value<-1
 
 save(STP_all,file="data/GWA_results/STP_all.Rdata")
 ```
@@ -268,10 +268,11 @@ save(STP_all,file="data/GWA_results/STP_all.Rdata")
 ```{r}
 #STP_all
 table_chr<-STP_all%>%ungroup()%>%dplyr::select(chrom,pos,ordinal)%>%arrange(chrom,pos)%>%unique()
+table_chr
 detach("package:Hmisc",unload=TRUE)
 
-table_chr_min<-table_chr%>%group_by(chrom)%>%summarize(min=min(pos),min_ord=min(ordinal))
-table_chr_max<-table_chr%>%group_by(chrom)%>%summarize(max=max(pos),max_ord=max(ordinal))
+table_chr_min<-table_chr%>%group_by(chrom)%>%summarise(min=min(pos),min_ord=min(ordinal))
+table_chr_max<-table_chr%>%group_by(chrom)%>%summarise(max=max(pos),max_ord=max(ordinal))
 table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
 table_chr
 
@@ -416,13 +417,15 @@ sig<-sig%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",
 sig
 markers1<-sig%>%filter(p.value<FDR_rate)
 FDR_rate
-t<-WinterPerTPGWAS2%>%filter(p.value<0.0003872807)%>%select(names(markers1))
+t<-WinterPerTPGWAS2%>%filter(p.value<0.0003872807)%>%dplyr::select(names(markers1))
 
 markers=rbind(markers1,t)%>%unique()%>%filter(maf>0.05)
 
 #View(markers)
 markers
-Genetic_map <- read_excel("~/git/naked_barley_GWAS/data/Genetic/Genetic_map.xlsx")%>%dplyr::select(snp,"physical map chr","genetic map chr",cM)%>%rename(SNP=snp)%>%mutate(cM= if_else(is.na(cM), lead(cM), cM)) %>%tidyr::fill(cM,.direction="downup")%>%mutate(SNP=gsub("-","_",SNP))%>%rename(marker=SNP,chrom="physical map chr",chromG="genetic map chr")%>%mutate(chrom=as.numeric(substr(chrom,1,1)),chromG=as.numeric(substr(chromG,1,1)))
+library(readxl)
+getwd()
+Genetic_map <- read_excel("C:/Users/kars8/git/naked_barley_GWAS/data/Genetic/Genetic_map.xlsx")%>%dplyr::select(snp,"physical map chr","genetic map chr",cM)%>%rename(SNP=snp)%>%mutate(cM= if_else(is.na(cM), lead(cM), cM)) %>%tidyr::fill(cM,.direction="downup")%>%mutate(SNP=gsub("-","_",SNP))%>%rename(marker=SNP,chrom="physical map chr",chromG="genetic map chr")%>%mutate(chrom=as.numeric(substr(chrom,1,1)),chromG=as.numeric(substr(chromG,1,1)))
 
 
 
@@ -451,6 +454,17 @@ max_marker$Position-min_marker$Position
 gdat<-as(gdt,"SnpMatrix")
 max_marker$SNP
 LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 1",SNP.name = c(min_marker$SNP,max_marker$SNP))
+
+gdt0<-gdt[,c(2:6)]
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="1",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 1",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+
+
+CH1_LD_groupA=data.frame(SNP=gmt$SNP,Ch="1",group="A",Position=gmt$Position,ld=0.95)
+
+
 #they are all in the same LD block, except for the outer two markers
 ```
 ```{r}
@@ -468,7 +482,7 @@ gdat<-as(gdt,"SnpMatrix")
 max_marker$SNP
 LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 2",SNP.name = c(min_marker$SNP,max_marker$SNP),add.map = FALSE,text=FALSE)
 #group A
-gdt0<-gdt[,c(2:20)]
+gdt0<-gdt[,c(7:25)]
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="2",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
 gdat0<-as(gdt0,"SnpMatrix")
@@ -477,7 +491,7 @@ LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD o
 
 CH2_LD_groupA=data.frame(SNP=gmt$SNP,Ch="2",group="A",Position=gmt$Position,ld=0.95)
 #group B
-gdt0<-gdt[,c(21:88)]
+gdt0<-gdt[,c(26:94)]
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="2",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
 gdat0<-as(gdt0,"SnpMatrix")
@@ -503,7 +517,15 @@ max_marker$Position-min_marker$Position
 gdat<-as(gdt,"SnpMatrix")
 max_marker$SNP
 LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 3",SNP.name = c(min_marker$SNP,max_marker$SNP),add.map = FALSE,text=FALSE)
+##3a
+gdt0<-gdt[,c(1:5)]
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="3",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 3",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
 
+
+CH3_LD_groupA=data.frame(SNP=gmt$SNP,Ch="3",group="A",Position=gmt$Position,ld=0.95)
 
 
 ```
@@ -534,7 +556,7 @@ LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD o
 gmt$SNP
 CH4_LD_groupA_real=data.frame(SNP=gmt$SNP,Ch="4",group="A",Position=gmt$Position,ld=0.93)
 #4b
-gdt0<-gdt[,c(9:30)]
+gdt0<-gdt[,c(4:7)]
 
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="4",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
@@ -591,8 +613,8 @@ LDheatmap.highlight(CH5_LD, i = 44, j = 118, col = "red",lwd=2,flipOutline=FALSE
 
 # I see 23high LD and we will need to look at Qsd1
 #group A
-gdt0<-gdt[,c(8:20)]
-
+gdt0<-gdt[,c(7:20)]
+colnames(gdt0)
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="5",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
 gdat0<-as(gdt0,"SnpMatrix")
@@ -602,17 +624,21 @@ LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD o
 
 CH5_LD_groupA_real=data.frame(SNP=gmt$SNP,Ch="5",group="A",Position=gmt$Position,ld=0.91)
 ## group 2
-gdt0<-gdt[,c(25:38)]
-
+gdt0<-gdt[,c(24:36)]
 colnames(gdt0)
-gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="5",]$marker))
+colnames(gdt0)
+gmt<-WinterGM_0%>%filter(SNP%in%c(marker_table[marker_table$chrom=="5",]$marker,"AlaAT_L214F"))
+WinterGM_0[WinterGM_0$SNP=="AlaAT_L214F",]
+
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
 gdat0<-as(gdt0,"SnpMatrix")
-
+colnames(gdat0)
+gmt$SNP
 LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 5",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
 CH5_LD_groupBQsd1_real=data.frame(SNP=gmt$SNP,Ch="5",group="B",Position=gmt$Position,ld=0.98)
+CH5_LD_groupBQsd1_real
 ## Group C
-gdt0<-gdt[,c(41:53,55:112)]
+gdt0<-gdt[,c(37:52,56:111)]
 
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="5",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
@@ -625,7 +651,7 @@ CH5_LD_groupC_real=data.frame(SNP=gmt$SNP,Ch="5",group="C",Position=gmt$Position
 
 #group d
 #phs
-gdt0<-gdt[,c(113:121)]
+gdt0<-gdt[,c(109:113,115:121)]
 
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="5",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
@@ -635,6 +661,7 @@ LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD o
 CH5_LD_groupD_real=data.frame(SNP=gmt$SNP,Ch="5",group="D_phs",Position=gmt$Position,ld=0.91)
 
 CH5_LD=rbind(CH5_LD_groupA_real,CH5_LD_groupBQsd1_real,CH5_LD_groupC_real,CH5_LD_groupD_real)
+View(CH5_LD)
 ```
 
 ```{r}
@@ -652,7 +679,7 @@ max_marker$SNP
 LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 7",SNP.name = c(min_marker$SNP,max_marker$SNP),add.map = FALSE,text=FALSE)
 
 ##7A
-gdt0<-gdt[,c(1:3)]
+gdt0<-gdt[,c(3:4)]
 
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="7",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
@@ -663,7 +690,7 @@ LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD o
 
 
 ## 7A
-gdt0<-gdt[,c(6:9)]
+gdt0<-gdt[,c(5:8)]
 
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="7",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
@@ -693,11 +720,12 @@ WinterGD%>%dplyr::select(any_of(v))
 ```{r}
 
 
-LD_groups<-rbind(CH2_LD,CH4_LD,CH5_LD,CH7_LD)
+LD_groups<-rbind(CH1_LD_groupA,CH2_LD,CH3_LD_groupA,CH4_LD,CH5_LD,CH7_LD)
+
 #LD_groups[LD_groups$group=="D_phs",]$group<-"C"
 collapse_table<-LD_groups%>%group_by(Ch,group)%>%arrange(Position)%>%reframe(SNP_marker=paste0(SNP[c(1)],", ",SNP[c(n()/2)],", ",SNP[c(n())]),bp_range=paste0(min(Position),"-",max(Position)),ld)%>%unique() %>%ungroup()  
 
-
+collapse_table
 conversion<-LD_groups[,1:3]%>%ungroup()%>%left_join(collapse_table,by=c("Ch","group"),relationship = "many-to-many")
 ##
 markers
@@ -706,10 +734,10 @@ FDR_rate
 rownames(m3)=NULL
 
 
-test<-Genetic_map%>%right_join(m3%>%select(marker,chrom,pos),by=c("chrom","marker"))%>%tidyr::drop_na(cM)%>%unique()
+test<-Genetic_map%>%right_join(m3%>%dplyr::select(marker,chrom,pos),by=c("chrom","marker"))%>%tidyr::drop_na(cM)%>%unique()
 
-
-marker_table2<-m3%>%filter(p.value<FDR_rate)%>%left_join(test%>%select(!pos),by=(c("chrom","marker")))%>%arrange(chrom,pos)%>%mutate(marker_collapse=plyr::mapvalues(marker,from=conversion$SNP,to=conversion$SNP_marker))%>%dplyr::select(!marker)%>%unique()%>%reframe(.by = c(chrom,marker_collapse),pos_range=paste0(min(pos),"-",max(pos)),cm_range=paste0(min(cM),"-",max(cM)),PM_dates = toString(unique(PM)),trait=toString(unique(trait)),year=toString(unique(year)),testmin=round(min(maf),3),testmax=round(max(maf),3),PVEmin=round(min(expl.var),3),PVEmax=round(max(expl.var),3),Pvalue=max(round(p.value,4)))%>%
+m3[m3$marker=="Qsd1",]$marker<-"AlaAT_L214F"
+marker_table2<-m3%>%filter(p.value<FDR_rate)%>%left_join(test%>%dplyr::select(!pos),by=(c("chrom","marker")))%>%arrange(chrom,pos)%>%mutate(marker_collapse=plyr::mapvalues(marker,from=conversion$SNP,to=conversion$SNP_marker))%>%dplyr::select(!marker)%>%unique()%>%reframe(.by = c(chrom,marker_collapse),pos_range=paste0(min(pos),"-",max(pos)),cm_range=paste0(min(cM),"-",max(cM)),PM_dates = toString(unique(PM)),trait=toString(unique(trait)),year=toString(unique(year)),testmin=round(min(maf),3),testmax=round(max(maf),3),PVEmin=round(min(expl.var),3),PVEmax=round(max(expl.var),3),Pvalue=max(round(p.value,4)))%>%
 
 
 
@@ -1023,7 +1051,7 @@ marker_table2[marker_table2$Chr=="2",]
 marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_78167, JHI_Hv50k_2016_78425, JHI_Hv50k_2016_78947",]$Gene_candidate<-"Anthocyanin 3-O-beta-glucosyltransferase	HORVU.MOREX.r3.2HG0113240.1"
 
 
-marker_table2[marker_table2$SNP=="SCRI_RS_135633, JHI_Hv50k_2016_90999, JHI_Hv50k_2016_116224",]$Gene_candidate<-"Dimeric alpha-amylase inhibitor(HORVU.MOREX.r2.2HG0176960), mitogen-activated protein kinase 1(HORVU.MOREX.r3.2HG0135700.1),Beta-amylase(HORVU.MOREX.r3.2HG0138420.1),1,4-alpha-glucan-branching enzyme(HORVU.MOREX.r3.2HG0165780.1)"
+marker_table2[marker_table2$SNP=="SCRI_RS_135633, JHI_Hv50k_2016_90999, SCRI_RS_132839",]$Gene_candidate<-"Dimeric alpha-amylase inhibitor(HORVU.MOREX.r2.2HG0176960), mitogen-activated protein kinase 1(HORVU.MOREX.r3.2HG0135700.1),Beta-amylase(HORVU.MOREX.r3.2HG0138420.1),1,4-alpha-glucan-branching enzyme(HORVU.MOREX.r3.2HG0165780.1)"
 
 # 3H
 marker_table2[marker_table2$Chr=="3",]
@@ -1034,7 +1062,7 @@ marker_table2[marker_table2$SNP=="SCRI_RS_16934",]$Gene_candidate<-"IAA-amino ac
 marker_table2[marker_table2$Chr=="4",]
 marker_table2[marker_table2$Chr=="4",]$SNP
 marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_262688, JHI_Hv50k_2016_262688, JHI_Hv50k_2016_262937",]$Gene_candidate<-"Alpha amylase inhibitor protein(HORVU.MOREX.r3.4HG0409620.1).Alpha-1,4-glucan-protein synthase [UDP-forming] 1(HORVU.MOREX.r3.4HG0409970.1), QGpc.StMo-4H(Protein Content)"
-marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_275586, JHI_Hv50k_2016_276615, JHI_Hv50k_2016_276209",]$Gene_candidate<-c("	
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_275586, JHI_Hv50k_2016_275686, JHI_Hv50k_2016_276209",]$Gene_candidate<-c("	
 QDp.DiMo-4H(Diastatic Power)/QBgnm.MT2-4H(Beta Glucan)")
 
 
@@ -1051,23 +1079,23 @@ marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_311161",]$Gene_candidate<-"root
 
 
 marker_table2[marker_table2$Chr=="5",]$SNP
-marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_281309"),]$Gene_candidate<-"GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0424400.1)"
+#marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_281309"),]$Gene_candidate<-"GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0424400.1)"
 marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_282781","JHI_Hv50k_2016_282768","JHI_Hv50k_2016_283159","SCRI_RS_136706","SCRI_RS_136706, JHI_Hv50k_2016_283749, JHI_Hv50k_2016_283875"),]$Gene_candidate<-"Aminotransferase-like, plant mobile domain-containing protein(HORVU.MOREX.r3.5HG0425960.1)"
 
 marker_table2[marker_table2$SNP=="Qsd1",]$Gene_candidate<-"HvAlaAT-Aminotransferase(HORVU.MOREX.r3.5HG0481320.1)"
 
 
-marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_308652, JHI_Hv50k_2016_308798, JHI_Hv50k_2016_310278",]$Gene_candidate<-"HvAlaAT-Aminotransferase(HORVU.MOREX.r3.5HG0481320.1), abscisic aldehyde oxidase 3(HORVU.MOREX.r2.5HG0399320)"
+marker_table2[marker_table2$SNP=="AlaAT_L214F, JHI_Hv50k_2016_308790, JHI_Hv50k_2016_308899",]$Gene_candidate<-"HvAlaAT-Aminotransferase(HORVU.MOREX.r3.5HG0481320.1), abscisic aldehyde oxidase 3(HORVU.MOREX.r2.5HG0399320)"
 
-marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_310358, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246",]$Gene_candidate<-"GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1), 1,4-alpha-glucan branching enzymeGlgB(HORVU.MOREX.r3.5HG0488090.1),root meristem growth factor(HORVU.MOREX.r3.5HG0486840.1)"
+marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_310278, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246",]$Gene_candidate<-"GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1), 1,4-alpha-glucan branching enzymeGlgB(HORVU.MOREX.r3.5HG0488090.1),root meristem growth factor(HORVU.MOREX.r3.5HG0486840.1)"
 
 marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_310358, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246",]$Gene_candidate<-"Beta-glucosidase, putative	HORVU.MOREX.r3.5HG0490890.1,Mitogen-activated protein kinase(HORVU.MOREX.r3.5HG0491520.1"
 View(marker_table2[marker_table2$Chr=="5",])
 
-
-
-marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_450348, JHI_Hv50k_2016_450348, JHI_Hv50k_2016_486280"),]$Gene_candidate<-"beta-amylase(HORVU.MOREX.r2.7HG0614220)/ABA responsive binding factor(HORVU.MOREX.r2.7HG0533970)/ Glucan endo-1,3-beta-glucosidase,putative(HORVU.MOREX.r2.7HG0535140)/ Seed maturation protein(HORVU.MOREX.r2.7HG0535020)"
 marker_table2[marker_table2$Chr=="7",]$SNP
+
+marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_450348", "JHI_Hv50k_2016_483509", "JHI_Hv50k_2016_486280"),]$Gene_candidate<-"beta-amylase(HORVU.MOREX.r2.7HG0614220)/ABA responsive binding factor(HORVU.MOREX.r2.7HG0533970)/ Glucan endo-1,3-beta-glucosidase,putative(HORVU.MOREX.r2.7HG0535140)/ Seed maturation protein(HORVU.MOREX.r2.7HG0535020)"
+
 
 
 
@@ -1078,7 +1106,7 @@ marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_486280"),]$Gene_candidate<-
 
 
 
-marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_507370"),]$Gene_candidate<-"beta glucosidase 17(HORVU.MOREX.r2.7HG0609800)"
+marker_table2[marker_table2$SNP%in%c("JHI_Hv50k_2016_507218, JHI_Hv50k_2016_507370, JHI_Hv50k_2016_508103"),]$Gene_candidate<-"beta glucosidase 17(HORVU.MOREX.r2.7HG0609800)"
 
 
 
