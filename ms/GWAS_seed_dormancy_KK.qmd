@@ -315,8 +315,6 @@ phenoS1
 
 Preharvest sprouting scores presented were averaged across years as there was a lack of sufficent phs data in the 2020 year alone. PHS score distribution was skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. Average GE had significant variation based on year as mean GE in 2021 was substaintally lower than mean GE at equivalent time points.Heritability for GE was high at early timepoints but decreased as primary dormancy loss occured. The slight increase of heritability of GE at later timepoints is most likely attributed to diseased kernels as seeds were not surface sterilized due to population size. GI was initally low at early timepoints and increased as primary dormancy loss occured. Unlike GE, GI variation remained after dormancy resulting in higher heritability at later timepoints. Similar to GE, there was significantly more dormancy in 2021 compared to 2020, as intial genetic variation and heritability was low for PM 5 in 2021. After observed dormancy loss, GI platued at a mean GI of 5.6
 
-#modeling
-
 #Correlations
 
 Phenotypic correlations between GE and GI were significant between all timepoints except for PM 152. PHS phenotypic correlations were not significant to GE and GI. Genotypic correlations were high for all traits, indicating shared genetic control.
@@ -509,8 +507,6 @@ Percent variance explained(PVE) was highest (for markers in perfect LD with KASP
 
 Efforts to identify sources of PHS resistance that do not compromise malting quality has been a key target in malting barley breeding, particularly in regions where there is a high chance for rain events at harvest. Numerous barley mapping studies have identified dormancy loci such as SD1 and SD2 on 5H and SD3 on 7H, but few have evaluated dormancy loss with extensive germination assays in a winter malting barley breeding population. We found that the SD1 locus contributed to significant difference in rate dormancy loss over time in winter malting barley from 5 days to 152 days after physiological maturity. In addtion to the SD1, we found numerous other regions of low to moderate effect associated with dormancy loss, including markers associated with alpha-amylase inhibitors and beta amylase glucan branching enzymes on 2H, a marker two regions for Beta glucan and Diastatic power on 4H, and SD3 on 7H @romagosaIndividualLocusEffects1999. Identifying multiple regions associated with dormancy loss provides breeders with a greater ability to select for a desired balance of seed dormancy in target environments
 
-### PHS
-
 Observed preharvest sprouting was low in the WMB DH population. Preharvest scoring overlaps at the same post PM range as first timepoint observed in dormancy assays as phs samples are harvested at physiological maturity, after ripened for 4 days and scored 3 days after misting, equivalent to PM 4 when given misting conditions and PM 7 when scored. Despite similar physiological states, the phenotypic correlation of PHS and GE and GI at early timepoints was low. This is most likely due to the the high dormancy observed in 2021 both with PHS and seed dormancy as well as sampling error.
 
 Seed dormancy variation was significant in the WMB barley population. Seed dormancy loss is defined when GE values per line reach 95% and mean seed dormancy loss across lines reached 90%. In 2020, mean seed dormancy loss occured between timepoints $PM_{47}$ and $PM_{68}$ in 2020 and between timepoints $PM_{68}$ and $PM_{96}$ in 2021. Genetic variation for GE was initially high in 2020 and signficantly reduced once seed dormancy loss was near complete. Genetic varaition for GE in 2021 increased slightly and decreased once dormancy loss occured, albeit at later timepoints compared to 2020.GI genetic variation for 2020 and 2021 followed similar rates, but mean GI values were higher at earlier timepoints in 2020 to 2021.. Compared to GI of spring malting barley populations, winter malting barleys were observed to have lower 1 day germination values, even after dormancy loss, which is reflected as a penalty in the calculated GI score and high genetic variation at later timepoints. The low phs incidicene, prolonged dormancy and moderate GI values suggests that selection for barley with shorter dormancy times and higher GI should be a priority in winter malting barley
@@ -522,13 +518,6 @@ Genetic correlations between GE, GI and PHS were surprisingly high at early and 
 Fitting single step models can reduce the amount of information loss associated when using fixed effect responses without weights, or using random effects models where BLUPS are either not deregressed and shrunk twice or degressed but partial shrinkage occurs regardless. Fitting single step models for each timepoint produced challenges however, as some models did not converge for some timepoints. The lack of convergence issues associated with with GE and early and late timepoiints was most likely due low variation of the trait. Other model terms such as Location were significant across many combinations, indicating the potential of either field effects or sampling error within locations. Seed dormancy measurements were most often(but not always) scored by two individuals by scoring one replication each and significant fixed effects of replication most likely indicate differences of scoring by an individual or scoring error. Fixed effect terms such Location:Row most likely correspond to some form of sampling error. Although not presented, Qsd1 was tested as a fixed effect in the various models to determine potential epistatic effects associated with the Qsd1 locus. No novel QTL were identified and QTL that had reduced PEV in timepoints where the AlaAT locus explained the most variance were detected in different timepoint, trait and year combinations.
 
 ## MTA associations
-
-#2H
-
-#5H region
-
-The region between 435636564-448089400 on 5H included the KASP marker AlaAT_L214F and 50K snp markers in high ld (r=0.95) with AlaAT.\
-An abscisic aldehyde oxidase 3(HORVU.MOREX.r2.5HG0399320) was also identified in this region. \### AlaAT
 
 SD1 was initially discovered as a seed dormancy QTL in barley by @oberthurGeneticAnalysisSeed1995 and has since validated by many researchers @romagosaIndividualLocusEffects1999 @han1996, cloned @satoAlanineAminotransferaseControls2016 and sanger sequenced by @vetchMutationsHvMKK3HvAlaAT12020 and @sweeneyInteractionsBarleySD12021. AlaAT has also been a target of CRISPR-Cas9 targeted mutagenesis where targeted mutants showed highly delayed, but not inhibited germination. [@hisano2022]
 
@@ -543,6 +532,11 @@ Three potential candidate genes were identified 160022796-469196911 bp region on
 #3H
 
 Other potential novel loci include HvVP1 (Viviparous-1) which may be associated with JHI-Hv50k-2016-165725 on chromosome 3H and segregating in the SY Tepee family. HvVP1 is a master transcription factor regulator that controls switching between seed maturation and germination in barley HvVP1 @abrahamDevelopmentalSwitchGene2016
+
+#5H B
+
+The region between 435636564-448089400 on 5H included the KASP marker AlaAT_L214F and 50K snp markers in high ld (r=0.95) with AlaAT.\
+An abscisic aldehyde oxidase 3(HORVU.MOREX.r2.5HG0399320) was also identified in this region. \### AlaAT
 
 #5H C
 
