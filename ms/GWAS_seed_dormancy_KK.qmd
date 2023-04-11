@@ -10,7 +10,26 @@ author:
         city: Ithaca
         state: NY
         postal-code: 14853
+  - name: Travis Rooney
+    orcid: 0000-0002-6301-1570
+    email: rooneytravis@gmail.com
+    affiliations:
+      - name: Sesaco Breeding
+        address: 422 Bradfield Hall
+        city: Austin
+        state: TX
+        postal-code: 88000
+  - name: Daniel Sweeney
+    orcid: 0000-0003-2946-5664
+    email: dsweeney830@gmail.com
+    affiliations:
+      - name: Corteva Agriscience
+        address: 422 Bradfield Hall
+        city: Indy
+        state: IN
+        postal-code: 24500
   - name: Mark Sorrells
+    orcid: 0000-0002-7367-2663
     email: khk44@cornell.edu
     affiliations:
       - name: Cornell University
@@ -22,9 +41,9 @@ address:
   - code: Cornell University
     address: Plant Breeding and Genetics, Bradfield Hall, Ithaca, NY 14853
 editor: visual
-format: html
- # docx:
-  #  reference-doc: custom-reference-doc.docx
+format:
+  docx:
+   reference-doc: custom-reference-doc.docx
 link-citations: TRUE
 #execute:
 #  eval: false
@@ -46,6 +65,7 @@ library(dplyr)
 library(tidyr)
 library(knitr)
 library(png)
+library(ggplot2)
 
 library(Hmisc)
 sysname <- Sys.info()["sysname"]
@@ -60,12 +80,12 @@ if(sysname == "Darwin") {
 path
 quarto_path<-paste0(path,"/ms")
 setwd(quarto_path)
-#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE)
 #knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ```
 
-```{r}
+```{r,include=FALSE}
 load(paste0(path,"/","data/WMB_DH_Germination_data2020_2021.RData"))#DH2020_2021
 load(paste0(path,"/data/Genotype_data/wmb_file.Rdata"))
 
@@ -85,33 +105,29 @@ df_begin<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%
 
 Barley(*Hordeum vulagare L*) is grown worldwide for food consumption, animal feed and malt for brewing and distilling. A significant portion of barley acreage in United States and Canada is grown for malting and distilling purposes due to the high premiums compared to animal feed and food consumption. Winter malting barley, where the barley is sown in the fall, is becoming of greater interest to growers, malsters, and brewers. Changes in climate, shifting cropping systems and demand for locally farmed products are pushing the adoption of winter malting barley to be grown in non traditional environments. Growing malting barley in novel environments is challenging, particularly if there is wet and humid conditions during grain fill or at harvest. Selection of malting barley for non traditional enviroments requires a delicate balance to select for grain that does not sprout at harvest but can also provide high quality malt within minimal storage time.
 
-Seed dormancy and pre harvest sprouting(PHS) are critical traits for the production of malting barley. Seed dormancy is defined as the inability of a seed to germinate under favorable conditions [@bewley2013] and developed as an evolutionary mechanism to avoid stress environments. Dormancy in barley is induced during seed development and is influenced by genetic and environmental factors such as temperature, water context, oxygen availability and light[@gubler2005]. Seed dormancy is regulated by the ratio of Abscisic acid (ABA) to Giberillic acid(GA) as a high ratio of ABA/GA maintains seed dormancy and decreases in the ABA/GA ratio reduce seed dormancy in barley @gomez-cadenasAbscisicAcidinducedProtein1999
+Seed dormancy and pre harvest sprouting(PHS) are critical traits for the production of malting barley. Seed dormancy is defined as the inability of a seed to germinate under favorable conditions [@bewley2013] and developed as an evolutionary mechanism to avoid stress environments. Dormancy in barley is induced during seed development and is influenced by genetic and environmental factors such as temperature, water context, oxygen availability and light[@gubler2005]. Seed dormancy is regulated by the ratio of Abscisic acid (ABA) to Giberillic acid(GA) in the barley grain.
 
-Dormancy peaks at physiological maturity(PM) where the last photosynate leaves the grain, and degrades over a period of time after harvest. The rate of dormancy loss varies widely from days to months based on genotype and environmental conditions during grainfill. Prolonged seed dormancy is undesirable for malting as germination is uneven, has low vigor and and is expensive to store for long periods of time. Barley that has little to no dormancy at physiological maturity is prone to pre-harvest sprouting(PHS), where wet and humid conditions induce starch degredation and germination in the field before harvest. PHS can be visible in the form of visible radicle and collectible emergence or in pre germination where starch in the grain begins to degrade. Pregerminated grain is most often usuable for malt or food purposes. Acheiving the balance between PHS resistance and high quality malt is a key breed target for barley breeding.
+Peak ABA content occurs in the middle of seed development and decreases as physiological maturity approaches @benech-arnoldHypoxiaInterferesABA2006. The ratio of ABA/GA is the key determinent of dormancy status in barley grain, not the absoulute content of ABA. @finch-savageSeedDormancyControl2006 .High ABA/GA ratio maintains dormancy and a decreasing amount of ABA to GA over time results in a loss of dormancy [@gomez-cadenasAbscisicAcidinducedProtein1999; @piskurewiczGibberellicAcidSignaling2008] Dormancy peaks at physiological maturity(PM) where the last photosynate leaves the grain [@copelandVisibleIndicatorsPhsiological1985] , and degrades over a period of time after harvest. The rate of dormancy loss varies widely from days to months based on genotype and environmental conditions during grainfill @rodriguezDormancyCerealsNot2015 @gongSeedDormancyBarley2014 @sweeney2021_QTL. Prolonged seed dormancy is undesirable for malting as germination is uneven, has low vigor and and is expensive to store for long periods of time. Barley that has little to no dormancy at physiological maturity is prone to PHS, where wet and humid conditions induce starch degredation and germination in the field before harvest [@bradfordSeedsPhysiologyDevelopment1995] . PHS can be visible in the form of visible radicle and collectible emergence or in pre germination where starch in the grain begins to degrade @liMajorQTLControlling2003
 
-Genetic sources of PHS resistance and seed dormancy have been well characterized in barley. The large effect QTL loci of SD1 and SD2 on chromosome 5H have been mapped extensively in a wide range of barley germplasm. [@han1996; @ullrich1992quantitative; @linQTLMappingDormancy2009]. Genes have been cloned at each locus: alanine aminotransferase at SD1[*HvAlaT1* @satoAlanineAminotransferaseControls2016] and a mitogen-actived protein kinase kinase 3 at SD2[*HvMKK3* @nakamura2016]. Alleles for both AlaAT and MKK3 have been identified by @vetchMutationsHvMKK3HvAlaAT12020 @sweeneyInteractionsBarleySD12022 @sweeney2022 for spring and winter barley germplasm. The mutation L214F in AlaAT results in a loss of dormancy. ALaAT has been one of the first targets of Cas9-induced mutagenesis in barley @hisano2022 prolonging dormancy in mutant types.
+Acheiving the balance between PHS resistance and high quality malt is a key breed target for barley breeding. Genetic sources of PHS resistance and seed dormancy have been well characterized in barley. The large effect QTL loci of SD1 on chromosome 5H have been mapped extensively in a wide range of 3 barley germplasm. [@han1996; @ullrichGeneticRelationshipsPreharvest2009 @linQTLMappingDormancy2009] [@gaoMolecularDissectionDormancy2003]Genes have been cloned at each locus: alanine aminotransferase at SD1 HvAlaT1 [@satoAlanineAminotransferaseControls2016] and a mitogen-actived protein kinase kinase 3 at SD2 HvMKK3 [@nakamura2016]. Alleles for both AlaAT and MKK3 have been identified by [@vetchMutationsHvMKK3HvAlaAT12020] for spring and winter barley germplasm. The mutation L214F in AlaAT results in a loss of dormancy and an increased reduction of ABA/GI. ALaAT has been one of the first targets of Cas9-induced mutagenesis in barley prolonging dormancy in mutant types [@hisano2022] Despite the known effect of AlaAT on the role of long term primary seed dormancy, little is known about the exact mechanism. [@weiIsolationCharacterizationTaQsd12019]
 
-Genome wide associations studies(GWAS) have become the standard practice to identify traits of interest in various types of breeding populations. Numerous GWAS methods are available, and improvement to models that account for population structure @yuGeneticAssociationMapping2006 using principal component analysis @PricePrincipalComponents and the inclusion of kinship and Q matrix allow for mapping association studies to be conducted across structed populations
+Genome wide associations studies(GWAS) have become the standard practice to identify traits of interest in various types of breeding populations. Advances in barley marker platforms such as the Illumina barley 50K SNP chip [@bayerDevelopmentEvaluationBarley2017] and the development of improved barley reference genomes [@mascherLongreadSequenceAssembly2021] have made for higher resolution mapping of relevant malting barley traits. Numerous GWAS methods are available, and improvement to models that account for population structure [@yuGeneticAssociationMapping2006] using principal component analysis @pricePrincipalComponentsAnalysis2006 and the inclusion of kinship and Q matrix allow for mapping association studies to be conducted across structured populations. Increased computational efficency and flexibility of models in package "ASRgwas" [@ASRgwas2022] allow for single step analysis GWAS, which includes increased flexibility of terms to be included in the model and also reduces the loss of information that can be associated with two step fixed models [@mohringComparisonWeightingTwoStage2009] lack of degression using two step random effect models [@garrickDeregressingEstimatedBreeding2009.]
 
-Advances in barley marker platforms such as the Illumina barley 50K SNP chip @bayerDevelopmentEvaluationBarley2017 and the development of improved barley reference genomes [@mascherLongreadSequenceAssembly2021] have made for higher resolution mapping of relevant malting barley traits. Increased efficiency of models and computation power have allowed not only for the association of high density marker platforms with large phenotypes, but also the use of single step GWAS modeling. Single step GWAS offers more flexibility with the capacity for the integration of more phenotypic information, inclusion of multiple fixed and random effects, as well as retaining more information that can be lost in two step analyses.
-
-The objectives of this study aimed to genetic characterize pre-harvest sprouting and seed dormancy loss over time in a connected half sib winter malting barley breeding population. Our goals for this research were to a) Identifiy QTL for PHS, seed dormancy and seed dormacy loss over time using GWAS and b) model seed dormancy loss over time to assess optimal selection for seed dormancy. Understanding the genetic basis for PHS, seed dormancy, and seed dormancy loss over time will be invaluable information for breeders to select highly quality malting barley that have PHS resistance while also maintain a short seed dormancy period to ensure high malting quality.
+The objectives of this study aimed to genetic characterize pre-harvest sprouting and seed dormancy loss over time in a connected half sib winter malting barley breeding population. Our goals for this research were to a) Identifiy QTL for PHS, seed dormancy and seed dormacy loss over time standarizing for physiological maturity b) conduct a single step GWAS of seed dormancy traits over all year and timepoint combinations and c) model seed dormancy loss over time to assess optimal selection for seed dormancy. Understanding the genetic basis for PHS, seed dormancy, and seed dormancy loss over time will be invaluable information for breeders to select highly quality malting barley that have PHS resistance while also maintain a short seed dormancy period to ensure high malting quality.
 
 # Methods
 
 ## Plant populations
 
-The populations used in study were part of the winter malting barley breeding population at Cornell University. Four bi-parental half sibling populations were developed by crossing a common parent 'Lightning' @hayesRegistrationLightningBarley2021 , a faculative type barley, to four winter malting barley cultivars; 'KWS Scala', 'Flavia', 'SY Tepee' and 'Wintmalt'. Double haploids were developed from the crosses at Oregon state University using anther culture of $F_1$ seed from each cross. After sufficient seed increase, lines were planted in fall 2019 and fall 2020 in two fields each season in Ithaca, NY. Fields in 2019 for the 2020 harvest season,named Snyder and Ketola 5, were planted in a modified augmented design of single 1m rows with all parent lines(5), and check 'Charles' replicated in blocks across the field. The total number of plots for each locations was 544. The ratio of checks to experimental lines was approximately 10%. Fields sown in 2020 for the 2021 harvest season, named Ketola 3 and McGowan , were planted according to a randomized 480 plot augmented block design of 3 x 1 meter trimmed plots with parent lines "Lightning" and "KWS Scala" and additional line "Endeavor" used as checks. The ratio of checks to experimental lines was approximately 11%.
+The populations used in study were part of the winter malting barley breeding population at Cornell University. Four bi-parental half sibling populations were developed by crossing a common parent 'Lightning' [@hayesRegistrationLightningBarley2021] , a faculative type barley, to four winter malting barley cultivars; 'KWS Scala', 'Flavia', 'SY Tepee' and 'Wintmalt'. Double haploids were developed from the crosses at Oregon state University using anther culture of $F_1$ seed from each cross [@cistueBarleyAntherCulture2003] . After sufficient seed increase, lines were planted in fall 2019 and fall 2020 in two fields each season in Ithaca, NY. Fields in 2019 for the 2020 harvest season,named Snyder and Ketola 5, were planted in a modified augmented design of single 1m rows with all parent lines(5), and check 'Charles' replicated in blocks across the field. The total number of plots for each locations was 544. The ratio of checks to experimental lines was approximately 10%. Fields sown in 2020 for the 2021 harvest season, named Ketola 3 and McGowan , were planted according to a randomized 480 plot augmented block design of 3 x 1 meter trimmed plots with parent lines "Lightning" and "KWS Scala" and additional line "Endeavor" used as checks. The ratio of checks to experimental lines was approximately 11%.
 
 ## Field Phenotyping and sampling
 
-Physiological maturity(PM) was recorded as the date when 50% of the of plot lost green color from the peduncle and spike. Two days after PM, bundles of 15-20 selected mature spikes were harvested, dried for 2 days at 38 C, hand threshed, and stored at -20C to pause after-ripening. @nagelNovelLociRole2019 The standardization of harvesting and freezing spikes 2 days after the PM of the plot enabled observation of traits at the same number of after-ripening for all lines.
+Physiological maturity(PM) was recorded as the date when 50% of the of plot lost green color from the peduncle and spike. Two days after PM, bundles of 15-20 selected mature spikes were harvested, dried for 2 days at 38 C, hand threshed, and stored at -20C to pause after-ripening. [@nagelNovelLociRole2019] The standardization of harvesting and freezing spikes 2 days after the PM of the plot enabled observation of traits at the same physiological state for all lines
 
 For seed dormancy in 2020, a total of 450 lines were sampled from each location. Lines with poor winter survival and poor agromic quality were excluded. For seed dormancy 2021 the complete trial at ketola of 435 lines(480 plots) was sampled, and approximatley 25% of lines at the McGowan location were sampled.
 
-PHS was measured by harvesting 5 spikes per headrow at physiological maturity (PM), after-ripening for 3 days, and then misting in a greenhouse for 3 days, after which the spikes were assessed for PHS on a 0 to 9 scale. @andersonRFLPAnalysisGenomic1993 Due to labor constraints brought on by the pandemic in the 2020 field season, phenotyping capacity was limited and seed dormancy sampling was prioritized for that year. PHS was phenotyped on a sub-sample of 100 lines from the Ketola 5 location. The sub-sample consisted of all facultative types across all four families, parental checks, and Charles. For 2021, all plots from both locations were sampled.
-
-In addition to dormancy sampling in 2021, 120 lines were selected for micromalting analysis, with 60 lines overlapping between the two locations and an additional 60 lines selected based on seed avaialability after appropriated amounts for the seed dormancy tests. Lines were processed in an identical manner to the seed dormancy sampling method
+PHS was measured by harvesting 5 spikes per headrow at physiological maturity (PM), after-ripening for 3 days, and then misting in a greenhouse for 3 days, after which the spikes were assessed for PHS on a 0 to 9 scale. [@andersonRFLPAnalysisGenomic1993] Due to labor constraints brought on by the pandemic in the 2020 field season, phenotyping capacity was limited and seed dormancy sampling was prioritized for that year. PHS was phenotyped on a sub-sample of 100 lines from the Ketola 5 location. The sub-sample consisted of all facultative types across all four families, parental checks, and Charles. For 2021, all plots from both locations were sampled.
 
 ## Post harvest germination assay
 
@@ -119,15 +135,11 @@ To measure dormancy loss, all samples were removed the freezer at the same time,
 
 $GE = \frac{n_{24} + n_{48} + n_{72}}{n_{total}}$
 
-$GE_{5 day} = \frac{n_{24} + n_{48} + n_{72}+n_{96}+n_{120}}{n_{total}}$
+Where $n$ corresponds to the the number of germinated kernels at 24, 48, and 72 hours after the start of the assay and $n_{total}$ is the total number of germinated and ungerminated kernels. Complete seed dormancy loss is defined when GE values per line reach 95% and mean seed dormancy loss across lines reached 90%.
 
-Where $n$ corresponds to the the number of germinated kernels at 24, 48, 72, 96 and 120 hours after the start of the assay and $n_{total}$ is the total number of germinated and ungerminated kernels.
+Germination Index was calculated as a germination rate following in @francakova2012;
 
-Germination Index was calculated as a germination rate following: @francakova2012
-
-\$$GI_{base_{3 day}}=\frac{10 *(n_{24}+n_{48} +n_{72})} {1n_{24}+2n_{48}+3n_{72}}$\$
-
-$GI_{base_{5 day}}=\frac{10 *(n_{24}+n_{48} +n_{72}+n_{96}+n_{120})} {1n_{24}+2n_{48}+3n_{72}+4n_{96}+5n_{120}}$
+\$$GI_{0_{3 day}}=\frac{10 *(n_{24}+n_{48} +n_{72})} {1n_{24}+2n_{48}+3n_{72}}$
 
 where $n_{24}$, $n_{48}$, $n_{72}$, $n_{48}$ and $n_{120}$ were the number of germinated kernels at 24, 48, 72, 96 and 120 hours after the start of the assay. GI was scaled by GE as $GI=GI_{0}*GE$ to account for low germination at earlier timepoints. At later timepoints, $GI_{0}$ was used instead of $GI$ for the inverse reason of using scaling at earlier timepoints. GE and GI were measured at five time points for 2020: 5 (TP1), 19 (TP2), 47 (TP3), 96 (TP4), and 152 (TP5) days post PM. GE and GI measured at eight time points for 2021: 5(TP1), 12(TP1.5), 19 (TP2), 33(TP2.5), 47(TP3), 68 (TP3.5), 96 (TP4) and 152(TP5) days post PM.
 
@@ -135,11 +147,11 @@ where $n_{24}$, $n_{48}$, $n_{72}$, $n_{48}$ and $n_{120}$ were the number of ge
 #| label: tbl-H2_all
 #| tbl-cap: heritability
 #| fig-cap: heritability
-getwd()
+
 # Table 1
 load("Rdata/genetic_variance_h2.Rdata")
 load("Rdata/genetic_variance_h2.Rdata")
-sum_table
+
 phenoS1<-sum_table%>%mutate(o2g=round(o2g,3),h2=round(h2,3),h2_PEV=round(h2_PEV,3))%>%flextable(cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
 
 
@@ -153,15 +165,15 @@ phenoS1
 
 ## Genotyping
 
-The entire double haploid population was genotyped with the 50K Barley SNP array @bayerDevelopmentEvaluationBarley2017 at the USDA small grains research laborartory in Fargo, ND. Marker positions were based on the Morex version 3 assembly [@mascherLongreadSequenceAssembly2021]. Markers were filtered a maximum heterozygosity level of 0.01 and a minumum minor allele frequency of 0.05 using rTASSEL @monierRTASSELInterfaceTASSEL2022, resulting in a total of 13,452 markers. The R package \@ZhengSNP2012 used to Linkage Disequlibrium(LD) prune markers using a sliding base pair window of 2000 markers and a maximum LD threshold of 0.9. PCA analysis was also conducted with the SNPRelate package. After LD pruning, 9628 markers remained for analysis. KASP markers were used to genotype *HVAlaAT* and *HvMKK3* folllowing casual mutations discovered in @satoAlanineAminotransferaseControls2016 and @nakamura2016 respectively. Details of KASP marker development can be found in @sweeney2021_QTL.
+The winter maltinb barley double haploid population was genotyped with the 50K Barley Illumina SNP array [@bayerDevelopmentEvaluationBarley2017] at the USDA small grains research laborartory in Fargo, ND. Marker positions were based on the Morex version 3 and gene annotations referenced the Morex version 3 assembly [@mascherLongreadSequenceAssembly2021] and version 2 [@monatTRITEXChromosomescaleSequence2019] Markers were filtered a maximum heterozygosity level of 0.01 and a minumum minor allele frequency of 0.05 using rTASSEL [@monierRTASSELInterfaceTASSEL2022], resulting in a total of 13,452 markers. The R package @XiuwenSNPRelate2012 was used to Linkage Disequlibrium(LD) prune markers using a sliding base pair window of 2000 markers and a maximum LD threshold of 0.9. PCA analysis was also conducted with the SNPRelate package. After LD pruning, 9,628 markers remained for analysis. KASP markers were used to genotype *HVAlaAT* and *HvMKK3* folllowing casual mutations discovered in @satoAlanineAminotransferaseControls2016 and @nakamura2016 respectively. Details of KASP marker development can be found in @sweeneyInteractionsBarleySD12021.
 
 ## Statisical Analysis
 
-Given the advancement in computational efficiency, per time point GWAS was analzyed using a single step approach. The package @ASRgwas was used to develop the K and Q matricies, filter out missing information, and conduct single step GWAS using the raw data as input for each timepoint and trait ASRgwas model flexibility allowed for the integration of fixed, random, covariate and residual factor integration. The base model for GWAS per timepoint was as follows:
+Given the advancement in computational efficiency, per time point GWAS was analyzed using a single step approach. The package ASRgwas @ASRgwas2022 was used to develop the K and Q matrices, filter out missing information, and conduct single step GWAS using the raw data as input for each timepoint and trait ASRgwas model flexibility allowed for the integration of fixed, random and residual factor integration. The base model for GWAS per timepoint was as follows:
 
 $$y_{} \sim 1\mu + X\beta+Z_{1}u + Q\delta + \epsilon$$
 
-Where $y$ is the response variable for GI, $GI_{base}$ or GE, $\mu$ is the overall mean, $\beta$ is a vector of fixed effects(i.e. Location, replication), $u$ is the vector of addivitive genotype effects assoicated with the genomic additive relationship matrix with $u \sim N(0,G_{A}\sigma^2_{A})$, $Q$ is a matrix of vectors describing population structure and $\delta$ corresponds to the number of vectors(PCAs) of the Q matrix to be included to account for population structure and $\epsilon ~N(0,E\sigma^2)$ where $E$ is either a incidence matrix corresponding independently and identically distributed residuals or a heteroscadistic error structure. A summary of model terms included for each timepoint is presented in supplementary (table 2). the package @ASRgwas
+Where $y$ is the response variable for GI, $GI_{base}$ or GE, $\mu$ is the overall mean, $\beta$ is a vector of fixed effects(i.e. Location, replication), $u$ is the vector of addivitive genotype effects associated with the genomic additive relationship matrix with $u \sim N(0,G_{A}\sigma^2_{A})$, $Q$ is a matrix of vectors describing population structure and $\delta$ corresponds to the number of vectors(PCAs) of the Q matrix to be included to account for population structure and $\epsilon ~N(0,E\sigma^2)$ where $E$ is either a incidence matrix corresponding independently and identically distributed residuals or a heteroscadistic error structure. A summary of model terms included for each timepoint is presented in supplementary (table 2)
 
 ```{r}
 model_2020_GI<-data.frame(year=rep("2020",5),trait=rep("GI",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Location + Rep","Location",NA,NA,NA),Random=rep(NA,5),Residual=c(NA,"Location",NA,NA,NA),Converged=rep("yes",5))
@@ -178,19 +190,19 @@ models2021=rbind(model_2021_GI,model_2021_GE)
 
 #combined
 model_combined_GI<-data.frame(year=rep("2020/2021",5),trait=rep("GI",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Year:Location","Location:Year","Year:Rep","Year + Year:Rep","Year + Year:replication"),Random=rep(NA,5),Residual=c("Year",NA,"Year",NA,NA),Converged=rep("yes",5))
-model_combined_GI
+
 
 model_combined_GE<-data.frame(year=rep("2020/2021",5),trait=rep("GE",5),PM_date=c(5,19,47,96,152),Q=rep("yes",5),npc=rep("2",5),Fixed=c("Year+ Year:Location",NA,"Year:Location + Location","Year:Location",NA),Random=rep(NA,5),Residual=c(NA,"Year",NA,NA,NA),Converged=c("no",rep("yes",4)))
 
 phs_sum<-data.frame(year=rep("2020/2021"),trait="PHS",PM_date=c(7),Q=rep("yes",1),npc="2",Fixed=c("Year+ Year:Location"),Random=rep(NA,1),Residual=c(NA),Converged=c("yes"))
 
 model_table1<-rbind(models2020,models2021,model_combined_GI,model_combined_GE,phs_sum)%>%relocate(trait,.before = 1)
-length(model_table1)
-dim(model_table1)
+
 library(flextable)
-flextable(model_table1)
+model_components<-flextable(model_table1)
 
 library(dplyr)
+model_components
 ```
 
 ```{r}
@@ -219,14 +231,13 @@ E1_ft_2<-E1_ft%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part
 #             ref_symbols = c("b"),
 #             part = "header")
 
-  
+
 E1_ft_2
-phenoS1
 ```
 
-We previously reported development of a high-throughput Kompetitive Allele Specific Primer (KASP) marker AlaAT1_L214F for the causal mutation in *HvAlaAT1* discovered by Sato et al. (2016). We also developed KASP assays for a SNP in the 5' UTR of *HvGA20ox1* (GA20ox1_331_5UTR), the E165Q mutation in *HvMKK3* identified in Vetch et al. (2020) for both spring barley and winter barley. A summary of the winter barley haplotypes for the parent lines and checks are found in QTL x environment modeling of malting barley preharvest sprouting (Sweeney et al. 2021). All experimental lines and parent genotypes were monomorphic for dormant HvMKK3. The check lines Charles and Endeavor used as a phs susceptibility check in 2020 and 2021 respectively, have the highly non-dormant (N\*) allele for MKK3 and the dormant AlaAT(D) allele, however we cannot make specific conclusions about this haplotype given the low representation in the winter barley population.
+KASP markers for AlaAT and MKK3 were ran on the experimental winter double haploid lines, parent lines and checks. Details about the interactions of MKK3, AlaAT in PHS data of spring and winter malting barley trials are examined in more detail in @sweeney2021_QTL. The common parent Lightning and parent Flavia contained the dormant(D) AlaAT allele while parents KWS Scala, SY Tepee and Wintmalt contained the N allele for AlaAT. This resulted in variation for the AlaAT in all families crossed to Lightining except for the Lightning x Flavia family, where lines were monomorphic for AlaAT. All experimental lines and parent genotypes were monomorphic for dormant(D) HvMKK3. The check lines Charles and Endeavor used as a PHS susceptibility and germination check in 2020 and 2021 respectively conatined the highly non-dormant ($N^{*}$) allele for MKK3 but the D allele for AlaAT Given the low frequency of the N\* MKK3 haplotype represented in this population , we are limited in what inferences can be made regarding the MKK3 loci.
 
-All lines were genotyped with the 50Fk Illumina Infinium iSelect SNP array at the USDA Small Grains Genotyping Lab in Fargo, ND. After filtering poor quality markers, minor allele frequency (MAF) below 0.05, and monomorphic sites, 15,467 polymorphic markers remained and were used for genome-wide association (GWA). After conducting linkage disequilibrium (LD) pruning to reduce high LD blocks that exist in double haploid populations, we retained 8,384 markers for analysis. A summary of the GWA results is presented in Table 1. Models were run for all trait/time point combinations
+All lines were genotyped with the 50k Illumina Infinium iSelect SNP array at the USDA Small Grains Genotyping Lab in Fargo, ND. After filtering poor quality markers, minor allele frequency (MAF) below 0.05, and monomorphic sites, 15,467 polymorphic markers remained and were used for genome-wide association (GWA). After conducting linkage disequilibrium (LD) pruning to reduce high LD blocks that exist in double haploid populations, 9258 markers were retained for analysis. A summary of the GWA results is presented in Table 1. Models were run for all trait/time point combinations.
 
 ```{r}
 
@@ -239,7 +250,7 @@ df2<-df_begin_long%>%filter(PM_date%in%c("5","19","47","96","152"))
 df2$year<-"2020/2021"
 library(arm)
 gd_Q<-as.data.frame(WinterGD[,c("Qsd1","JHI_Hv50k_2016_8507")])
-table(gd_Q$taxa,gd_Q$Qsd1)
+
 gd_Q$taxa<-rownames(gd_Q)
 
 ###
@@ -249,20 +260,23 @@ gd_Q$taxa<-rownames(gd_Q)
 
 ```
 
+Break
+
 ```{r}
 #| label: fig-PHS_dist
 #| fig-cap: "PHS"
+#| tbl-cap: "PHS"
 
 #PHS
 #Figure 1
-df_begin_long
+
 library(Hmisc)
 phs_setup<-df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   plyr::join(gd_Q[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(AlaAT= ifelse(Qsd1==2,'Non dormant','Dormant')) %>% plyr::join(gd_Q[,c('taxa','JHI_Hv50k_2016_8507')])%>%
   filter(Family %nin% c('Lightning'))  %>%dplyr::select(phs,Qsd1,AlaAT,taxa,SourcePLOT,Location,year)%>%unique()
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
 # %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
-View(phs_setup)
+
 library(ggplot2)
 phs_dist<-phs_setup%>%group_by(taxa)%>%
   ggplot(aes(phs, fill = AlaAT))+
@@ -285,7 +299,6 @@ phenoS1
 ```{r}
 load("Rdata/geno_corr.Rdata")
 load("Rdata/p_corr.Rdata")
-new
 vb<-new%>%round(2)%>%as.data.frame(row.names(new))%>% tibble::rownames_to_column("Variable")%>%flextable()%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
 std_border = fp_border(color="black")
 vb
@@ -313,13 +326,13 @@ phenoS1
 
 ## Phenotypic Distribution
 
-Preharvest sprouting scores presented were averaged across years as there was a lack of sufficent phs data in the 2020 year alone. PHS score distribution was skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. Average GE had significant variation based on year as mean GE in 2021 was substaintally lower than mean GE at equivalent time points.Heritability for GE was high at early timepoints but decreased as primary dormancy loss occured. The slight increase of heritability of GE at later timepoints is most likely attributed to diseased kernels as seeds were not surface sterilized due to population size. GI was initally low at early timepoints and increased as primary dormancy loss occured. Unlike GE, GI variation remained after dormancy resulting in higher heritability at later timepoints. Similar to GE, there was significantly more dormancy in 2021 compared to 2020, as intial genetic variation and heritability was low for PM 5 in 2021. After observed dormancy loss, GI platued at a mean GI of 5.6
+Preharvest sprouting scores presented were averaged across years as there was a lack of sufficent phs data in the 2020 year alone. PHS score distribution was skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. Average GE had significant variation based on year as mean GE in 2021 was substaintally lower than mean GE at equivalent time points.Heritability for GE was high at early timepoints but decreased as primary dormancy loss occured over time. The slight increase of heritability of GE at later timepoints is most likely attributed to diseased kernels as seeds were not surface sterilized due to population size. GI was initally low at early timepoints and increased as primary dormancy loss occured. Unlike GE, GI variation remained after dormancy resulting in higher heritability at later timepoints. Similar to GE, there was significantly more dormancy in 2021 compared to 2020, as intial genetic variation and heritability was low for PM 5 in 2021. After observed dormancy loss, GI platued at a mean GI of 5.6
 
 #Correlations
 
 Phenotypic correlations between GE and GI were significant between all timepoints except for PM 152. PHS phenotypic correlations were not significant to GE and GI. Genotypic correlations were high for all traits, indicating shared genetic control.
 
-```{r}
+```{r,warning=FALSE}
 # Figure 3
 library(tidyr)
 library(ggh4x)
@@ -339,11 +352,11 @@ op
 
 ### KASP marker results
 
-THe population for this experiment used a modified NAM with a common parent Lightning crossed to four malting barley parents. KASP marker analysis revealed that the common parent Lightning and parent Flavia contained the dormant "C" allele for AlaAT and parents KWS Scala, SY Tepee and Wintmalt containing the non dormant "G" allele, making Lightning the donor for the dormant AlaAT. Experimental lines and the parents were monomorhpic for the dormant MKK3 allele, a loci identified in spring malting barley to be indicative of high malting quality but also high PHS susceptiblity. Check varities Charles and Endeavor have a super non dormant allele for MKK3, which provided a consistent check for PHS and germination, however given the low frequency of the haplotype in the experimental population, we cannot make further assertions about the role of HvMKK3 here.
+THe population for this experiment used a modified NAM with a common parent Lightning crossed to four malting barley parents. KASP marker analysis revealed that the common parent Lightning and parent Flavia contained the dormant "C" allele for AlaAT and parents KWS Scala, SY Tepee and Wintmalt containing the non dormant "G" allele, making Lightning the donor for the dormant AlaAT. Experimental lines and the parents were monomorhpic for the dormant MKK3 allele, a loci identified in spring malting barley to be indicative of high malting quality but also high PHS susceptiblity. Check varieties Charles and Endeavor had the highly non dormant allele(N\*) for MKK3. An analysis of different barley haplotypes for AlaAT and MKK3 by @sweeney2021_QTL found that winter barley haplotypes with the highly N\* MKK3 allele had signficantly higher phs scores than any other group, including spring barley N\* MKK3 haplotypes. However, given the low frequency of N\* allele to the D allele for MKK3 in this population, we are limited in what inferences can be made regarding MKK3. Nonetheless, lines Charles and Endeavor served as useful positive controls for PHS and germination throughout the experiment.
 
-### Population structure
+Population structure
 
-Principal component analysis Principal component analysis revealed variation attributed to the first, second and third PCs at 14.55% and 5.69 and 4.9 % respectively. The PCA plot displays the first two PCs on the x and y axis. The first component separated SY Tepee populations from the wintmalt, KWS Scala and Flavia populations, with Lightning being a common intermediate between the two parents. Position of genotypes remaineds largely unchanged when separate recombinant inbred lines of crosses not including Lightning were included(data not shown). Wintmalt, Scala and Flavia families have closer degree of relatedness.
+Principal component analysis Principal component analysis revealed variation attributed to the first, second and third PCs at 14.55% and 5.69 and 4.9 % respectively. The PCA plot displays the first two PCs on the x and y axis. The first component separated SY Tepee populations from the Wintmalt, KWS Scala and Flavia populations, with Lightning being a common intermediate between the two parents. Position of genotypes remained largely unchanged when separate recombinant inbred lines of crosses not including Lightning were included(data not shown). Wintmalt, Scala and Flavia families have closer degree of relatedness.
 
 ```{r}
 #| label: fig-PCA_DH
@@ -420,7 +433,7 @@ table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
 
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$notes<-"GE-2021-PM_96: did_not_converge"
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
-b
+
 
 STP_all$ID<-gsub("GI_0","GI0",STP_all$ID)
 library(stringr)
@@ -497,9 +510,11 @@ Single step genome wide association analysis was conducted using the ASRgwas @AS
 
 ### Genome wide association analysis
 
-Usining a false discovery rate of alpha=0.05, 50 unique marker trait associations were identifed across the genome. Given the highly structured breeding populations, the LD in this population was high and markers in LD were condensed to single blocks if r2 was greater than 0.95 between markers on specific chromosome. A range of the minimum and maxmimum positions of significant markers within each LD group are presented as we do not have the resolution to determined where in LD blocks the casual variant is located. Significant marker trait associations observed at multiple timepoint trait combinations include JHI_Hv50k_2016_64721 and marker LD group SCRI_RS_135633, JHI_Hv50k_2016_90999, JHI_Hv50k_2016_116224 on 2H; marker SCRI_RS_16934 on 3H; marker LD group JHI_Hv50k_2016_275586, JHI_Hv50k_2016_276615, JHI_Hv50k_2016_276209 on the end of 4H; marker JHI_Hv50k_2016_282096, marker group AlaAT JHI_Hv50k_2016_308652, JHI_Hv50k_2016_308798, JHI_Hv50k_2016_310278 and marker group JHI_Hv50k_2016_310358, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246 on 5H; and marker group JHI_Hv50k_2016_450348, JHI_Hv50k_2016_450348, JHI_Hv50k_2016_486280 and marker JHI_Hv50k_2016_507218 on 7H.
+Usining a false discovery rate of alpha=0.05, 50 unique marker trait associations were identifed across the genome. Given the highly structured breeding populations, the LD in this population was high and markers in LD were condensed to single blocks if r2 was greater than 0.90 between markers on specific chromosome. A range of the minimum and maxmimum positions of significant markers within each LD group are presented as we do not have the resolution to determined where in LD blocks the casual variant is located. Significant marker trait associations observed at multiple timepoint trait combinations include JHI_Hv50k_2016_64721 and marker LD group SCRI_RS_135633, JHI_Hv50k_2016_90999, JHI_Hv50k_2016_116224 on 2H; marker SCRI_RS_16934 on 3H; marker LD group JHI_Hv50k_2016_275586, JHI_Hv50k_2016_276615, JHI_Hv50k_2016_276209 on the end of 4H; marker JHI_Hv50k_2016_282096, marker group AlaAT JHI_Hv50k_2016_308652, JHI_Hv50k_2016_308798, JHI_Hv50k_2016_310278 and marker group JHI_Hv50k_2016_310358, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246 on 5H; and marker group JHI_Hv50k_2016_450348, JHI_Hv50k_2016_450348, JHI_Hv50k_2016_486280 and marker JHI_Hv50k_2016_507218 on 7H.
 
-Percent variance explained(PVE) was highest (for markers in perfect LD with KASP marker AlaAT . Other significant regions include the marker region JHI_Hv50k_2016_310278- JHI_Hv50k_2016_314246 on 5H associated with PHS and GE, that was not associated with AlaAT as the LD was low(r2=0.1) between the 462656156-486764914 region and the 435636564-448089400 region associated with AlaAT.Potential gene candidates in this region include a GRAM containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1), a 1-4-alpha glucan branching, and a root meristem growth factor, all associated with seed germination and strach degredation associated with barley germination. Other regions of interest include Dimeric alpha-amylase inhibitor, mitogen activated protein kinase, beta amalayse and 1,4- alpha glucan branching enzyme located on 2H, a IAA amino acid hydrolase identified on 3H, and QTL associated with diastatic power(QDp.DiMo-4H) and beta glucan(QBgnm.MT2-4H) identified in @mohmammed et al 2015. After accounting for LD blocks, gene annotation from barley genome reference version 2 and 3 were gathered into a list of all markers 2 Mb upstream and downstream of either single markers or the minimum and maximum of an LD block using modifications of the GALLO package. Lists assocatied with each markers are documented in supplemental table 3.
+Percent variance explained(PVE) was highest (for markers in perfect LD with KASP marker AlaAT . Initially, a two step model using a fixed effect model as a the first step and a subsequent GWAS model using GAPIT @wangGAPITVersionBoosting2021, found AlaAT to be the largest contributing loci to seed dormancy based on a boneferroni cutoff of 0.05. However, given the use of the FDR method, a less conservative cutoff than bonferroni, and using a single step approach, more variants with higher PVE were detected.
+
+Other significant regions include the marker region JHI_Hv50k_2016_310278- JHI_Hv50k_2016_314246 on 5H associated with PHS and GE, that was not associated with AlaAT as the LD was low(r2=0.1) between the 462656156-486764914 region and the 435636564-448089400 region associated with AlaAT.Potential gene candidates in this region include a GRAM containing/ABA-responsive protein a 1-4-alpha glucan branching, and a root meristem growth factor, all associated with seed germination and strach degredation associated with barley germination. Other regions of interest include Dimeric alpha-amylase inhibitor, mitogen activated protein kinase, beta amalayse and 1,4- alpha glucan branching enzyme located on 2H, a IAA amino acid hydrolase identified on 3H, and QTL associated with diastatic power(QDp.DiMo-4H) and beta glucan(QBgnm.MT2-4H) identified in @mohammadiGenomewideAssociationStudy2015 . After accounting for LD blocks, gene annotation from barley genome reference version 2 and 3 were gathered into a list of all markers 2 Mb upstream and downstream of either single markers or the minimum and maximum of an LD block using modifications of the GALLO package. Lists assocatied with each markers are documented in supplemental table 3.
 
 # Dicussion
 
@@ -509,58 +524,51 @@ Efforts to identify sources of PHS resistance that do not compromise malting qua
 
 Observed preharvest sprouting was low in the WMB DH population. Preharvest scoring overlaps at the same post PM range as first timepoint observed in dormancy assays as phs samples are harvested at physiological maturity, after ripened for 4 days and scored 3 days after misting, equivalent to PM 4 when given misting conditions and PM 7 when scored. Despite similar physiological states, the phenotypic correlation of PHS and GE and GI at early timepoints was low. This is most likely due to the the high dormancy observed in 2021 both with PHS and seed dormancy as well as sampling error.
 
-Seed dormancy variation was significant in the WMB barley population. Seed dormancy loss is defined when GE values per line reach 95% and mean seed dormancy loss across lines reached 90%. In 2020, mean seed dormancy loss occured between timepoints $PM_{47}$ and $PM_{68}$ in 2020 and between timepoints $PM_{68}$ and $PM_{96}$ in 2021. Genetic variation for GE was initially high in 2020 and signficantly reduced once seed dormancy loss was near complete. Genetic varaition for GE in 2021 increased slightly and decreased once dormancy loss occured, albeit at later timepoints compared to 2020.GI genetic variation for 2020 and 2021 followed similar rates, but mean GI values were higher at earlier timepoints in 2020 to 2021.. Compared to GI of spring malting barley populations, winter malting barleys were observed to have lower 1 day germination values, even after dormancy loss, which is reflected as a penalty in the calculated GI score and high genetic variation at later timepoints. The low phs incidicene, prolonged dormancy and moderate GI values suggests that selection for barley with shorter dormancy times and higher GI should be a priority in winter malting barley
+Seed dormancy variation was significant in the WMB barley population. In 2020, mean seed dormancy loss occured between timepoints $PM_{47}$ and $PM_{68}$ in 2020 and between timepoints $PM_{68}$ and $PM_{96}$ in 2021. Genetic variation for GE was initially high in 2020 and signficantly reduced once seed dormancy loss was near complete. Genetic varaition for GE in 2021 increased slightly and decreased once dormancy loss occured, albeit at later timepoints compared to 2020.GI genetic variation for 2020 and 2021 followed similar rates, but mean GI values were higher at earlier timepoints in 2020 to 2021.. Compared to GI of spring malting barley populations, winter malting barleys were observed to have lower 1 day germination values, even after dormancy loss, which is reflected as a penalty in the calculated GI score and high genetic variation at later timepoints. The low phs incidicene, prolonged dormancy and moderate GI values suggests that selection for barley with shorter dormancy times and higher GI should be a priority in winter malting barley
 
 Genetic correlations between GE, GI and PHS were surprisingly high at early and later timepoints. GWAS analysis results of this region suggest some common MTAs associations between GE, GI and PHS but only at a few specific combinations. AlaAT was found to not be associated with this identified region based on statisical analysis of including AlaAT as an effect in the PHS GWAS model and due to the separate observed LD group identified for AlaAT on 5H (Supplementary Figure 5H LD block). PHS and GI are similar measurements as both observe rate of germination over time, where as GE is a binary observation of seed germination. Marker trait association associated with GE at $PM_{152}$ was in low LD compared to surrounding upstream and downstream markers and most likely was associated with a different factor contributing to GE, such as disease.
 
 ## Statistical modeling for GWAS
 
-Fitting single step models can reduce the amount of information loss associated when using fixed effect responses without weights, or using random effects models where BLUPS are either not deregressed and shrunk twice or degressed but partial shrinkage occurs regardless. Fitting single step models for each timepoint produced challenges however, as some models did not converge for some timepoints. The lack of convergence issues associated with with GE and early and late timepoiints was most likely due low variation of the trait. Other model terms such as Location were significant across many combinations, indicating the potential of either field effects or sampling error within locations. Seed dormancy measurements were most often(but not always) scored by two individuals by scoring one replication each and significant fixed effects of replication most likely indicate differences of scoring by an individual or scoring error. Fixed effect terms such Location:Row most likely correspond to some form of sampling error. Although not presented, Qsd1 was tested as a fixed effect in the various models to determine potential epistatic effects associated with the Qsd1 locus. No novel QTL were identified and QTL that had reduced PEV in timepoints where the AlaAT locus explained the most variance were detected in different timepoint, trait and year combinations.
+Fitting single step models can reduce the amount of information compared to using linear mixed models in a two stage analysis. Often errors associated with the first step analysis of fixed effect models are different, and unless if accounted for with weights in the second stage, results in a loss of information\@mohringComparisonWeightingTwoStage2009. Using random effects in two stage analysis requires that BLUPS be degressed after the first stage, particlarly if genotypes in the population are unbalanced @garrickDeregressingEstimatedBreeding2009. In many situations, both of these problems are often ignored in when performing two step analysis. @endelmanFullyEfficientTwostage2023.
+
+Fitting single step models for each timepoint produced challenges however, as some models did not converge for some timepoints. The lack of convergence issues associated with with GE and early and late timepoiints was most likely due low variation of the trait. Other model terms such as Location were significant across many combinations, indicating the potential of either field effects or sampling error within locations. Seed dormancy measurements were most often(but not always) scored by two individuals by scoring one replication each and significant fixed effects of replication most likely indicate differences of scoring by an individual or scoring error. Fixed effect terms such Location:Row most likely correspond to some form of sampling error. Although not presented, Qsd1 was tested as a fixed effect in the various models to determine potential epistatic effects associated with the Qsd1 locus. No novel QTL were identified and QTL that had reduced PEV in timepoints where the AlaAT locus explained the most variance were detected in different timepoint, trait and year combinations.
 
 ## MTA associations
 
-SD1 was initially discovered as a seed dormancy QTL in barley by @oberthurGeneticAnalysisSeed1995 and has since validated by many researchers @romagosaIndividualLocusEffects1999 @han1996, cloned @satoAlanineAminotransferaseControls2016 and sanger sequenced by @vetchMutationsHvMKK3HvAlaAT12020 and @sweeneyInteractionsBarleySD12021. AlaAT has also been a target of CRISPR-Cas9 targeted mutagenesis where targeted mutants showed highly delayed, but not inhibited germination. [@hisano2022]
+### Role of HvAlaAT(SD1) in long term seed dormancy
 
-### Role of alanine amino transferase in population
+KASP markers ran on the winter malting barley double haploid population found variation for the Qsd1_5H
 
-Alanine amino transferase played a significant role in dormancy break in our winter malting barley population. Figures 3a-c show germination rate and energy for each family of the population grouped by haplotype for AlaAT over years 2020, 2021, and combined analysis 2020/2021. A check "family" was included for comparison to Charles for 2020 and Endeavor for 2021. Parents Scala, SY Tepee and Wintmalt contained the non-dormant AlaAT allele(N) and the common parent DH130910 and Flavia contained the dormant allele(D). In both years, GE showed clear differentiation over time based on AlaAT haplotype, particularly at time point 2(19 days post PM) for 2020 and timepoints 1.5-3.5(19 days post PM through 68 days post PM). GI showed clear differentiation both across timepoints and within timepoints based on the AlaAT haplotype. The differences in GE and GI for both years based on each haplotype demonstrate that AlaAT significantly affects germination rate, energy and subsequently the rate of dormancy breakage. We also observed significant differences between GE and GI depending on the year. In 2020, dormancy break occurred around time point 3(47 days post PM). In 2021, dormancy break was substantially higher and did not occur until timepoints 3.5(68 days post PM) and 4(96 days post PM). The significant effect of the year environment on dormancy demonstrates the need to test seed germination traits across multiple years
+found variation in AlaAT for the parents of the winter malting barley population but monomorphic for the dormant allele of MKK3, suggesting that AlaAT would likely be the largest genetic factor contributing to the rate of seed dormancy loss. The region between 435636564-448089400 on 5H included the KASP marker AlaAT_L214F and 50K snp markers in high ld (r=0.95) with AlaAT. An abscisic aldehyde oxidase 3(HORVU.MOREX.r2.5HG0399320) was also identified in this region.
+
+The KASP marker for AlaAT and markers in the same LD region as AlaAT explained the highest PVE.
+
+The locus SD1 was initially discovered as a seed dormancy QTL in barley by @oberthurGeneticAnalysisSeed1995 and has since validated by many researchers @romagosaIndividualLocusEffects1999 @han1996, cloned @satoAlanineAminotransferaseControls2016 and sanger sequenced by @vetchMutationsHvMKK3HvAlaAT12020 and @sweeneyInteractionsBarleySD12021. AlaAT has also been a target of CRISPR-Cas9 targeted mutagenesis where targeted mutants showed highly delayed, but not inhibited germination. [@hisano2022].
+
+Alanine amino transferase played a significant role in dormancy break in our winter malting barley population. Figures 3a-c show germination rate and energy for each family of the population grouped by haplotype for AlaAT over years 2020, 2021, and combined analysis 2020/2021. A check "family" was included for comparison to Charles for 2020 and Endeavor for 2021. Parents Scala, SY Tepee and Wintmalt contained the non-dormant AlaAT allele(N) and the common parent DH130910 and Flavia contained the dormant allele(D). In both years, GE showed clear differentiation over time based on AlaAT haplotype, particularly at time point 2(19 days post PM) for 2020 and timepoints 1.5-3.5(19 days post PM through 68 days post PM). GI showed clear differentiation both across timepoints and within timepoints based on the AlaAT haplotype. The differences in GE and GI for both years based on each haplotype demonstrate that AlaAT significantly affects germination rate, energy and subsequently the rate of dormancy breakage. We also observed significant differences between GE and GI depending on the year. In 2020, dormancy break occurred around time point 3(47 days post PM). In 2021, dormancy break was substantially higher and did not occur until timepoints 3.5(68 days post PM) and 4(96 days post PM).
+
+### ABI5 and /ABA-responsive protein on 5H
+
+Three potential gene candidates were found in the 5H 462656156-486764914 LD region based on gene annotations and previous literature. The first includes gene HORVU.MOREX.r3.5HG0486380 identified as*ABI5(Abscisic Acid INSENSITIVE 5)* @seilerAbscisicAcidFlux2014 @collinBarleyABI5Abscisic2020 in response to drought tolerance and stress. The second includes a includes a GEM GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1) @mauriGEMMemberGRAM2016 located dowstream of asABI5. They found that that mutant types of the GEM would delay germination . @mauriGEMMemberGRAM2016 also discovered that 24 hour cold treatment eliminated the effects of GEM, which could explain why the loci was detected in PHS assays at a higher prevalence than GE and GI assays, as PHS samples did not undergo any cold treatment. Increases in potential ABA content in the 2021 year could also prolonged the effect of this gene in $PM_5$ for GI in 2021. Conditions for grainfill in 2021 were dry up until harvest which could of induced higher ABA assocated with this gene. A third potential gene related to seed germination identified by gene annotation includes a 1,4-alpha-glucan branching enzyme(GlgB(HORVU.MOREX.r3.5HG0488090.1) identified in morex version 3, a key regulator in amylopection degredatio @sunTwoGenesEncoding1998, @reginaControlStarchBranching2010. Isoamylase HvISA3 (HORVU.MOREX.r2.5HG0404420) of similar function was identified in the same region for morex version 2 @shuQuantificationAmyloseAmylopectin2014. 1,4-alpha-glucan branching,a key regulator in amylopection degredatio @sunTwoGenesEncoding1998, @reginaControlStarchBranching2010. Isoamylases are importanct for starch degredation as they hydrolyze α-(1,6) glycosidic linkages and debranch amylopectin during grain filling @gousReviewAmylopectinSynthesis2017. Starch with higher amylose content is hydrolyzed more slowly by amylolytic enzymes and higher amylose content has been hypothesized to be a contributing factor either grain dormancy or delay in germination rate observed by moderate GI values
+
+### Other potential associated markers
 
 ### 2H
 
-Three potential candidate genes were identified 160022796-469196911 bp region on 2H potenetially related to seed dormancy. The first identifed dimeric alpha-amylase inhibitor @menaMajorBarleyAllergen1992 (Bdai-1)(HORVU.MOREX.r2.2HG0176960) associated with bakers asthma and with foam retention in beer. From a germination perspective, the inhibition of alpha amylase could delay the breakdown of starch and potentially delay germination. The second potential gene of interest includes a mitogen-activated protein kinase, a similar protein structure of mitogen-activated protein kinase kinase 3(MKK3) associated with germination, malting quality and PHS sucsecptiblity in spring barley @sweeney. The third potential gene of 1,4-alpha-glucan-branching enzyme have been described by @reginaControlStarchBranching2010
+Three potential candidate genes were identified 160022796-469196911 bp region on 2H potenetially related to seed dormancy. The first identifed dimeric alpha-amylase inhibitor [@menaMajorBarleyAllergen1992] (*Bdai-1*)(HORVU.MOREX.r2.2HG0176960) associated with bakers asthma and with foam retention in beer. From a germination perspective, the inhibition of alpha amylase could delay the breakdown of starch and potentially delay germination. The second potential gene of interest includes a mitogen-activated protein kinase, a similar protein structure of MKK3. The third potential gene of 1,4-alpha-glucan-branching enzyme have been described by @reginaControlStarchBranching2010
 
-#3H
+### 4H
 
-Other potential novel loci include HvVP1 (Viviparous-1) which may be associated with JHI-Hv50k-2016-165725 on chromosome 3H and segregating in the SY Tepee family. HvVP1 is a master transcription factor regulator that controls switching between seed maturation and germination in barley HvVP1 @abrahamDevelopmentalSwitchGene2016
-
-#5H B
-
-The region between 435636564-448089400 on 5H included the KASP marker AlaAT_L214F and 50K snp markers in high ld (r=0.95) with AlaAT.\
-An abscisic aldehyde oxidase 3(HORVU.MOREX.r2.5HG0399320) was also identified in this region. \### AlaAT
-
-#5H C
-
-Three potential gene candidates were found in the 5H 462656156-486764914 LD region based on gene annotations and previous literature. The first includes gene HORVU.MOREX.r3.5HG0486380 identified as*ABI5(Abscisic Acid INSENSITIVE 5)* @seilerAbscisicAcidFlux2014 @collinBarleyABI5Abscisic2020 in response to drought tolerance and stress. The second includes a includes a GEM GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1) @mauriGEMMemberGRAM2016 located dowstream of asABI5. They found that that mutant types of the GEM would delay germination . Mauri et al. 2016 also discovered that 24 hour cold treatment eliminated the effects of GEM, which could explain why the loci was detected in PHS assays at a higher prevalence than GE and GI assays, as PHS samples did not undergo any cold treatment. Increases in potential ABA content in the 2021 year could also prolonged the effect of this gene in PM_5 for GI in 2021. Conditions for grainfill in 2021 were dry up until harvest which could of induced higher ABA assocated with this gene. A third potential gene related to seed germination identified by gene annotation includes a 1,4-alpha-glucan branching enzyme(GlgB(HORVU.MOREX.r3.5HG0488090.1) identified in morex version 3, a key regulator in amylopection degredatio @sunTwoGenesEncoding1998, @reginaControlStarchBranching2010. Isoamylase HvISA3 (HORVU.MOREX.r2.5HG0404420) of similar function was identified in the same region for morex version 2 @shuQuantificationAmyloseAmylopectin2014. 1,4-alpha-glucan branching,a key regulator in amylopection degredatio @sunTwoGenesEncoding1998, @reginaControlStarchBranching2010. Isoamylases are importanct for starch degredation as they hydrolyze α-(1,6) glycosidic linkages and debranch amylopectin during grain filling @gousReviewAmylopectinSynthesis2017. Starch with higher amylose content is hydrolyzed more slowly by amylolytic enzymes and higher amylose content has been hypothesized to be a contributing factor either grain dormancy or delay in germination rate observed by moderate GI values
-
-##4H
-
-On 4H two marker regions were of potential interest for seed dormancy were found. The first region included another alpha amylase inhibitor as well as a QTL identified for protein content QGpc.StMo-4H @mohammadiGenomewideAssociationStudy2015. The second LD region on 4H located on the far distal end of 4H was identified in numerous trait timepoint combinations. The malting quality QTLs QDp.DiMo-4H(Diastatic Power) and QBgnm.MT2-4H(Beta Glucan) identified in @mohammadiGenomewideAssociationStudy2015. Higher diastatic power could result in faster degredation of starches in the barley grain, resulting in barley grains. Variation in beta glucan content could be an indirect indicator of seed dormancy, as higher beta glucan can indicate that some seed dormancy exists.
-
-#7H
-
-On 7H marker located near the centromeric regions 14595309-387792817 were identified to have a\
+On 4H two marker regions were of potential interest for seed dormancy were found. The first region included another alpha amylase inhibitor as well as a QTL identified for protein content QGpc.StMo-4H [@mohammadiGenomewideAssociationStudy2015]. The second LD region on 4H located on the far distal end of 4H was identified in numerous trait timepoint combinations. The malting quality QTLs QDp.DiMo-4H(Diastatic Power) and QBgnm.MT2-4H(Beta Glucan) Higher diastatic power could result in faster degredation of starches in the barley grain, resulting in barley grains. Variation in beta glucan content could be an indirect indicator of seed dormancy, as higher beta glucan can indicate that some seed dormancy exists. On 7H marker located near the centromeric regions 14595309-387792817 were identified to have a\
 beta-amylase(HORVU.MOREX.r2.7HG0614220), ABA responsive binding factor(HORVU.MOREX.r2.7HG0533970), Glucan endo-1,3-beta-glucosidase(HORVU.MOREX.r2.7HG0535140) and protein(HORVU.MOREX.r2.7HG0535020). The region was also identied as SD3 in @romagosaIndividualLocusEffects1999
-
-Genetic and phenotypic correlations between GE and GI were high across all timepoints and traits except for $PM_{152}$. The KASP marker AlaAT and 50K markers located in high LD(r=0.95) in the 435636564-448089400 region on 5H was detected for the most trait, timepoint and year combinations. PVE was highest in this region.
-
-Initial KASPs assay of AlaAT and MKK3 of the winter barley population from @sweeney2021_QTL found variation in AlaAT for the parents of the winter malting barley population but monomorphic for the dormant allele of MKK3, suggesting that AlaAT would likely be the largest genetic factor contributing to the rate of seed dormancy loss. The KASP marker for AlaAT and markers in the same LD region as AlaAT explained the highest PVE.
 
 ```{r}
 #Table 2
 library(dplyr)
 library(flextable)
-load("ms/Rdata/Significant_marker_table.Rdata")
-
+load("Rdata/Significant_marker_table.Rdata")
+getwd()
 
 marker_tableR[marker_tableR$SNP=="JHI_Hv50k_2016_310278, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246",]$Gene_candidate<-"GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1), 1,4-alpha-glucan branching enzymeGlgB(HORVU.MOREX.r3.5HG0488090.1),root meristem growth factor(HORVU.MOREX.r3.5HG0486840.1),ABI5(Abscisic Acid INSENSITIVE 5)HORVU.MOREX.r3.5HG048638"
 dim(marker_tableR)
@@ -570,13 +578,11 @@ sig_markersAll
 
 The observed dormancy for most non dormant haplotypes at earlier post physiological maturity (PM) days is encouraging for balancing the selection of high germination rate and maintaining initial seed dormancy for PHS. If we assume that a malster, at the earliest, would start malting barley approximately 47 days after harvest from the field, we will want to select lines that maintain dormancy until 50-60 days post PM. Most non-dormant AlaAT haplotypes fit this profile for the 2020 and 2021 crop year. However, given the substantial dormancy we observed in 2021, we must be careful in considering how it relates to our PHS values observed for that same year. PHS will need to be tested in multiple years where conditions would develop less dormant barley. If we continue to have low PHS mean and variation across multiple years with potentially differing levels of dormancy per year, we can then focus the selection pressure to increase germination rate with less concern of reducing our PHS resistance for the given AlaAT haplotypes.
 
-### Impacts on malting quality(if there is time)
-
-GWAS for malting quality did not identify any signficant marker trait associations, however correlation between observered phenotypic values and GEBV was high. Most malting quality characteristics were responses to dormancy
+### Seed dormancy by year
 
 ### Selection of seed dormancy
 
-Barley with reduced dormancy is a pre requiste for malt quality and not a correlated trait. Experimental lines with little dormancy can have poor malting quality while lines with phs resistance and some dormancy can have high malting quality once the dormancy loss is complete. Given the characterization of seed dormancy loss overtime presented there are many lines with high PHS resistance and short dormancy periods that could be suited for malting quality. Typically, malt that is stored after harvest is stored for at least 30-60 days after harvest.
+Barley with reduced dormancy is a pre requiste for malt quality but is not necessarily correlated trait by genetic linakge if some time for storage is allowed. Given the characterization of seed dormancy loss overtime presented there are many lines with high PHS resistance and short dormancy periods that could be suited for malting quality. Typically, malt that is stored after harvest is stored for at least 30-60 days after harvest.
 
 Potential areas of improvement for seed germination include improvement of GI once there is complete dormancy loss. Many lines observed in this population reached peak GI of 5.5 compared to Charles, Endeavor and KWS Scala GI values in the ranges of 7 to 9. Initial germination delay could be caused by a number of previously described genes. ABA
 
