@@ -1,5 +1,7 @@
 ---
 title: "The SD1 seed dormancy locus influence of pre-harvest sprouting resistance and seed dormancy loss over time"
+execute:
+  echo: false
 author:
   - name: Karl Kunze
     orcid: 0000-0003-4548-1808
@@ -43,7 +45,7 @@ address:
 editor: visual
 format:
   docx:
-   reference-doc: custom-reference-doc.docx
+   reference-doc: custom-reference-doc_change1.docx
 link-citations: TRUE
 #execute:
 #  eval: false
@@ -61,6 +63,8 @@ bibliography: references.bib
 library(flextable)
 library(officer)
 library(officedown)
+library(arm)
+library(Hmisc)
 library(dplyr)
 library(tidyr)
 library(knitr)
@@ -105,11 +109,11 @@ df_begin<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%
 
 Barley(*Hordeum vulagare L*) is grown worldwide for food consumption, animal feed and malt for brewing and distilling. A significant portion of barley acreage in United States and Canada is grown for malting and distilling purposes due to the high premiums compared to animal feed and food consumption. Winter malting barley, where the barley is sown in the fall, is becoming of greater interest to growers, malsters, and brewers. Changes in climate, shifting cropping systems and demand for locally farmed products are pushing the adoption of winter malting barley to be grown in non traditional environments. Growing malting barley in novel environments is challenging, particularly if there is wet and humid conditions during grain fill or at harvest. Selection of malting barley for non traditional enviroments requires a delicate balance to select for grain that does not sprout at harvest but can also provide high quality malt within minimal storage time.
 
-Seed dormancy and pre harvest sprouting(PHS) are critical traits for the production of malting barley. Seed dormancy is defined as the inability of a seed to germinate under favorable conditions [@bewley2013] and developed as an evolutionary mechanism to avoid stress environments. Dormancy in barley is induced during seed development and is influenced by genetic and environmental factors such as temperature, water context, oxygen availability and light[@gubler2005]. Seed dormancy is regulated by the ratio of Abscisic acid (ABA) to Giberillic acid(GA) in the barley grain.
+Seed dormancy and pre harvest sprouting(PHS) are critical traits for the production of malting barley. Seed dormancy is defined as the inability of a seed to germinate under favorable conditions [bewley- @bewley2013] and developed as an evolutionary mechanism to avoid stress environments. Dormancy in barley is induced during seed development and is influenced by genetic and environmental factors such as temperature, water context, oxygen availability and light[@gubler2005]. Seed dormancy is regulated by the ratio of Abscisic acid (ABA) to Giberillic acid(GA) in the barley grain.
 
-Peak ABA content occurs in the middle of seed development and decreases as physiological maturity approaches @benech-arnoldHypoxiaInterferesABA2006. The ratio of ABA/GA is the key determinent of dormancy status in barley grain, not the absoulute content of ABA. @finch-savageSeedDormancyControl2006 .High ABA/GA ratio maintains dormancy and a decreasing amount of ABA to GA over time results in a loss of dormancy [@gomez-cadenasAbscisicAcidinducedProtein1999; @piskurewiczGibberellicAcidSignaling2008] Dormancy peaks at physiological maturity(PM) where the last photosynate leaves the grain [@copelandVisibleIndicatorsPhsiological1985] , and degrades over a period of time after harvest. The rate of dormancy loss varies widely from days to months based on genotype and environmental conditions during grainfill @rodriguezDormancyCerealsNot2015 @gongSeedDormancyBarley2014 @sweeney2021_QTL. Prolonged seed dormancy is undesirable for malting as germination is uneven, has low vigor and and is expensive to store for long periods of time. Barley that has little to no dormancy at physiological maturity is prone to PHS, where wet and humid conditions induce starch degredation and germination in the field before harvest [@bradfordSeedsPhysiologyDevelopment1995] . PHS can be visible in the form of visible radicle and collectible emergence or in pre germination where starch in the grain begins to degrade @liMajorQTLControlling2003
+Peak ABA content occurs in the middle of seed development and decreases as physiological maturity approaches benech-arnold[-@benech-arnoldHypoxiaInterferesABA2006]. The ratio of ABA/GA is the key determinent of dormancy status in barley grain, not the absoulute content of ABA. @finch-savageSeedDormancyControl2006 .High ABA/GA ratio maintains dormancy and a decreasing amount of ABA to GA over time results in a loss of dormancy [@gomez-cadenasAbscisicAcidinducedProtein1999; @piskurewiczGibberellicAcidSignaling2008] Dormancy peaks at physiological maturity(PM) where the last photosynate leaves the grain [@copelandVisibleIndicatorsPhsiological1985] , and degrades over a period of time after harvest. The rate of dormancy loss varies widely from days to months based on genotype and environmental conditions during grainfill @rodriguezDormancyCerealsNot2015 @gongSeedDormancyBarley2014 @sweeney2021_QTL. Prolonged seed dormancy is undesirable for malting as germination is uneven, has low vigor and and is expensive to store for long periods of time. Barley that has little to no dormancy at physiological maturity is prone to PHS, where wet and humid conditions induce starch degredation and germination in the field before harvest [@bradfordSeedsPhysiologyDevelopment1995] . PHS can be visible in the form of visible radicle and collectible emergence or in pre germination where starch in the grain begins to degrade @liMajorQTLControlling2003.
 
-Acheiving the balance between PHS resistance and high quality malt is a key breed target for barley breeding. Genetic sources of PHS resistance and seed dormancy have been well characterized in barley. The large effect QTL loci of SD1 on chromosome 5H have been mapped extensively in a wide range of 3 barley germplasm. [@han1996; @ullrichGeneticRelationshipsPreharvest2009 @linQTLMappingDormancy2009] [@gaoMolecularDissectionDormancy2003]Genes have been cloned at each locus: alanine aminotransferase at SD1 HvAlaT1 [@satoAlanineAminotransferaseControls2016] and a mitogen-actived protein kinase kinase 3 at SD2 HvMKK3 [@nakamura2016]. Alleles for both AlaAT and MKK3 have been identified by [@vetchMutationsHvMKK3HvAlaAT12020] for spring and winter barley germplasm. The mutation L214F in AlaAT results in a loss of dormancy and an increased reduction of ABA/GI. ALaAT has been one of the first targets of Cas9-induced mutagenesis in barley prolonging dormancy in mutant types [@hisano2022] Despite the known effect of AlaAT on the role of long term primary seed dormancy, little is known about the exact mechanism. [@weiIsolationCharacterizationTaQsd12019]
+Acheiving the balance between r PHS resistance and high quality malt is a key breed target for barley breeding. Genetic sources of PHS resistance and seed dormancy have been well characterized in barley. The large effect QTL loci of SD1 on chromosome 5H have been mapped extensively in a wide range of 3 barley germplasm. [@han1996; @ullrichGeneticRelationshipsPreharvest2009 @linQTLMappingDormancy2009] [@gaoMolecularDissectionDormancy2003]Genes have been cloned at each locus: alanine aminotransferase at SD1 HvAlaT1 [@satoAlanineAminotransferaseControls2016] and a mitogen-actived protein kinase kinase 3 at SD2 HvMKK3 [@nakamura2016]. Alleles for both AlaAT and MKK3 have been identified by [@vetchMutationsHvMKK3HvAlaAT12020] for spring and winter barley germplasm. The mutation L214F in AlaAT results in a loss of dormancy and an increased reduction of ABA/GI. ALaAT has been one of the first targets of Cas9-induced mutagenesis in barley prolonging dormancy in mutant types [@hisano2022] Despite the known effect of AlaAT on the role of long term primary seed dormancy, little is known about the exact mechanism. [@weiIsolationCharacterizationTaQsd12019]
 
 Genome wide associations studies(GWAS) have become the standard practice to identify traits of interest in various types of breeding populations. Advances in barley marker platforms such as the Illumina barley 50K SNP chip [@bayerDevelopmentEvaluationBarley2017] and the development of improved barley reference genomes [@mascherLongreadSequenceAssembly2021] have made for higher resolution mapping of relevant malting barley traits. Numerous GWAS methods are available, and improvement to models that account for population structure [@yuGeneticAssociationMapping2006] using principal component analysis @pricePrincipalComponentsAnalysis2006 and the inclusion of kinship and Q matrix allow for mapping association studies to be conducted across structured populations. Increased computational efficency and flexibility of models in package "ASRgwas" [@ASRgwas2022] allow for single step analysis GWAS, which includes increased flexibility of terms to be included in the model and also reduces the loss of information that can be associated with two step fixed models [@mohringComparisonWeightingTwoStage2009] lack of degression using two step random effect models [@garrickDeregressingEstimatedBreeding2009.]
 
@@ -145,18 +149,27 @@ where $n_{24}$, $n_{48}$, $n_{72}$, $n_{48}$ and $n_{120}$ were the number of ge
 
 ```{r}
 #| label: tbl-H2_all
-#| tbl-cap: heritability
-#| fig-cap: heritability
+#| tbl-cap: Summary statistics for each timepoint, year, combined years, and trait combination used for single timepoint genome wide association studies. Variance components and heritability were estimated by the ASRgwas package.
+#| fig-cap: Summary statistics for each timepoint, year, combined years, and trait combination used for single timepoint genome wide association studies. Variance components and heritability were estimated by the ASRgwas package
 
-# Table 1
+
 load("Rdata/genetic_variance_h2.Rdata")
-load("Rdata/genetic_variance_h2.Rdata")
+
 
 phenoS1<-sum_table%>%mutate(o2g=round(o2g,3),h2=round(h2,3),h2_PEV=round(h2_PEV,3))%>%flextable(cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
 
 
 phenoS1<-phenoS1%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
 bold(bold = TRUE, part = "header")%>%set_caption(caption=as_paragraph(as_chunk("Summary statistics single and combined time point analysis ",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")
+phenoS1<- add_footer_lines(phenoS1, values = "")
+phenoS1<- compose(phenoS1,value= as_paragraph(as_i("Note:"),"ID- Unique timepoint trait year combination; PM date: days after physiological maturity; :h2 narrow sense heritability using percent error variances by Cullis et. al 2006"), part = "footer")%>%align(align = c("left"),part = "footer")%>%fontsize(size = 8, part = "footer")%>%footnote(i = c(1), j = c(4),
+            value = as_paragraph(
+              c("traits of GE-Germination Energy, GI-Germination index adjusted by germination energy, GI0-Germination index unadjusted by GE, and PHS-preharvest sprouting score")),
+            ref_symbols = c("a"),
+            part = "header")
+
+
+
 
 
 phenoS1
@@ -165,7 +178,7 @@ phenoS1
 
 ## Genotyping
 
-The winter maltinb barley double haploid population was genotyped with the 50K Barley Illumina SNP array [@bayerDevelopmentEvaluationBarley2017] at the USDA small grains research laborartory in Fargo, ND. Marker positions were based on the Morex version 3 and gene annotations referenced the Morex version 3 assembly [@mascherLongreadSequenceAssembly2021] and version 2 [@monatTRITEXChromosomescaleSequence2019] Markers were filtered a maximum heterozygosity level of 0.01 and a minumum minor allele frequency of 0.05 using rTASSEL [@monierRTASSELInterfaceTASSEL2022], resulting in a total of 13,452 markers. The R package @XiuwenSNPRelate2012 was used to Linkage Disequlibrium(LD) prune markers using a sliding base pair window of 2000 markers and a maximum LD threshold of 0.9. PCA analysis was also conducted with the SNPRelate package. After LD pruning, 9,628 markers remained for analysis. KASP markers were used to genotype *HVAlaAT* and *HvMKK3* folllowing casual mutations discovered in @satoAlanineAminotransferaseControls2016 and @nakamura2016 respectively. Details of KASP marker development can be found in @sweeneyInteractionsBarleySD12021.
+The winter maltinb barley double haploid population was genotyped with the 50K Barley Illumina SNP array [@bayerDevelopmentEvaluationBarley2017] at the USDA small grains research laborartory in Fargo, ND. Marker positions were based on the Morex version 3 and gene annotations referenced the Morex version 3 assembly [@mascherLongreadSequenceAssembly2021] and version 2 [@monatTRITEXChromosomescaleSequence2019] Markers were filtered a maximum heterozygosity level of 0.01 and a minumum minor allele frequency of 0.05 using rTASSEL [@monierRTASSELInterfaceTASSEL2022], resulting in a total of 13,452 markers. The R package "SNP Relate" [@ZhengSNP2012] to Linkage Disequlibrium(LD) prune markers using a sliding base pair window of 2000 markers and a maximum LD threshold of 0.9. PCA analysis was also conducted with the SNPRelate package. After LD pruning, 9,628 markers remained for analysis. KASP markers were used to genotype *HVAlaAT* and *HvMKK3* folllowing casual mutations discovered in @satoAlanineAminotransferaseControls2016 and @nakamura2016 respectively. Details of KASP marker development can be found in @sweeneyInteractionsBarleySD12021.
 
 ## Statisical Analysis
 
@@ -185,7 +198,7 @@ models2020=rbind(model_2020_GI,model_2020_GE)
 model_2021_GI<-data.frame(year=rep("2021",8),trait=c(rep("GI",6),rep("GI_base",2)),PM_date=c(5,22,19,33,47,68,96,152),Q=rep("yes",8),npc=rep("2",8),Fixed=c(NA,NA,NA,"Rep",NA,"Location","Location:Row + replication","Location"),Random=rep(NA,8),Residual=c("Location",NA,"Rep",NA,NA,NA,"Row",NA),Converged=c("yes","yes","yes","yes","yes","yes","yes","yes"))
 
 
-model_2021_GE<-data.frame(year=rep("2021",8),trait=c(rep("GE",8)),PM_date=c(5,22,19,33,47,68,96,152),Q=rep("yes",8),npc=rep("2",8),Fixed=c(NA,NA,"Qsd1","replication:Row",NA,"Location:Row + Row","Location:Row","Location:Row"),Random=rep(NA,8),Residual=c("Location",NA,"Rep",NA,NA,NA,"Location",NA),Converged=c("no","yes","yes","yes","yes","yes","no","no"))
+model_2021_GE<-data.frame(year=rep("2021",8),trait=c(rep("GE",8)),PM_date=c(5,22,19,33,47,68,96,152),Q=rep("yes",8),npc=rep("2",8),Fixed=c(NA,NA,NA,"replication:Row",NA,"Location:Row + Row","Location:Row","Location:Row"),Random=rep(NA,8),Residual=c("Location",NA,"Rep",NA,NA,NA,"Location",NA),Converged=c("no","yes","yes","yes","yes","yes","no","no"))
 models2021=rbind(model_2021_GI,model_2021_GE)
 
 #combined
@@ -198,41 +211,46 @@ phs_sum<-data.frame(year=rep("2020/2021"),trait="PHS",PM_date=c(7),Q=rep("yes",1
 
 model_table1<-rbind(models2020,models2021,model_combined_GI,model_combined_GE,phs_sum)%>%relocate(trait,.before = 1)
 
-library(flextable)
+
 model_components<-flextable(model_table1)
 
-library(dplyr)
-model_components
+
 ```
 
-```{r}
+```{r,include=FALSE}
 #| label: tbl-model_components
 #| tbl-cap: components
 #| fig-cap: components
 
-# Table of model terms used for GWAS
-#Table S1
-E1_ft<-flextable(model_table1,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
-E1_ft<-E1_ft%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
-bold(bold = TRUE, part = "header")%>%set_caption(caption=as_paragraph(as_chunk("Summary of the fixed, random and residual model terms fitted each timepoint across germination energy and index for genome wide assocation modeling ",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%
-#E1_ft<-E1_ft%>%add_footer_lines(E1_ft, values = "")
-footnote(i = c(1), j = c(1),
+# Table of model terms used for GWAS, supplemental table
+
+GWAS_model_terms<-model_table1%>%arrange(year,trait,PM_date)%>%rename("PM date"="PM_date","Q matrix?"="Q","PCs"=npc,"Fixed effect term(s)"=Fixed,"Residual terms"=Residual,"Converged?"=Converged)%>%select(!Random)
+GWAS_model_terms$trait<-gsub("GI_base","GI 0",GWAS_model_terms$trait)
+
+GWAS_model_terms<-flextable(GWAS_model_terms,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
+GWAS_model_terms<-GWAS_model_terms%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
+bold(bold = TRUE, part = "header")%>%set_caption(caption=as_paragraph(as_chunk("Summary of the fixed and residual model terms fitted at each timepoint across germination energy, germination index, and preharvest sprouting for genome wide assocation modeling ",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%
+  add_footer_lines(values = "")%>%compose(value= as_paragraph(as_i("Note:"),"PM date: days after physiological maturity; PCs: Number of Principal components included in the model"), part = "footer")%>%align(align = c("left"),part = "footer")%>%fontsize(size = 8, part = "footer")%>%footnote(i = c(1), j = c(1),
             value = as_paragraph(
-              c("GI: Germination index, GE: Germination Energy, GI_base:unadjusted germination index, PM Date: Post physiological maturity date and timepoint,Q: fixed effect population structure matrix, npc: number of principal components included, Rep: Replication")),
+              c("GE: Germination Energy, GI: Germination index, GI 0:unadjusted germination index, PHS: Preharvest sprouting")),
             ref_symbols = c("a"),
+            part = "header")%>%footnote(i = c(1), j = c(6,7),
+            value = as_paragraph(
+              c("Rep:Replication of dormancy assay measured within each timepoint; Row: spatial effect of Row in the field")),
+            ref_symbols = c("b"),
             part = "header")
 
-E1_ft_2<-E1_ft%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")
-
-# 
-# footnote(i = c(1), j = c(2),
-#             value = as_paragraph(
-#               c("BSR-Barley Stripe Rust;LR-Leaf Rust;SB-Spot Blotch;SLD-Scald")),
-#             ref_symbols = c("b"),
-#             part = "header")
 
 
-E1_ft_2
+
+GWAS_model_terms<-GWAS_model_terms%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")
+
+save_as_docx(GWAS_model_terms, path ="supplementary_data/GWAS_model_terms.docx")
+
+
+
+##not inculuding
+#GWAS_model_terms
 ```
 
 KASP markers for AlaAT and MKK3 were ran on the experimental winter double haploid lines, parent lines and checks. Details about the interactions of MKK3, AlaAT in PHS data of spring and winter malting barley trials are examined in more detail in @sweeney2021_QTL. The common parent Lightning and parent Flavia contained the dormant(D) AlaAT allele while parents KWS Scala, SY Tepee and Wintmalt contained the N allele for AlaAT. This resulted in variation for the AlaAT in all families crossed to Lightining except for the Lightning x Flavia family, where lines were monomorphic for AlaAT. All experimental lines and parent genotypes were monomorphic for dormant(D) HvMKK3. The check lines Charles and Endeavor used as a PHS susceptibility and germination check in 2020 and 2021 respectively conatined the highly non-dormant ($N^{*}$) allele for MKK3 but the D allele for AlaAT Given the low frequency of the N\* MKK3 haplotype represented in this population , we are limited in what inferences can be made regarding the MKK3 loci.
@@ -248,7 +266,7 @@ df2<-df_begin_long%>%filter(PM_date%in%c("5","19","47","96","152"))
 
 
 df2$year<-"2020/2021"
-library(arm)
+
 gd_Q<-as.data.frame(WinterGD[,c("Qsd1","JHI_Hv50k_2016_8507")])
 
 gd_Q$taxa<-rownames(gd_Q)
@@ -262,27 +280,27 @@ gd_Q$taxa<-rownames(gd_Q)
 
 Break
 
-```{r}
+```{r,warning=FALSE,message=FALSE}
 #| label: fig-PHS_dist
-#| fig-cap: "PHS"
-#| tbl-cap: "PHS"
+#| fig-cap: "Distribution of mean pre-harvest sprouting scores per genotype for 2020/2021 by AlaAT allele. Shaded regions indicate the classification for pre-harvest sprouting/susceptiblity with green indicating  high preharvest sprouting resistance, yellow indicating moderate preharvest sprouting resistance and red indicating preharvest sprouting susceptiblity"
+#| fig-width: 7.5
+#| fig-length: 7.5
 
 #PHS
 #Figure 1
 
-library(Hmisc)
+
 phs_setup<-df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   plyr::join(gd_Q[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(AlaAT= ifelse(Qsd1==2,'Non dormant','Dormant')) %>% plyr::join(gd_Q[,c('taxa','JHI_Hv50k_2016_8507')])%>%
   filter(Family %nin% c('Lightning'))  %>%dplyr::select(phs,Qsd1,AlaAT,taxa,SourcePLOT,Location,year)%>%unique()
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
 # %>% mutate(JHI_Hv50k_2016_8507= ifelse(JHI_Hv50k_2016_8507==2,'minor','ref'))%>%
 
-library(ggplot2)
 phs_dist<-phs_setup%>%group_by(taxa)%>%
   ggplot(aes(phs, fill = AlaAT))+
  
   geom_histogram(binwidth = 0.2,col=I("black"))+
-  labs(x="PHS score(0-9)",y="Frequecny")+ggtitle(label = paste0("Hisogram of Pre-harvest sprouting values for 2020/2021"))+
+  labs(x="PHS score(0-9)",y="Frequecny")+ggtitle(label = paste0("Histogram of Preharvest Sprouting \n values for 2020/2021"))+
 theme_bw()+theme(axis.text.x = element_text(angle = 0),plot.title = element_text(hjust=0.5))+
     annotate('rect', xmin=-0.1, xmax=2, ymin=0, ymax=1000, alpha=.1, fill='green')+
     annotate('rect', xmin=2, xmax=4, ymin=0, ymax=1000, alpha=.1, fill='yellow')+
@@ -293,57 +311,83 @@ phs_dist
  # stat_bin(aes(y=(phs)/sum(phs), 
  #    label=round((phs)/sum(phs),2)),
  #    geom="text", size=4, binwidth = 0.1, vjust=-1.5)
-phenoS1
+
 ```
 
 ```{r}
 load("Rdata/geno_corr.Rdata")
 load("Rdata/p_corr.Rdata")
-vb<-new%>%round(2)%>%as.data.frame(row.names(new))%>% tibble::rownames_to_column("Variable")%>%flextable()%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
-std_border = fp_border(color="black")
-vb
+
+ne_p=ne_p<0.05;new2<-round(new,2)
+
+
+#n_p05<-as.data.frame(round(ne_p,3)<0.05)
+
+new2[ne_p&!is.na(ne_p)]<-paste0(new2[ne_p&!is.na(ne_p)],"*")
+```
+
+```{r}
+#| label: tbl-cor_table
+#| tbl-cap: "Correlation table for 2020-2021 analysis"
+
+
+vb<-new2%>%as.data.frame(row.names(new2))
+
+rownames(vb)<-toupper(gsub("_",", ",rownames(vb)))
+colnames(vb)<-toupper(gsub("_",", ",colnames(vb)))
+
+
+vb<-vb%>% tibble::rownames_to_column("Variable")%>%flextable()%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")%>%font(fontname = "Times New Roman",part = "body")
+
 vb<-vb%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 9,part = "body")%>%fontsize(size = 9,part = "header")%>%
 bold(bold = TRUE, part = "header")%>%bold(bold = TRUE, part = "body",j=1)%>%
-  set_caption(caption=as_paragraph(as_chunk("Phenotypic and Genotypic correlations between preharvest sprouting(PHS),germination energy(GE) and germination index(GI) at post physiological maturity(PM) timepoints. The lower diagnol corresponds to phenotypic correlation and the upper diagnial corresponds to genotypic correlations",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")%>%hline(part="body",i=c(1,8) ,border = std_border )%>%vline(part="body",j=c(2,10) ,border = std_border )
+  set_caption(caption=as_paragraph(as_chunk("Phenotypic and Genotypic correlations between preharvest sprouting(PHS),germination energy(GE) and germination index(GI) at post physiological maturity(PM) timepoints",props = fp_text_default(font.family = "Times New Roman", bold = FALSE))),fp_par(text.align="justify"),align_with_table = FALSE)%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")#%>%hline(part="body",i=c(1,8) ,border = std_border )%>%vline(part="body",j=c(2,10) ,border = std_border )
 
 
-corr_table<-vb%>% add_footer_lines(values = "")%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")%>%compose(value= as_paragraph(as_i("Note:"),"phs, preharvest sprouting; GE Germination Energy; GI Germination Index; PM Physiological maturity date"), part = "footer")%>%align(align = c("left"),part = "footer")%>%fontsize(size = 8, part = "footer")%>%
+corr_table<-vb%>% add_footer_lines(values = "")%>%align(align = c("left"),part = "footer")%>%fontsize(size=8,part="footer")%>%compose(value= as_paragraph(as_i("Note:"),"phs, preharvest sprouting; GE Germination Energy; GI Germination Index; PM Physiological maturity date. Lower diagonal corresponds to phenotypic correlation and the upper diagonal corresponds to genotypic correlations. \n * Significant at",as_i(" p < 0.05")," using a pearson correlation"), part = "footer")%>%fontsize(size = 8, part = "footer")%>%
   footnote(i = c(1), j = c(4,6,8,12,14,16),
             value = as_paragraph(
               c("Timepoints were only measured in 2021")),
             ref_symbols = c("a"),
-            part = "header")
+            part = "header")%>%bg(j = 1, bg = "#CFCFCF", part = "body")%>%autofit(part="body",hspans = "divided")
+
+
 
 
 corr_table
-
-
-#upper is geno, lower is pheno
-phenoS1
 ```
 
 # Results
 
 ## Phenotypic Distribution
 
-Preharvest sprouting scores presented were averaged across years as there was a lack of sufficent phs data in the 2020 year alone. PHS score distribution was skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. Average GE had significant variation based on year as mean GE in 2021 was substaintally lower than mean GE at equivalent time points.Heritability for GE was high at early timepoints but decreased as primary dormancy loss occured over time. The slight increase of heritability of GE at later timepoints is most likely attributed to diseased kernels as seeds were not surface sterilized due to population size. GI was initally low at early timepoints and increased as primary dormancy loss occured. Unlike GE, GI variation remained after dormancy resulting in higher heritability at later timepoints. Similar to GE, there was significantly more dormancy in 2021 compared to 2020, as intial genetic variation and heritability was low for PM 5 in 2021. After observed dormancy loss, GI platued at a mean GI of 5.6
+PHS scores were skewed towards resistance(Figure 1). 95% of genotypes were classified as resistant(0 to 2 score), 4.4% were moderately resistant and 1.6% classified as PHS susceptible. Heritability for PHS was moderate to low
+
+Average GE had significant variation based on year as mean GE in 2021 was substaintally lower than mean GE at equivalent time points.Heritability for GE was high at early timepoints but decreased as primary dormancy loss occured over time. The slight increase of heritability of GE at later timepoints is most likely attributed to diseased kernels as seeds were not surface sterilized due to population size. GI was initally low at early timepoints and increased as primary dormancy loss occured. Unlike GE, GI variation remained after dormancy resulting in higher heritability at later timepoints. Similar to GE, there was significantly more dormancy in 2021 compared to 2020, as intial genetic variation and heritability was low for PM 5 in 2021. After observed dormancy loss, GI platued at a mean GI of 5.6
 
 #Correlations
 
 Phenotypic correlations between GE and GI were significant between all timepoints except for PM 152. PHS phenotypic correlations were not significant to GE and GI. Genotypic correlations were high for all traits, indicating shared genetic control.
 
-```{r,warning=FALSE}
+```{r,warning=FALSE,message=FALSE}
+#| label: fig-fitted_cruves
+#| fig-cap: "Germination Energy and Index over time"
+#| fig-width: 8
+#| fig-length: 8
+
+
 # Figure 3
 library(tidyr)
 library(ggh4x)
 library(Hmisc)
 
 
-op<-df_begin_long%>%rbind(df2)%>% mutate(headerFacet = 'Dataset Year') %>%filter(!trait%in%c("GI_0"))%>%
+op<-df_begin_long%>%rbind(df2)%>%mutate(headerFacet = 'Dataset Year') %>%
+                                          filter(!trait%in%c("GI_0"))%>%
   ggplot(aes(x = PM_date, y = value, group = GID))+
-  geom_smooth(na.rm = TRUE,se=FALSE,linewidth=0.2,colour="black")+ggh4x::facet_nested(trait~headerFacet+year, scales = 'free')+
-  geom_vline(xintercept = c(12,33,68), color = 'red')+
-  labs(title = 'Germination Energy and Index over time by individual genotype')+theme_bw()
+  geom_smooth(na.rm = TRUE,se=FALSE,linewidth=0.1,colour="black")+ggh4x::facet_nested(trait~headerFacet+year, scales = 'free')+
+  geom_vline(xintercept = c(12,33,68), color = 'red')+xlab(label="PM Date")+
+  labs(title = 'Germination Energy and Index over time \n by individual genotype')+theme_bw()
 op
 # distribution of of timepoint data
 ```
@@ -358,14 +402,15 @@ Population structure
 
 Principal component analysis Principal component analysis revealed variation attributed to the first, second and third PCs at 14.55% and 5.69 and 4.9 % respectively. The PCA plot displays the first two PCs on the x and y axis. The first component separated SY Tepee populations from the Wintmalt, KWS Scala and Flavia populations, with Lightning being a common intermediate between the two parents. Position of genotypes remained largely unchanged when separate recombinant inbred lines of crosses not including Lightning were included(data not shown). Wintmalt, Scala and Flavia families have closer degree of relatedness.
 
-```{r}
+```{r,warning=FALSE}
 #| label: fig-PCA_DH
 #| fig-cap: "Principal components analysis plot"
-
+#| fig-width: 8
+#| fig-length: 8
 
 
 # Figure 2 PCA plot of double haploid population
-library(ggplot2)
+
 load("Rdata/WinterRelationship.Rdata")
 
 
@@ -374,7 +419,6 @@ WinterPCA = eigen(WinterRelationship)
 
 WinterPVEPCA = WinterPCA$values/sum(WinterPCA$values)
 #data.frame(ordinal = 1:10, PVE = WinterPVEPCA[1:10]) %>%plot(., xlab = 'PC', col = 'red') 
-WinterPVEPCA[1:5]
 winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>% 
   
   mutate(family = plyr::mapvalues(substr(rownames(WinterGD),1,3), from = toupper(c('BS6','BS7','BS8','BS9','Lig','Fla','Tep','Sca','Win',"End","Cha","Che")), 
@@ -388,35 +432,45 @@ winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>%
 PCA_DH<-winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", 
      tolower(winterlinePCAvalues$shapes),
      perl = TRUE),size=ifelse(size==2,3,4))%>%filter(family !=c('Check')) %>%
-  ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(shape=guide_legend(title = "Variety/Experimental Line"),size="none",color=guide_legend(title="Family/Population"))+xlab(as.character(paste0("PC1: ",round(WinterPVEPCA[1]*100,2),"%")))+ylab(as.character(paste0("PC2: ",round(WinterPVEPCA[2]*100,2),"%")))+ggtitle(lab="Principal component analysis plot of the \n NY winter malting barley double haploid population")+theme(plot.title = element_text(hjust = 0.5))+scale_x_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))+scale_y_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))
+  ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(shape=guide_legend(title = "Variety/Experimental Line"),size="none",color=guide_legend(title="Family/Population"))+xlab(as.character(paste0("PC1: ",round(WinterPVEPCA[1]*100,2),"%")))+ylab(as.character(paste0("PC2: ",round(WinterPVEPCA[2]*100,2),"%")))+ggtitle(lab="Principal component analysis plot of the \n NY winter malting barley double haploid population")CH+scale_x_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))+scale_y_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))
 PCA_DH
 ```
 
-```{r}
+```{r,warning=FALSE,message=FALSE}
 #| label: fig-AlaAT Distributions
 #| fig-cap: "Qsd1 distribution"
+#| fig-width: 7
 
 
+library(ggplot2)
 #Figure 4
 library(Hmisc)
 #JHI_Hv50k_2016_314355
 WinterGD$taxa<-rownames(WinterGD)
 WinterGD<-WinterGD%>%relocate(taxa,.before = 1)
-df_begin_long%>%rbind(df2) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
+
+AlaAT_d<-df_begin_long%>%rbind(df2)%>%filter(!year%in%c("2020/2021")) %>% mutate(year = factor(year, levels = c('2020','2021','2020/2021')))%>%
   plyr::join(WinterGD[,c('taxa','Qsd1')]) %>% filter(Qsd1!= 1) %>% mutate(Qsd1= ifelse(Qsd1==2,'Nondormant','Dormant')) %>% plyr::join(WinterGD[,c('taxa','JHI_Hv50k_2016_310278')]) %>% filter(JHI_Hv50k_2016_310278!= 1) %>% mutate(JHI_Hv50k_2016_310278= ifelse(JHI_Hv50k_2016_310278==2,'minor','ref'))%>%
   filter(Family %nin% c('Lightning'))   %>%
  # filter(!(year == '2020/2021' & TP %in% c('TP1.5','TP2.5','TP3.5'))) %>%
-  filter(!(trait =='GE' &value>1.05)) %>%
-  ggplot(aes(x=PM_date,y=value,fill = JHI_Hv50k_2016_310278))+
-geom_boxplot(outlier.shape =NA)+ggh4x::facet_nested(trait~Family+year, scales = 'free')+
+  filter(!(trait =='GE' &value>1.05)) 
+
+AlaAT_fam<-AlaAT_d%>%  ggplot(aes(x=PM_date,y=value,fill = Qsd1))+
+geom_boxplot(outlier.shape =NA)+ggh4x::facet_nested(trait~year + Family, scales = 'free')+
 
   labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination rates by grouping of AlaAT"))+
-theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))+guides(fill=guide_legend(title="JHI_Hv50k_2016_310278"))
+theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_text(hjust=0.5))+guides(fill=guide_legend(title="AlaAT"))
+AlaAT_fam
+AlaAT_simple<- AlaAT_d%>% ggplot(aes(x=PM_date,y=value,fill = Qsd1))+
+geom_boxplot(outlier.shape =NA)+ggh4x::facet_nested(trait~year, scales = 'free')+
+
+  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Energy and Index by AlaAT haplotype"))+
+theme_bw()+theme(axis.text = element_text(face="bold"),plot.title = element_text(hjust=0.5))+guides(fill=guide_legend(title="AlaAT"))
+AlaAT_simple
+
 ```
 
-#manhattan plot
-
-```{r}
+```{r,include=FALSE}
 #Figure 5
 load(paste0(path,"/data/GWA_results/STP_all.Rdata"))
 
@@ -463,8 +517,13 @@ WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal
 #this GWAS TP is giving weird assocations, so I just removed it
 ```
 
-```{r}
-
+```{r,warning=FALSE}
+#| label: fig-Man
+#| fig-cap: "Manhattan plots"
+#| fig-width: 8
+#| fig-subcap: 
+#|   - " Multi manhattan plot Genome wide association for GE, GI and PHS across years and PM dates"
+#|   - "Genome wide association for pre-harvest sprouting"
 
 
 #False discovery rate
@@ -477,27 +536,36 @@ ALaAT_ord=WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal%>%unique()
 
 WinterPerTPGWAS2[WinterPerTPGWAS2$trait=="PHS",]$PM<-4
 #All chromosomes
-ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
+WinterPerTPGWAS2
+ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM)))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+guides(color=guide_legend(title="Timepoint"))+
+
+
   geom_vline(xintercept = winterChrLines, color = 'black')+
- geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='longdash')+
-  annotate(geom= 'text', x = ALaAT_ord, y = 12, label = 'AlaAT1')+
+ geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='solid')+
+  annotate(geom= 'text', x = ALaAT_ord, y = 14, label = 'HvAlaAT')+
   geom_vline(xintercept = winterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
-  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
- facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="solid")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
+ facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()++theme(plot.title = element_text(hjust = 0.5))
+ALL_MM
+CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM)))+geom_point(size = 1.5)+ggtitle(label="Genome wide association for \n Germination Energy, Index and PHS on CH 5")+guides(color=guide_legend(title="Timepoint"))+
 
-CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy, Index and PHS on CH 5")+
+  
+  
   geom_vline(xintercept = winterChrLines, color = 'black')+
- geom_vline(xintercept = 5760, color = 'red',linetype='longdash')+
-  annotate(geom= 'text', x = 5760, y = 12, label = 'AlaAT1')+
+ geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='solid')+
+  annotate(geom= 'text', x = ALaAT_ord, y = 12, label = 'HvAlaAT')+
   geom_vline(xintercept = winterChrLines)+
 
-  ylab('-log(p-value)')+xlab('Chromosome 5')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
- facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()+scale_x_continuous(limits = c(5000,7000)) 
+  ylab('-log(p-value)')+xlab('Position')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
+ facet_grid(rows = vars(trait), scales = 'free_y')+
+
+theme_bw()+scale_x_continuous(limits = c(5525,6700)) +theme(plot.title = element_text(hjust = 0.5))
 #Ch 5
-
-
+ALL_MM
+ALaAT_ord
+CH5_MM
 #print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,8)))
 #print(paste("Bonferroni cutoff at 0.05 :",round(0.05/9658,8)))
 ```
@@ -506,11 +574,11 @@ Genome wide association results
 
 ### Model fitting using asrGWAS
 
-Single step genome wide association analysis was conducted using the ASRgwas @ASRgwas2022 package across all trait, year, PM date and combined year combinations(36 analysis). Not all combinations resulted in identified marker trait associations. Fixed effects were identified by wald tests and if models did not converge with reduced inclusion of effects. Within years, significant fixed effects included Location, Replication(Rep) and the spatial dimension of Row. In analysis across years, Year was identified as a signficant term as either a fixed effect or residual term for all GI trait models and all GE trait models except for GE 2020/2021 at PM date 152. Not all models converged, particularly models for the GE trait as variation was low at early and later timepoints. After accounting for model terms, significant marker traits were identified based on false discovery rate(FDR) adjusted p-values using the R package p-adjust within each GWAS analysis. Traits were considered significant if the FDR adjusted p-value was below 0.05(alpha value. The highest unadjusted p-value that was below the FDR threshold identified in this study was 0.00003.
+Single step genome wide association analysis was conducted using the ASRgwas @ASRgwas2022 package across all trait, year, PM date and combined year combinations(36 analysis). Not all combinations resulted in identified marker trait associations. Fixed effects were identified by wald tests and if models did not converge with reduced inclusion of effects. Within years, significant fixed effects included Location, Replication(Rep) and the spatial dimension of Row. In analysis across years, Year was identified as a signficant term as either a fixed effect or residual term for all GI trait models and all GE trait models except for GE 2020/2021 at PM date 152. Not all models converged, particularly models for the GE trait as variation was low at early and later timepoints. After accounting for model terms, significant marker traits were identified based on false discovery rate(FDR) adjusted p-values using the R package p-adjust within each GWAS analysis. Traits were considered significant if the FDR adjusted p-value was below 0.05(alpha value. The highest unadjusted p-value that was below the FDR threshold identified in this study was $3.8728 * 10^{-4}$
 
 ### Genome wide association analysis
 
-Usining a false discovery rate of alpha=0.05, 50 unique marker trait associations were identifed across the genome. Given the highly structured breeding populations, the LD in this population was high and markers in LD were condensed to single blocks if r2 was greater than 0.90 between markers on specific chromosome. A range of the minimum and maxmimum positions of significant markers within each LD group are presented as we do not have the resolution to determined where in LD blocks the casual variant is located. Significant marker trait associations observed at multiple timepoint trait combinations include JHI_Hv50k_2016_64721 and marker LD group SCRI_RS_135633, JHI_Hv50k_2016_90999, JHI_Hv50k_2016_116224 on 2H; marker SCRI_RS_16934 on 3H; marker LD group JHI_Hv50k_2016_275586, JHI_Hv50k_2016_276615, JHI_Hv50k_2016_276209 on the end of 4H; marker JHI_Hv50k_2016_282096, marker group AlaAT JHI_Hv50k_2016_308652, JHI_Hv50k_2016_308798, JHI_Hv50k_2016_310278 and marker group JHI_Hv50k_2016_310358, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246 on 5H; and marker group JHI_Hv50k_2016_450348, JHI_Hv50k_2016_450348, JHI_Hv50k_2016_486280 and marker JHI_Hv50k_2016_507218 on 7H.
+Usining a false discovery rate of alpha=0.05, 50 unique marker trait associations were identifed across the genome. CentiMorgan(cM) values from the genetic consensus mapped developed by @mascherChromosomeConformationCapture2017. Given the highly structured breeding populations, the LD in this population was high and markers in LD were condensed to single blocks if r2 was greater than 0.90 between markers on specific chromosome. A range of the minimum and maxmimum positions of significant markers within each LD group are presented as we do not have the resolution to determined where in LD blocks the casual variant is located. Significant marker trait associations observed at multiple timepoint trait combinations include JHI_Hv50k_2016_64721 and marker LD group SCRI_RS_135633, JHI_Hv50k_2016_90999, JHI_Hv50k_2016_116224 on 2H; marker SCRI_RS_16934 on 3H; marker LD group JHI_Hv50k_2016_275586, JHI_Hv50k_2016_276615, JHI_Hv50k_2016_276209 on the end of 4H; marker JHI_Hv50k_2016_282096, marker group AlaAT JHI_Hv50k_2016_308652, JHI_Hv50k_2016_308798, JHI_Hv50k_2016_310278 and marker group JHI_Hv50k_2016_310358, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246 on 5H; and marker group JHI_Hv50k_2016_450348, JHI_Hv50k_2016_450348, JHI_Hv50k_2016_486280 and marker JHI_Hv50k_2016_507218 on 7H.
 
 Percent variance explained(PVE) was highest (for markers in perfect LD with KASP marker AlaAT . Initially, a two step model using a fixed effect model as a the first step and a subsequent GWAS model using GAPIT @wangGAPITVersionBoosting2021, found AlaAT to be the largest contributing loci to seed dormancy based on a boneferroni cutoff of 0.05. However, given the use of the FDR method, a less conservative cutoff than bonferroni, and using a single step approach, more variants with higher PVE were detected.
 
@@ -518,7 +586,7 @@ Other significant regions include the marker region JHI_Hv50k_2016_310278- JHI_H
 
 # Dicussion
 
-## Dicussion Phenotype distributions
+## Phenotype distributions
 
 Efforts to identify sources of PHS resistance that do not compromise malting quality has been a key target in malting barley breeding, particularly in regions where there is a high chance for rain events at harvest. Numerous barley mapping studies have identified dormancy loci such as SD1 and SD2 on 5H and SD3 on 7H, but few have evaluated dormancy loss with extensive germination assays in a winter malting barley breeding population. We found that the SD1 locus contributed to significant difference in rate dormancy loss over time in winter malting barley from 5 days to 152 days after physiological maturity. In addtion to the SD1, we found numerous other regions of low to moderate effect associated with dormancy loss, including markers associated with alpha-amylase inhibitors and beta amylase glucan branching enzymes on 2H, a marker two regions for Beta glucan and Diastatic power on 4H, and SD3 on 7H @romagosaIndividualLocusEffects1999. Identifying multiple regions associated with dormancy loss provides breeders with a greater ability to select for a desired balance of seed dormancy in target environments
 
@@ -530,9 +598,7 @@ Genetic correlations between GE, GI and PHS were surprisingly high at early and 
 
 ## Statistical modeling for GWAS
 
-Fitting single step models can reduce the amount of information compared to using linear mixed models in a two stage analysis. Often errors associated with the first step analysis of fixed effect models are different, and unless if accounted for with weights in the second stage, results in a loss of information\@mohringComparisonWeightingTwoStage2009. Using random effects in two stage analysis requires that BLUPS be degressed after the first stage, particlarly if genotypes in the population are unbalanced @garrickDeregressingEstimatedBreeding2009. In many situations, both of these problems are often ignored in when performing two step analysis. @endelmanFullyEfficientTwostage2023.
-
-Fitting single step models for each timepoint produced challenges however, as some models did not converge for some timepoints. The lack of convergence issues associated with with GE and early and late timepoiints was most likely due low variation of the trait. Other model terms such as Location were significant across many combinations, indicating the potential of either field effects or sampling error within locations. Seed dormancy measurements were most often(but not always) scored by two individuals by scoring one replication each and significant fixed effects of replication most likely indicate differences of scoring by an individual or scoring error. Fixed effect terms such Location:Row most likely correspond to some form of sampling error. Although not presented, Qsd1 was tested as a fixed effect in the various models to determine potential epistatic effects associated with the Qsd1 locus. No novel QTL were identified and QTL that had reduced PEV in timepoints where the AlaAT locus explained the most variance were detected in different timepoint, trait and year combinations.
+Fitting single step models can reduce the amount of information compared to using linear mixed models in a two stage analysis. Often errors associated with the first step analysis of fixed effect models are different, and unless if accounted for with weights in the second stage, results in a loss of information [@mohringComparisonWeightingTwoStage2009]. Using random effects in two stage analysis requires that BLUPS be degressed after the first stage, particlarly if genotypes in the population are unbalanced [@garrickDeregressingEstimatedBreeding2009].Fitting single step models for each timepoint produced challenges however, as some models did not converge for some timepoints. The lack of convergence issues associated with with GE and early and late timepoiints was most likely due low variation of the trait. Other model terms such as Location were significant across many combinations, indicating the potential of either field effects or sampling error within locations. Seed dormancy measurements were most often(but not always) scored by two individuals by scoring one replication each and significant fixed effects of replication most likely indicate differences of scoring by an individual or scoring error. Fixed effect terms such Location:Row most likely correspond to some form of sampling error. Although not presented, Qsd1 was tested as a fixed effect in the various models to determine potential epistatic effects associated with the Qsd1 locus. No novel QTL were identified and QTL that had reduced h2_PEV in timepoints where the AlaAT locus explained the most variance were detected in different timepoint, trait and year combinations.
 
 ## MTA associations
 
@@ -544,7 +610,7 @@ found variation in AlaAT for the parents of the winter malting barley population
 
 The KASP marker for AlaAT and markers in the same LD region as AlaAT explained the highest PVE.
 
-The locus SD1 was initially discovered as a seed dormancy QTL in barley by @oberthurGeneticAnalysisSeed1995 and has since validated by many researchers @romagosaIndividualLocusEffects1999 @han1996, cloned @satoAlanineAminotransferaseControls2016 and sanger sequenced by @vetchMutationsHvMKK3HvAlaAT12020 and @sweeneyInteractionsBarleySD12021. AlaAT has also been a target of CRISPR-Cas9 targeted mutagenesis where targeted mutants showed highly delayed, but not inhibited germination. [@hisano2022].
+The locus SD1 was initially discovered as a seed dormancy QTL in barley by @oberthurGeneticAnalysisSeed1995 and has since validated by many researchers [@romagosaIndividualLocusEffects1999 @han1996, cloned [@satoAlanineAminotransferaseControls2016] and sanger sequenced by [@vetchMutationsHvMKK3HvAlaAT12020 and @sweeneyInteractionsBarleySD12021]. AlaAT has also been a target of CRISPR-Cas9 targeted mutagenesis where targeted mutants showed highly delayed, but not inhibited germination. [@hisano2022].
 
 Alanine amino transferase played a significant role in dormancy break in our winter malting barley population. Figures 3a-c show germination rate and energy for each family of the population grouped by haplotype for AlaAT over years 2020, 2021, and combined analysis 2020/2021. A check "family" was included for comparison to Charles for 2020 and Endeavor for 2021. Parents Scala, SY Tepee and Wintmalt contained the non-dormant AlaAT allele(N) and the common parent DH130910 and Flavia contained the dormant allele(D). In both years, GE showed clear differentiation over time based on AlaAT haplotype, particularly at time point 2(19 days post PM) for 2020 and timepoints 1.5-3.5(19 days post PM through 68 days post PM). GI showed clear differentiation both across timepoints and within timepoints based on the AlaAT haplotype. The differences in GE and GI for both years based on each haplotype demonstrate that AlaAT significantly affects germination rate, energy and subsequently the rate of dormancy breakage. We also observed significant differences between GE and GI depending on the year. In 2020, dormancy break occurred around time point 3(47 days post PM). In 2021, dormancy break was substantially higher and did not occur until timepoints 3.5(68 days post PM) and 4(96 days post PM).
 
@@ -552,7 +618,7 @@ Alanine amino transferase played a significant role in dormancy break in our win
 
 Three potential gene candidates were found in the 5H 462656156-486764914 LD region based on gene annotations and previous literature. The first includes gene HORVU.MOREX.r3.5HG0486380 identified as*ABI5(Abscisic Acid INSENSITIVE 5)* @seilerAbscisicAcidFlux2014 @collinBarleyABI5Abscisic2020 in response to drought tolerance and stress. The second includes a includes a GEM GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1) @mauriGEMMemberGRAM2016 located dowstream of asABI5. They found that that mutant types of the GEM would delay germination . @mauriGEMMemberGRAM2016 also discovered that 24 hour cold treatment eliminated the effects of GEM, which could explain why the loci was detected in PHS assays at a higher prevalence than GE and GI assays, as PHS samples did not undergo any cold treatment. Increases in potential ABA content in the 2021 year could also prolonged the effect of this gene in $PM_5$ for GI in 2021. Conditions for grainfill in 2021 were dry up until harvest which could of induced higher ABA assocated with this gene. A third potential gene related to seed germination identified by gene annotation includes a 1,4-alpha-glucan branching enzyme(GlgB(HORVU.MOREX.r3.5HG0488090.1) identified in morex version 3, a key regulator in amylopection degredatio @sunTwoGenesEncoding1998, @reginaControlStarchBranching2010. Isoamylase HvISA3 (HORVU.MOREX.r2.5HG0404420) of similar function was identified in the same region for morex version 2 @shuQuantificationAmyloseAmylopectin2014. 1,4-alpha-glucan branching,a key regulator in amylopection degredatio @sunTwoGenesEncoding1998, @reginaControlStarchBranching2010. Isoamylases are importanct for starch degredation as they hydrolyze α-(1,6) glycosidic linkages and debranch amylopectin during grain filling @gousReviewAmylopectinSynthesis2017. Starch with higher amylose content is hydrolyzed more slowly by amylolytic enzymes and higher amylose content has been hypothesized to be a contributing factor either grain dormancy or delay in germination rate observed by moderate GI values
 
-### Other potential associated markers
+### Other marker trait associations
 
 ### 2H
 
@@ -560,20 +626,56 @@ Three potential candidate genes were identified 160022796-469196911 bp region on
 
 ### 4H
 
-On 4H two marker regions were of potential interest for seed dormancy were found. The first region included another alpha amylase inhibitor as well as a QTL identified for protein content QGpc.StMo-4H [@mohammadiGenomewideAssociationStudy2015]. The second LD region on 4H located on the far distal end of 4H was identified in numerous trait timepoint combinations. The malting quality QTLs QDp.DiMo-4H(Diastatic Power) and QBgnm.MT2-4H(Beta Glucan) Higher diastatic power could result in faster degredation of starches in the barley grain, resulting in barley grains. Variation in beta glucan content could be an indirect indicator of seed dormancy, as higher beta glucan can indicate that some seed dormancy exists. On 7H marker located near the centromeric regions 14595309-387792817 were identified to have a\
-beta-amylase(HORVU.MOREX.r2.7HG0614220), ABA responsive binding factor(HORVU.MOREX.r2.7HG0533970), Glucan endo-1,3-beta-glucosidase(HORVU.MOREX.r2.7HG0535140) and protein(HORVU.MOREX.r2.7HG0535020). The region was also identied as SD3 in @romagosaIndividualLocusEffects1999
+On 4H two marker regions were of potential interest for seed dormancy were found. The first region included another alpha amylase inhibitor as well as a QTL identified for protein content QGpc.StMo-4H [@mohammadiGenomewideAssociationStudy2015]. The second LD region on 4H located on the far distal end of 4H was identified in numerous trait timepoint combinations. The malting quality QTLs QDp.DiMo-4H(Diastatic Power) and QBgnm.MT2-4H(Beta Glucan) High diastatic power has been found to be lightly correlated with beta amylase, a key enzyme in the initial degredation of starch for germination [@georg-kraemerDevelopmentalExpressionAmylases2001]
+
+Beta amalyases have been found to peak after four days of germination
+
+Higher diastatic power could result in faster degredation of starches in the barley grain, resulting in barley grains.
+
+Variation in beta glucan content could be an indirect indicator of seed dormancy, as higher beta glucan can indicate that some seed dormancy exists.
+
+On 7H marker located near the centromeric regions 14595309-387792817 were identified to have a\
+beta-amylase(HORVU.MOREX.r2.7HG0614220), ABA responsive binding factor(HORVU.MOREX.r2.7HG0533970), Glucan endo-1,3-beta-glucosidase(HORVU.MOREX.r2.7HG0535140) and protein(HORVU.MOREX.r2.7HG0535020).
+
+The region was also identied as SD3 in @romagosaIndividualLocusEffects1999
 
 ```{r}
-#Table 2
+#| label: tbl-MTA
+#| tbl-cap: "MTAs"
+
+
 library(dplyr)
 library(flextable)
 load("Rdata/Significant_marker_table.Rdata")
-getwd()
+
 
 marker_tableR[marker_tableR$SNP=="JHI_Hv50k_2016_310278, JHI_Hv50k_2016_312229, JHI_Hv50k_2016_314246",]$Gene_candidate<-"GRAM-containing/ABA-responsive protein(HORVU.MOREX.r3.5HG0487770.1), 1,4-alpha-glucan branching enzymeGlgB(HORVU.MOREX.r3.5HG0488090.1),root meristem growth factor(HORVU.MOREX.r3.5HG0486840.1),ABI5(Abscisic Acid INSENSITIVE 5)HORVU.MOREX.r3.5HG048638"
-dim(marker_tableR)
-sig_markersAll<-flextable(marker_tableR,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
+marker_tableR[grep("NA-",marker_tableR$cm_range),]$cm_range<-" "
+marker_tableR<-marker_tableR%>%rename("cM"=cm_range,"PM date(s)"=Timepoints,"FDR adjusted p-value"=Pvalue,"Gene candidate(s)"=Gene_candidate,"trait(s)"=trait)
+
+sig_markersAll<-flextable(marker_tableR)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
+sig_markersAll<-sig_markersAll%>%align(align = "justify",part = "header")%>%align(align = "justify",part = "body")%>%autofit(part="body",hspans = "divided")%>%fontsize(size = 8,part = "body")%>%fontsize(size = 9,part = "header")%>% 
+bold(bold = TRUE, part = "header")%>%set_caption(caption=as_paragraph("Summary for marker trait associations of germination traits across 36 timepoint trait and year combinations. A total of 50 unique marker traits were identified. Markers were condensed into single groups if the LD between the greatest the distance markers was greater than 0.95 "),fp_par(text.align="justify"),align_with_table = FALSE)%>%add_footer_lines(values = "")%>%compose(value= as_paragraph(as_i("Note:"),"Chr: Chromosome(H); SNP-Single nucleotide polymorphism; cM-centiMorgans; PM date(s)-Days since Physiological Maturity timepoints; FDR-False discovery rate; MAF- minor allele frequency; PVE- Percent variance explained"), part = "footer")%>% footnote(i = c(1), j = c(3,4,8,9),
+            value = as_paragraph(
+              c("A range of values indicates that multiple markers(more than 3) were included in this region. The first, median and last marker of the region are included in the SNP column")),
+            ref_symbols = c("a"),
+            part = "header")%>%
+    footnote(i = c(1), j = c(4),
+            value = as_paragraph(
+              c("cM based on nearest marker identified in Morex x Steptoe consesus map in Manscher et al. 2017")),
+            ref_symbols = c("b"),
+            part = "header")%>%
+
+  
+  
+  
+  footnote(i = c(1), j = c(6),
+            value = as_paragraph(
+              c("GE: Germination Energy;GI: Germination Index; GI0: unadjusted germination index; PHS; preharvest sprouting")),
+            ref_symbols = c("c"),
+            part = "header")
 sig_markersAll
+
 ```
 
 The observed dormancy for most non dormant haplotypes at earlier post physiological maturity (PM) days is encouraging for balancing the selection of high germination rate and maintaining initial seed dormancy for PHS. If we assume that a malster, at the earliest, would start malting barley approximately 47 days after harvest from the field, we will want to select lines that maintain dormancy until 50-60 days post PM. Most non-dormant AlaAT haplotypes fit this profile for the 2020 and 2021 crop year. However, given the substantial dormancy we observed in 2021, we must be careful in considering how it relates to our PHS values observed for that same year. PHS will need to be tested in multiple years where conditions would develop less dormant barley. If we continue to have low PHS mean and variation across multiple years with potentially differing levels of dormancy per year, we can then focus the selection pressure to increase germination rate with less concern of reducing our PHS resistance for the given AlaAT haplotypes.

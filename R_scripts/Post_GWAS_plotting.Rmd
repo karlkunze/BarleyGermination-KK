@@ -183,7 +183,7 @@ phs<-test%>%dplyr::select(grep("PHS",colnames(test)))%>%dplyr::select("PHS_PM 5"
 gen_cor<-test%>%dplyr::select(!grep("PHS",colnames(.)))%>%cbind(phs)%>%relocate(phs,.after ="year" )
 #View(gen_cor)
 library(Hmisc)
-
+?rcorr()
 rcor_object<-rcorr(as.matrix(gen_cor[,-c(1:3)]))
 rcor_object$r[lower.tri(rcor_object$r)] <- NA
 rcor_object$P[lower.tri(rcor_object$P)] <- NA
