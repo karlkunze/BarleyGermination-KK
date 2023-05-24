@@ -191,7 +191,7 @@ snpgdsCreateGeno("test4.gds", genmat = as.matrix(round(wmbGAPIT$GD,0)), sample.i
                  snp.position = as.integer(wmbGAPIT$GM$Position), snpfirstdim =FALSE)
 (gdsfile <- snpgdsOpen("test4.gds"))
 
-snpset <- snpgdsLDpruning(gdsfile, ld.threshold=0.9,method="corr",slide.max.bp = 2000,maf = 0.05,remove.monosnp = TRUE)
+snpset <- snpgdsLDpruning(gdsfile, ld.threshold=0.95,method="corr",slide.max.bp = 25000,maf = 0.05,remove.monosnp = TRUE)
 
 snpset_names=unlist(snpset)
 wmbGAPIT$GD=wmbGAPIT$GD[,c(1,which(colnames(wmbGAPIT$GD) %in% snpset_names))]

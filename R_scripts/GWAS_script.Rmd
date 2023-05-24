@@ -120,7 +120,7 @@ dim(WinterGM)
 colnames(WinterGD)[!colnames(WinterGD)%in%WinterGM$SNP]
 dim(WinterGD)
 # Make sure things are in the right order
-# Sum should = 9269
+# Sum should = 9269, its now 7706 due to a higher sliding window bp of 25,000
 dim(WinterGD)
 
 WinterRelationship=wmbGAPIT$A
@@ -451,7 +451,7 @@ library(dplyr)
 
 
 #marker effects
-marker_ef<-genoD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_308762")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762))
+marker_ef<-genoD%>%as.data.frame()%>%dplyr::select("Qsd1")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1))
 marker_ef
 
 
@@ -515,7 +515,6 @@ GI_all<-df_begin
 hist(df_begin$phs)
 GI_2020<-GI_all%>%filter(Year=="2020")%>%droplevels()
 table(GI_2020$PM_date)
-grep("L",colnames(myGD20_prune))
 
 ```
 #PHS
@@ -530,6 +529,7 @@ simple$Check<-as.factor(simple$Check)
 genoM
 
 gd=as.matrix(genoD);genoMp=genoM;maf_lim=0.05;p.val=5e-05;bonfer=FALSE
+
 
 dim(gd)
 print(paste0("data input: ",simple$type%>%unique()))
