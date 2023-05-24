@@ -26,6 +26,7 @@ load("data/Genotype_data/ASRgwas_results/Single_TP_GE_combined_results.Rdata")#G
 load("data/Genotype_data/ASRgwas_results/PHS_GWAS_results.Rdata")
 
 rep_str = c('GI'='GE')
+library(stringr)
 GE_STP_combined[[5]]$trait<-str_replace_all(GE_STP_combined[[5]]$trait,rep_str)
 GE_STP_combined[[3]]$trait<-str_replace_all(GE_STP_combined[[3]]$trait,rep_str)
 GE_STP_combined[[4]]$trait<-str_replace_all(GE_STP_combined[[4]]$trait,rep_str)
@@ -34,7 +35,7 @@ GE_STP_combined[[4]]$trait<-str_replace_all(GE_STP_combined[[4]]$trait,rep_str)
 # need to get phenotypic distrbution file
 ```{r}
 load("data/WMB_DH_Germination_data2020_2021.RData")#DH2020_2021
-
+library(tidyr)
 sum<-DH2020_2021%>%mutate(GI_0=GI/GE)%>%pivot_longer(values_to = "value",names_to = "trait",cols = c(GE,GI,GI_0))%>%group_by(Year,trait,PM_date)%>%reframe(mean=format(round(mean(value,na.rm=TRUE),3),nsmall=2),range=paste0(format(round(min(value,na.rm=TRUE),2),nsmall=2),"-",format(round(max(value,na.rm=TRUE),2),nsmall=2)))%>%filter(!trait=="GI_0"|PM_date%in%c("152","96")|Year=="2021")%>%filter(!trait=="GI_0"|PM_date%in%c("152","96"))
 #View(sum)
 sum_across<-DH2020_2021%>%pivot_longer(values_to = "value",names_to = "trait",cols = c(GE,GI))%>%filter(!PM_date%in%c("12","33","68"))%>%mutate(Year="2020/2021")%>%group_by(Year,trait,PM_date)%>%reframe(mean=format(round(mean(value,na.rm=TRUE),3),nsmall=2),range=paste0(format(round(min(value,na.rm=TRUE),2),nsmall=2),"-",format(round(max(value,na.rm=TRUE),2),nsmall=2)))
@@ -115,7 +116,7 @@ pheno_cor<-round(cor(vb_m,use="pairwise.complete.obs",method="spearman"),2)
 
 pheno_object<-Hmisc::rcorr(as.matrix(pheno_cor),type="pearson")
 
-?rcorr()
+#?rcorr()
 diag(pheno_object$r) <- NA 
 pheno_object$r[upper.tri(pheno_object$r)] <- NA
 diag(pheno_object$P) <- NA 
@@ -438,6 +439,7 @@ markers$p.value
 load("data/Genotype_data/wmb_file.Rdata")
 load("data/Genotype_data/numeric_raw.Rdata")
 WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
+dim(WinterGM)
 library(LDheatmap)
 require(snpStats)
 rgb.palette <- colorRampPalette(rev(c("blue", "orange", "red")), space = "rgb")
