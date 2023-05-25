@@ -24,6 +24,7 @@ load("data/GWA_results/WinterPerTPGWAS.Rdata")#WinterPerTPGWAS
 #moved results to end of logistics, can load the data 
 
 table_chr<-WinterPerTPGWAS%>%ungroup()%>%dplyr::select(Chromosome,Position,ordinal)%>%arrange(Chromosome,Position)%>%unique()
+library(dplyr)
 table_chr_min<-table_chr%>%group_by(Chromosome)%>%summarize(min=min(Position),min_ord=min(ordinal))
 table_chr_max<-table_chr%>%group_by(Chromosome)%>%summarize(max=max(Position),max_ord=max(ordinal))
 table_chr<-merge(table_chr_min,table_chr_max,by="Chromosome")
