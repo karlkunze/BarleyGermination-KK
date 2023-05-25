@@ -10,6 +10,8 @@ editor_options:
 ```{r}
 library(readxl)
 library(ggplot2)
+
+
 library(asreml)
 library(ASRgwas)
 library(dplyr)
@@ -334,7 +336,7 @@ save(WinterPerTPGWAS ,file="data/GWA_results/WinterPerTPGWAS.Rdata")
 ```{r}
 
 library("ASRgenomics")
-
+print("This isn'rt the real one")
 data(geno.pine655)
 geno.pine655[1:5, 1:5]
 M_filter <- qc.filtering(M = geno.pine655, base = FALSE, ref = NULL,
@@ -2560,8 +2562,9 @@ table(GE_2021$PM_date)
 #SAVING 2021 GI and GE
 ```{r}
 
-
+GI2021_PM47
 GI_2021_GWAS=list(GI2021_PM5,GI2021_PM12,GI2021_PM19,GI2021_PM33,GI2021_PM47,GI2021_PM68,GI2021_PM96,GI2021_PM152)
+
 save(GI_2021_GWAS,file="data/Genotype_data/ASRgwas_results/Single_TP_GI_2021_results.Rdata")
 
 GE_2021_GWAS=list(GE2021_PM5,GE2021_PM12,GE2021_PM19,GE2021_PM33,GE2021_PM47,GE2021_PM68,GE2021_PM96,GE2021_PM152)
