@@ -340,16 +340,20 @@ ALaAT_ord
 ALaAT_ord<-median(ALaAT_ord)
 
 
-WinterPerTPGWAS2%>%ungroup()%>%filter(!trait=="PHS")%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+
+table(WinterPerTPGWAS2[1])
+table(WinterPerTPGWAS2$ID)
+WinterPerTPGWAS2%>%ungroup()%>%filter(!trait=="PHS")%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM), shape = year))+geom_point()+ labs(title = NULL)+
   geom_vline(xintercept = winterChrLines, color = 'black')+
  geom_vline(xintercept = ALaAT_ord, color = 'red',linetype='longdash')+
   annotate(geom= 'text', x = ALaAT_ord, y = 12, label = 'AlaAT1')+
   geom_vline(xintercept = winterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
-  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/7666) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()
   
+
+
 WinterPerTPGWAS2$fdr.pvalues_round<-round(WinterPerTPGWAS2$fdr.pvalues,3)
 WinterPerTPGWAS2$fdr.pvalues_round
 
@@ -434,7 +438,7 @@ markers=rbind(markers1,t)%>%unique()%>%filter(maf>0.05)
 markers
 library(readxl)
 getwd()
-Genetic_map <- read_excel("/home/karl/git/naked_barley_GWAS/data/Genetic/Genetic_map.xlsx")%>%dplyr::select(snp,"physical map chr","genetic map chr",cM)%>%rename(SNP=snp)%>%mutate(cM= if_else(is.na(cM), lead(cM), cM)) %>%tidyr::fill(cM,.direction="downup")%>%mutate(SNP=gsub("-","_",SNP))%>%rename(marker=SNP,chrom="physical map chr",chromG="genetic map chr")%>%mutate(chrom=as.numeric(substr(chrom,1,1)),chromG=as.numeric(substr(chromG,1,1)))
+Genetic_map <- read_excel("C:/Users/kars8/git/naked_barley_GWAS/data/Genetic/Genetic_map.xlsx")%>%dplyr::select(snp,"physical map chr","genetic map chr",cM)%>%rename(SNP=snp)%>%mutate(cM= if_else(is.na(cM), lead(cM), cM)) %>%tidyr::fill(cM,.direction="downup")%>%mutate(SNP=gsub("-","_",SNP))%>%rename(marker=SNP,chrom="physical map chr",chromG="genetic map chr")%>%mutate(chrom=as.numeric(substr(chrom,1,1)),chromG=as.numeric(substr(chromG,1,1)))
 
 
 
@@ -1064,7 +1068,7 @@ marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_14932",]
 marker_table2[marker_table2$Chr=="2",]$Position
 marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_64721",]$Gene_candidate<-c("protein kinase family protein(HORVU.MOREX.r3.2HG0098680.1)")
 marker_table2[marker_table2$Chr=="2",]
-marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_78167, JHI_Hv50k_2016_78425, JHI_Hv50k_2016_78947",]$Gene_candidate<-"Anthocyanin 3-O-beta-glucosyltransferase	HORVU.MOREX.r3.2HG0113240.1"
+marker_table2[marker_table2$SNP=="SCRI_RS_135619, JHI_Hv50k_2016_78907, JHI_Hv50k_2016_78947",]$Gene_candidate<-"Anthocyanin 3-O-beta-glucosyltransferase	HORVU.MOREX.r3.2HG0113240.1"
 
 
 marker_table2[marker_table2$SNP=="SCRI_RS_135633, JHI_Hv50k_2016_90999, SCRI_RS_132839",]$Gene_candidate<-"Dimeric alpha-amylase inhibitor(HORVU.MOREX.r2.2HG0176960), mitogen-activated protein kinase 1(HORVU.MOREX.r3.2HG0135700.1),Beta-amylase(HORVU.MOREX.r3.2HG0138420.1),1,4-alpha-glucan-branching enzyme(HORVU.MOREX.r3.2HG0165780.1)"
