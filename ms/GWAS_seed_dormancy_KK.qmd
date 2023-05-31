@@ -326,7 +326,6 @@ ne_p=ne_p<0.05;new2<-round(new,2)
 
 new2[ne_p&!is.na(ne_p)]<-paste0(new2[ne_p&!is.na(ne_p)],"*")
 
-str(new2)
 
 ```
 
@@ -436,7 +435,12 @@ winterlinePCAvalues = WinterPCA$vectors %>% data.frame()%>%
 PCA_DH<-winterlinePCAvalues %>% mutate(shapes=gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", 
      tolower(winterlinePCAvalues$shapes),
      perl = TRUE),size=ifelse(size==2,3,4))%>%filter(family !=c('Check')) %>%
-  ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(shape=guide_legend(title = "Variety/Experimental Line"),size="none",color=guide_legend(title="Family/Population"))+xlab(as.character(paste0("PC1: ",round(WinterPVEPCA[1]*100,2),"%")))+ylab(as.character(paste0("PC2: ",round(WinterPVEPCA[2]*100,2),"%")))+ggtitle(lab="Principal component analysis plot of the \n NY winter malting barley double haploid population")CH+scale_x_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))+scale_y_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))
+  ggplot(aes(x = X1, y = X2, color = family, shape = shapes)) + geom_point(aes(size = size))+theme_bw() +guides(shape=guide_legend(title = "Variety/Experimental Line"),size="none",color=guide_legend(title="Family/Population"))+xlab(as.character(paste0("PC1: ",round(WinterPVEPCA[1]*100,2),"%")))+ylab(as.character(paste0("PC2: ",round(WinterPVEPCA[2]*100,2),"%")))+labs(title = NULL)+
+
+
+scale_x_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))+scale_y_continuous(expand = c(0, 0), limits = c(-0.125, 0.125))
+
+  #+ggtitle(lab="Principal component analysis plot of the \n NY winter malting barley double haploid population"
 PCA_DH
 ```
 
@@ -477,10 +481,13 @@ AlaAT_simple
 ```{r,include=FALSE}
 #Figure 5
 load(paste0(path,"/data/GWA_results/STP_all.Rdata"))
-tt<-STP_all%>%ungroup()%>%drop_na(pos)
-View(tt)
+
+STP_all[is.na(STP_all$chrom),]
+
+tt<-STP_all%>%ungroup()
+#View(tt)
 ch2<-tt[tt$chrom=="2",]
-View(ch2)
+#View(ch2)
 table(STP_all$ID)
 ord_list<-tt[tt$ID=="GI_0-2021-PM_152",c("chrom","pos","marker","ordinal")]
 ord_list
@@ -488,10 +495,8 @@ ord_list
 
 ord_list<-ord_list%>%drop_na(pos)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
 
-table_chr<-tt%>%ungroup()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%drop_na(pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
-ord_list$marker
-marker
-table_chr
+table_chr<-tt%>%ungroup()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%drop_na(pos)%>%unique()#%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
+
 table_chr_min<-table_chr%>%group_by(chrom)%>%summarise(min=min(pos),min_ord=min(ordinal))
 table_chr_max<-table_chr%>%group_by(chrom)%>%summarise(max=max(pos),max_ord=max(ordinal))
 table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
@@ -502,9 +507,10 @@ STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
 
 
 STP_all$ID<-gsub("GI_0","GI0",STP_all$ID)
+tt$ID<-gsub("GI_0","GI0",tt$ID)
 library(stringr)
-STP_all<-STP_all%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
-WinterPerTPGWAS2<-STP_all
+STP_all<-tt%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+WinterPerTPGWAS2<-tt
 ###
 
 
@@ -525,7 +531,7 @@ for (i in 2:8){
 }
 winterChrLines
 
-WinterPerTPGWAS2<-STP_all%>%ungroup()%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))
+WinterPerTPGWAS2<-STP_all%>%ungroup()%>%group_by(chrom,pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))
 
 WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal>3.5&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
 #this GWAS TP is giving weird assocations, so I just removed it
@@ -562,10 +568,12 @@ ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifels
   geom_vline(xintercept = winterChrLines)+
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
-  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="solid")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
+  ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="solid")+geom_hline(yintercept = -log10(0.05/7666) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()+theme(plot.title = element_text(hjust = 0.5))
 ALL_MM
 #ggtitle(label="Genome wide association for \n Germination Energy, Index and PHS on CH 5")
+winterChrLines
+table(WinterPerTPGWAS2$ID)
 CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM)))+geom_point(size = 1.5)+labs(title=NULL)+guides(color=guide_legend(title="Timepoint"))+
 
   
@@ -578,9 +586,10 @@ CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifels
   ylab('-log(p-value)')+xlab('Position')+ geom_hline(yintercept = -log10(FDR_rate),linetype="longdash")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
  facet_grid(rows = vars(trait), scales = 'free_y')+
 
-theme_bw()+scale_x_continuous(limits = c(5525,6700)) +theme(plot.title = element_text(hjust = 0.5))
+theme_bw()+scale_x_continuous(limits = c(4282,5632)) +theme(plot.title = element_text(hjust = 0.5))
 #Ch 5
 ALL_MM
+
 ALaAT_ord
 CH5_MM
 #print(paste("FDR p value at alpha 0.05 :",round(FDR_rate,8)))

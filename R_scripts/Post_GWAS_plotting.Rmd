@@ -243,31 +243,34 @@ return(var_test)
 
 
 
-GE20<-convert(GE_2020_GWAS)%>%unique()
+GE20<-convert(GE_2020_GWAS)%>%unique()%>%mutate(chrom=ifelse(is.na(chrom),8,chrom))
+GE20[is.na(GE20$pos),]
 
 table(GE20$ID)
-GI20<-convert(GI_2020_GWAS)%>%unique()
+GI20<-convert(GI_2020_GWAS)%>%unique()%>%mutate(chrom=ifelse(is.na(chrom),8,chrom))
 table(GI20$ID)
-GE21<-convert(GE_2021_GWAS)%>%unique()
+GE21<-convert(GE_2021_GWAS)%>%unique()%>%mutate(chrom=ifelse(is.na(chrom),8,chrom))
 table(GE21$ID)
-GI21<-convert(GI_2021_GWAS)%>%unique()
+GI21<-convert(GI_2021_GWAS)%>%unique()%>%mutate(chrom=ifelse(is.na(chrom),8,chrom))
 table(GE21$ID)
 
-GI_C<-convert(GI_STP_combined)%>%unique()
+GI_C<-convert(GI_STP_combined)%>%unique()%>%mutate(chrom=ifelse(is.na(chrom),8,chrom))
 
 
 table(GI_C$ID)
-GE_C<-convert(GE_STP_combined)%>%unique()
+GE_C<-convert(GE_STP_combined)%>%unique()%>%mutate(chrom=ifelse(is.na(chrom),8,chrom))
 #accidently labeled GE with GI here, see if I can change this
 
 GE_C$ID<-gsub("GI","GE",GE_C$ID)
 
-PHS<-GWAS_phs$gwas.all%>%arrange(chrom,pos)%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
+PHS<-GWAS_phs$gwas.all%>%arrange(chrom,pos)%>%mutate(chrom=ifelse(is.na(chrom),8,chrom))%>%mutate(ordinal=row_number(.),fdr.pvalues=p.adjust(p.value,method="fdr"))
 
 PHS$ID<-GWAS_phs$trait
 
-STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C,PHS)%>%mutate(notes="none")%>%group_by(ID)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
+STP_all<-rbind(GE20,GI20,GE21,GI21,GI_C,GE_C,PHS)%>%mutate(notes="none")%>%group_by(ID)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())%>%ungroup()
+View(STP_all[STP_all$chrom==2,])
 hist(STP_all$pos)
+
 #STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge"&STP_all$p.value<0.0004&!is.na(STP_all$p.value),]$p.value<-1
 
 save(STP_all,file="data/GWA_results/STP_all.Rdata")
@@ -403,6 +406,7 @@ rt$trait<-df[[i]]$trait
 return(ro)
 }
 
+GE_2020_GWAS
 GE20_sig<-sig_all(GE_2020_GWAS)
 GE21_sig<-sig_all(GE_2021_GWAS)
 GI21_sig<-sig_all(GI_2021_GWAS)
