@@ -1100,6 +1100,7 @@ write.xlsx(ee,file = "ms/supplementary_data/gene_annotation_file_0.xlsx")
 ```
 #time to make a formated table
 ```{r}
+library(dplyr)
 save(marker_table2,file="data/marker_table2.Rdata")
 load("data/marker_table2.Rdata")
 marker_table2<-marker_table2%>%filter(MAF>0.05)
