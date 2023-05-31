@@ -97,7 +97,7 @@ load(paste0(path,"/data/Genotype_data/numeric_raw.Rdata"))
 WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
 
 DH2020_2021<-DH2020_2021%>%filter(!Location=="Spring")
-marker_ef<-WinterGD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_308762","JHI_Hv50k_2016_311435")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762),"JHI_Hv50k_2016_311435"=as.factor("JHI_Hv50k_2016_311435"))
+marker_ef<-WinterGD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_311435")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),"JHI_Hv50k_2016_311435"=as.factor("JHI_Hv50k_2016_311435"))
 
 df_begin<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")
 
@@ -300,7 +300,7 @@ phs_dist<-phs_setup%>%group_by(taxa)%>%
   ggplot(aes(phs, fill = AlaAT))+
  
   geom_histogram(binwidth = 0.2,col=I("black"))+
-  labs(x="PHS score(0-9)",y="Frequecny")+ggtitle(label = paste0("Histogram of Preharvest Sprouting \n values for 2020/2021"))+
+  labs(x="PHS score(0-9)",y="Frequecny")+labs(title=NULL)+
 theme_bw()+theme(axis.text.x = element_text(angle = 0),plot.title = element_text(hjust=0.5))+
     annotate('rect', xmin=-0.1, xmax=2, ymin=0, ymax=1000, alpha=.1, fill='green')+
     annotate('rect', xmin=2, xmax=4, ymin=0, ymax=1000, alpha=.1, fill='yellow')+
@@ -324,6 +324,9 @@ ne_p=ne_p<0.05;new2<-round(new,2)
 #n_p05<-as.data.frame(round(ne_p,3)<0.05)
 
 new2[ne_p&!is.na(ne_p)]<-paste0(new2[ne_p&!is.na(ne_p)],"*")
+
+str(new2)
+
 ```
 
 ```{r}
@@ -387,7 +390,7 @@ op<-df_begin_long%>%rbind(df2)%>%mutate(headerFacet = 'Dataset Year') %>%
   ggplot(aes(x = PM_date, y = value, group = GID))+
   geom_smooth(na.rm = TRUE,se=FALSE,linewidth=0.1,colour="black")+ggh4x::facet_nested(trait~headerFacet+year, scales = 'free')+
   geom_vline(xintercept = c(12,33,68), color = 'red')+xlab(label="PM Date")+
-  labs(title = 'Germination Energy and Index over time \n by individual genotype')+theme_bw()
+  labs(title = NULL)+theme_bw()
 op
 # distribution of of timepoint data
 ```
@@ -475,16 +478,21 @@ AlaAT_simple
 load(paste0(path,"/data/GWA_results/STP_all.Rdata"))
 
 
+STP_all$ID
+ord_list<-STP_all[STP_all$ID=="GE-2020/2021-PM_96",c("chrom","pos","marker","ordinal")]
+min(ord_list[ord_list$chrom==2,]$ordinal,na.rm = TRUE)
 
-ord_list<-STP_all[STP_all$ID=="GI-2020/2021-PM_152",c("chrom","pos","marker","ordinal")]
 ord_list<-ord_list%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
+ord_list
 table_chr<-STP_all%>%ungroup()%>%filter()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
-
+ord_list$marker
+marker
+table_chr
 table_chr_min<-table_chr%>%group_by(chrom)%>%summarise(min=min(pos),min_ord=min(ordinal))
 table_chr_max<-table_chr%>%group_by(chrom)%>%summarise(max=max(pos),max_ord=max(ordinal))
 table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
 
-
+table_chr
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$notes<-"GE-2021-PM_96: did_not_converge"
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
 
@@ -498,18 +506,20 @@ WinterPerTPGWAS2<-STP_all
 
 
 Chr_breaks=table_chr$max_ord-table_chr$min_ord
+Chr_breaks
 ChrTable<-Chr_breaks
 
 chrLabel = c(1:7, 'UN')
+ChrTable
 winterOrdinalBreaks = c(ChrTable[1]/2)
-
+winterOrdinalBreaks
 winterChrLines = ChrTable[1]#for the first position
 
 for (i in 2:8){
  winterOrdinalBreaks[i] = sum(ChrTable[1:i-1])+ChrTable[i]/2
  winterChrLines[i] = sum(ChrTable[1:i])
 }
-
+winterChrLines
 
 WinterPerTPGWAS2<-STP_all%>%ungroup()%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))
 
@@ -536,8 +546,10 @@ ALaAT_ord=WinterPerTPGWAS2[WinterPerTPGWAS2$marker=="Qsd1",]$ordinal%>%unique()
 
 WinterPerTPGWAS2[WinterPerTPGWAS2$trait=="PHS",]$PM<-4
 #All chromosomes
+winterOrdinalBreaks
 WinterPerTPGWAS2
-ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM)))+geom_point()+ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")+guides(color=guide_legend(title="Timepoint"))+
+#ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")
+ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM)))+geom_point()+labs(title=NULL)+guides(color=guide_legend(title="Timepoint"))+
 
 
   geom_vline(xintercept = winterChrLines, color = 'black')+
@@ -547,9 +559,10 @@ ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifels
   scale_x_continuous(label = c("1H","2H", "3H", "4H", "5H", "6H", "7H", "UN"),
                      breaks = winterOrdinalBreaks)+
   ylab('-log(p-value)')+xlab('Chromosome')+ geom_hline(yintercept = -log10(FDR_rate),linetype="solid")+geom_hline(yintercept = -log10(0.05/9658) ,alpha=0.2,color="red")+theme_bw()+
- facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()++theme(plot.title = element_text(hjust = 0.5))
+ facet_grid(rows = vars(trait), scales = 'free_y')+theme_bw()+theme(plot.title = element_text(hjust = 0.5))
 ALL_MM
-CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM)))+geom_point(size = 1.5)+ggtitle(label="Genome wide association for \n Germination Energy, Index and PHS on CH 5")+guides(color=guide_legend(title="Timepoint"))+
+#ggtitle(label="Genome wide association for \n Germination Energy, Index and PHS on CH 5")
+CH5_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM)))+geom_point(size = 1.5)+labs(title=NULL)+guides(color=guide_legend(title="Timepoint"))+
 
   
   
