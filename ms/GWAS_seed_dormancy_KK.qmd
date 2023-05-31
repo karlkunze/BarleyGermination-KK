@@ -225,7 +225,7 @@ model_components<-flextable(model_table1)
 
 # Table of model terms used for GWAS, supplemental table
 
-GWAS_model_terms<-model_table1%>%arrange(year,trait,PM_date)%>%rename("PM date"="PM_date","Q matrix?"="Q","PCs"=npc,"Fixed effect term(s)"=Fixed,"Residual terms"=Residual,"Converged?"=Converged)%>%select(!Random)
+GWAS_model_terms<-model_table1%>%arrange(year,trait,PM_date)%>%rename("PM date"="PM_date","Q matrix?"="Q","PCs"=npc,"Fixed effect term(s)"=Fixed,"Residual terms"=Residual,"Converged?"=Converged)%>%dplyr::select(!Random)
 GWAS_model_terms$trait<-gsub("GI_base","GI 0",GWAS_model_terms$trait)
 
 GWAS_model_terms<-flextable(GWAS_model_terms,cwidth = 0.1,cheight = 0.1)%>%theme_zebra()%>%font(fontname = "Times New Roman",part = "header")
@@ -471,8 +471,8 @@ theme_bw()+theme(axis.text.x = element_text(angle = 90),plot.title = element_tex
 AlaAT_fam
 AlaAT_simple<- AlaAT_d%>% ggplot(aes(x=PM_date,y=value,fill = Qsd1))+
 geom_boxplot(outlier.shape =NA)+ggh4x::facet_nested(trait~year, scales = 'free')+
-
-  labs(x="Time Point",y="Germination value")+ggtitle(label = paste0("Germination Energy and Index by AlaAT haplotype"))+
+#+ggtitle(label = paste0("Germination Energy and Index by AlaAT haplotype"))+
+  labs(x="Time Point",y="Germination value")+labs(title = NULL)+
 theme_bw()+theme(axis.text = element_text(face="bold"),plot.title = element_text(hjust=0.5))+guides(fill=guide_legend(title="AlaAT"))
 AlaAT_simple
 
@@ -531,7 +531,7 @@ for (i in 2:8){
 }
 winterChrLines
 
-WinterPerTPGWAS2<-STP_all%>%ungroup()%>%group_by(chrom,pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))
+WinterPerTPGWAS2<-STP_all%>%ungroup()%>%group_by(chrom,pos)#
 
 WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal>3.5&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
 #this GWAS TP is giving weird assocations, so I just removed it
