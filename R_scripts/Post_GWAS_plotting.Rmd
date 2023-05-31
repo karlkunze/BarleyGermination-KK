@@ -1064,6 +1064,7 @@ write.xlsx(ee,file = "ms/supplementary_data/gene_annotation_file_0.xlsx")
 #time to make a formated table
 ```{r}
 save(marker_table2,file="data/marker_table2.Rdata")
+load("data/marker_table2.Rdata")
 marker_table2<-marker_table2%>%filter(MAF>0.05)
 marker_table2$Gene_candidate<-NA
 marker_table2
@@ -1072,7 +1073,7 @@ marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_14932",]
 marker_table2[marker_table2$Chr=="2",]$Position
 marker_table2[marker_table2$SNP=="JHI_Hv50k_2016_64721",]$Gene_candidate<-c("protein kinase family protein(HORVU.MOREX.r3.2HG0098680.1)")
 marker_table2[marker_table2$Chr=="2",]
-marker_table2[marker_table2$SNP=="SCRI_RS_135619, JHI_Hv50k_2016_78907, JHI_Hv50k_2016_78947",]$Gene_candidate<-"Anthocyanin 3-O-beta-glucosyltransferase	HORVU.MOREX.r3.2HG0113240.1"
+marker_table2[marker_table2$SNP%in%c("SCRI_RS_135619", "JHI_Hv50k_2016_78907", "JHI_Hv50k_2016_78947"),]$Gene_candidate<-"Anthocyanin 3-O-beta-glucosyltransferase	HORVU.MOREX.r3.2HG0113240.1"
 
 
 marker_table2[marker_table2$SNP=="SCRI_RS_135633, JHI_Hv50k_2016_90999, SCRI_RS_132839",]$Gene_candidate<-"Dimeric alpha-amylase inhibitor(HORVU.MOREX.r2.2HG0176960), mitogen-activated protein kinase 1(HORVU.MOREX.r3.2HG0135700.1),Beta-amylase(HORVU.MOREX.r3.2HG0138420.1),1,4-alpha-glucan-branching enzyme(HORVU.MOREX.r3.2HG0165780.1)"
