@@ -488,19 +488,18 @@ tt<-STP_all%>%ungroup()
 #View(tt)
 ch2<-tt[tt$chrom=="2",]
 #View(ch2)
-table(STP_all$ID)
-ord_list<-tt[tt$ID=="GI_0-2021-PM_152",c("chrom","pos","marker","ordinal")]
-ord_list
 
+tt<-tt[,c("chrom","pos","marker","ID","p.value")]%>%unique()%>%arrange(chrom,pos)
 
-ord_list<-ord_list%>%drop_na(pos)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
+ord_list<-tt%>%drop_na(pos)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
 
-table_chr<-tt%>%ungroup()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%drop_na(pos)%>%unique()#%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
+table_chr<-tt%>%ungroup()%>%dplyr::select(marker,chrom,pos)%>%arrange(chrom,pos)%>%drop_na(pos)%>%unique()%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
+table_chr
 
 table_chr_min<-table_chr%>%group_by(chrom)%>%summarise(min=min(pos),min_ord=min(ordinal))
 table_chr_max<-table_chr%>%group_by(chrom)%>%summarise(max=max(pos),max_ord=max(ordinal))
 table_chr<-merge(table_chr_min,table_chr_max,by="chrom")%>%tidyr::drop_na(chrom)
-
+table_chr_max
 table_chr
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$notes<-"GE-2021-PM_96: did_not_converge"
 STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
@@ -509,7 +508,8 @@ STP_all[STP_all$ID=="GE-2021-PM_96: did_not_converge",]$ID<-"GE-2021-PM_96"
 STP_all$ID<-gsub("GI_0","GI0",STP_all$ID)
 tt$ID<-gsub("GI_0","GI0",tt$ID)
 library(stringr)
-STP_all<-tt%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+STP_all<-STP_all%>%mutate(PM=as.numeric(str_split_i(ID,"_",2)),trait=str_split_i(ID,"-",1),year=str_split_i(ID,"-",2))%>%mutate(log10PVal=-log10(p.value))%>%arrange(year,trait,PM)
+
 WinterPerTPGWAS2<-tt
 ###
 
@@ -531,7 +531,7 @@ for (i in 2:8){
 }
 winterChrLines
 
-WinterPerTPGWAS2<-STP_all%>%ungroup()%>%group_by(chrom,pos)#
+WinterPerTPGWAS2<-%>%ungroup()%>%group_by(chrom,pos)#
 
 WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal>3.5&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
 #this GWAS TP is giving weird assocations, so I just removed it
@@ -558,6 +558,7 @@ WinterPerTPGWAS2[WinterPerTPGWAS2$trait=="PHS",]$PM<-4
 #All chromosomes
 winterOrdinalBreaks
 WinterPerTPGWAS2
+ALaAT_ord
 #ggtitle(label="Genome wide association for Germination Energy and Index \n across timepoints and years")
 ALL_MM<-WinterPerTPGWAS2%>%ungroup()%>%filter( log10PVal>2)%>%mutate(trait=ifelse(trait=="GI0","GI",trait))%>% ggplot(aes(ordinal, log10PVal, color = as.factor(PM)))+geom_point()+labs(title=NULL)+guides(color=guide_legend(title="Timepoint"))+
 
