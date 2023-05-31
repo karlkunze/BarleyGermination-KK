@@ -97,14 +97,11 @@ load(paste0(path,"/data/Genotype_data/numeric_raw.Rdata"))
 WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
 
 DH2020_2021<-DH2020_2021%>%filter(!Location=="Spring")
-<<<<<<< HEAD
-marker_ef<-WinterGD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_311435")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),JHI_Hv50k_2016_308762=as.factor(JHI_Hv50k_2016_308762),"JHI_Hv50k_2016_311435"=as.factor("JHI_Hv50k_2016_311435"))
-=======
+
 marker_ef<-WinterGD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_311435")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),"JHI_Hv50k_2016_311435"=as.factor("JHI_Hv50k_2016_311435"))
->>>>>>> 67cffc38e4653dd43d77e5fb7a382c08ccc38be5
+n<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")
 
 df_begin<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")
-
 ```
 
 # Abstract
@@ -480,15 +477,18 @@ AlaAT_simple
 ```{r,include=FALSE}
 #Figure 5
 load(paste0(path,"/data/GWA_results/STP_all.Rdata"))
-
-
-STP_all$ID
-ord_list<-STP_all[STP_all$ID=="GE-2020/2021-PM_96",c("chrom","pos","marker","ordinal")]
-min(ord_list[ord_list$chrom==2,]$ordinal,na.rm = TRUE)
-
-ord_list<-ord_list%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
+tt<-STP_all%>%ungroup()%>%drop_na(pos)
+View(tt)
+ch2<-tt[tt$chrom=="2",]
+View(ch2)
+table(STP_all$ID)
+ord_list<-tt[tt$ID=="GI_0-2021-PM_152",c("chrom","pos","marker","ordinal")]
 ord_list
-table_chr<-STP_all%>%ungroup()%>%filter()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
+
+
+ord_list<-ord_list%>%drop_na(pos)%>%arrange(chrom,pos)%>%mutate(ordinal=1:n())
+
+table_chr<-tt%>%ungroup()%>%dplyr::select(marker,chrom,pos,ordinal)%>%arrange(chrom,pos)%>%drop_na(pos)%>%mutate(ordinal=plyr::mapvalues(marker,from=ord_list$marker,to=ord_list$ordinal),ordinal=as.numeric(ordinal))%>%unique()
 ord_list$marker
 marker
 table_chr
