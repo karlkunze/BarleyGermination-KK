@@ -442,7 +442,7 @@ markers=rbind(markers1,t)%>%unique()%>%filter(maf>0.05)
 markers
 library(readxl)
 getwd()
-Genetic_map <- read_excel("C:/Users/kars8/git/naked_barley_GWAS/data/Genetic/Genetic_map.xlsx")%>%dplyr::select(snp,"physical map chr","genetic map chr",cM)%>%rename(SNP=snp)%>%mutate(cM= if_else(is.na(cM), lead(cM), cM)) %>%tidyr::fill(cM,.direction="downup")%>%mutate(SNP=gsub("-","_",SNP))%>%rename(marker=SNP,chrom="physical map chr",chromG="genetic map chr")%>%mutate(chrom=as.numeric(substr(chrom,1,1)),chromG=as.numeric(substr(chromG,1,1)))
+Genetic_map <- read_excel("/home/karl/git/naked_barley_GWAS/data/Genetic/Genetic_map.xlsx")%>%dplyr::select(snp,"physical map chr","genetic map chr",cM)%>%rename(SNP=snp)%>%mutate(cM= if_else(is.na(cM), lead(cM), cM)) %>%tidyr::fill(cM,.direction="downup")%>%mutate(SNP=gsub("-","_",SNP))%>%rename(marker=SNP,chrom="physical map chr",chromG="genetic map chr")%>%mutate(chrom=as.numeric(substr(chrom,1,1)),chromG=as.numeric(substr(chromG,1,1)))
 
 
 
@@ -490,8 +490,10 @@ CH1_LD_groupA=data.frame(SNP=gmt$SNP,Ch="1",group="A",Position=gmt$Position,ld=0
 
 #they are all in the same LD block, except for the outer two markers
 ```
+
+##CH 2 
+
 ```{r}
-#CH 2 
 
 marker_table[marker_table$chrom=="2",]$marker
 gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="2",]$marker)%>%as.matrix()
@@ -505,12 +507,15 @@ gdat<-as(gdt,"SnpMatrix")
 dim(gdat)
 max_marker$SNP
 LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 2",SNP.name = c(min_marker$SNP,max_marker$SNP),add.map = FALSE,text=FALSE)
+
 #group A
-gdt0<-gdt[,c(8:29)]
+gdt0<-gdt[,c(8:28)]
+gdt0
 gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="2",]$marker))
 gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
 gdat0<-as(gdt0,"SnpMatrix")
-LDheatmap(gdat0,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 2",SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+gdat0
+LDheatmap(gdat0,genetic.distances=gmt$Position,title="LD on CH 2",color=rgb.palette(18),SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
 
 
 CH2_LD_groupA=data.frame(SNP=gmt$SNP,Ch="2",group="A",Position=gmt$Position,ld=0.95)
@@ -523,6 +528,7 @@ CH2_LD_groupA=data.frame(SNP=gmt$SNP,Ch="2",group="A",Position=gmt$Position,ld=0
 # 
 # 
 # CH2_LD_groupB=data.frame(SNP=gmt$SNP,Ch="2",group="B",Position=gmt$Position,ld=0.95)
+
 
 
 CH2_LD=rbind(CH2_LD_groupA)
@@ -623,8 +629,8 @@ AlaAT_L214F<-c("AlaAT_L214F","JHI_Hv50k_2016_308768","JHI_Hv50k_2016_308899")
 PHS_GE<-c("JHI_Hv50k_2016_310470","JHI_Hv50k_2016_311435","JHI_Hv50k_2016_31683","JHI_Hv50k_2016_31683","JHI_Hv50k_2016_312374")
 gdat<-as(gdt,"SnpMatrix")
 
-
-CH5_LD<-LDheatmap(gdat,genetic.distances=gmt$Position,color=grey.colors(20),title="Linkage Disequilribium on Chr 5H",SNP.name = c(H5_1,AlaAT_L214F,PHS_GE),add.map = FALSE,text=FALSE,flip = FALSE)
+#title -- Linkage Disequilribium on Chr 5H
+CH5_LD<-LDheatmap(gdat,genetic.distances=gmt$Position,color=grey.colors(20),title=NULL,SNP.name = c(H5_1,AlaAT_L214F,PHS_GE),add.map = FALSE,text=FALSE,flip = FALSE)
 
 LDheatmap.highlight(CH5_LD, i = 1, j = 15, col = "red",lwd=2,flipOutline=FALSE, crissCross=FALSE)
 LDheatmap.highlight(CH5_LD, i = 16, j = 31, col = "red",lwd=2,flipOutline=FALSE, crissCross=FALSE)
@@ -687,6 +693,35 @@ CH5_LD_groupC_real=data.frame(SNP=gmt$SNP,Ch="5",group="C",Position=gmt$Position
 CH5_LD=rbind(CH5_LD_groupA_real,CH5_LD_groupBQsd1_real,CH5_LD_groupC_real)
 View(CH5_LD)
 ```
+## 6H
+```{r}
+marker_table[marker_table$chrom=="6",]$marker
+gdt<-WinterGD%>%dplyr::select(marker_table[marker_table$chrom=="6",]$marker)%>%as.matrix()
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="6",]$marker))
+
+min_marker<-gmt[which(gmt$Position==min(gmt$Position)),]
+gmt
+max_marker<-gmt[which(gmt$Position==max(gmt$Position)),]
+max_marker$Position-min_marker$Position
+gdat<-as(gdt,"SnpMatrix")
+dim(gdat)
+max_marker$SNP
+LDheatmap(gdat,genetic.distances=gmt$Position,color=rgb.palette(18),title="LD on CH 6",SNP.name = c(min_marker$SNP,max_marker$SNP),add.map = FALSE,text=FALSE)
+
+#group A
+gdt0<-gdt[,c(1:4)]
+dim(gdt0)
+gmt<-WinterGM%>%filter(SNP%in%c(marker_table[marker_table$chrom=="6",]$marker))
+gmt<-gmt%>%filter(SNP%in%colnames(gdt0))
+gdat0<-as(gdt0,"SnpMatrix")
+gdat0
+LDheatmap(gdat0,genetic.distances=gmt$Position,title="LD on CH 6",color=rgb.palette(18),SNP.name = c(gmt$SNP),add.map = TRUE,text=TRUE)
+
+
+CH6_LD_groupA=data.frame(SNP=gmt$SNP,Ch="6",group="A",Position=gmt$Position,ld=0.95)
+
+
+```
 
 ```{r}
 
@@ -744,14 +779,15 @@ WinterGD%>%dplyr::select(any_of(v))
 ```{r}
 
 
-LD_groups<-rbind(CH1_LD_groupA,CH2_LD,CH3_LD_groupA,CH4_LD,CH5_LD,CH7_LD)
+LD_groups<-rbind(CH1_LD_groupA,CH2_LD,CH3_LD_groupA,CH4_LD,CH5_LD,CH6_LD_groupA,CH7_LD)
 
 #LD_groups[LD_groups$group=="D_phs",]$group<-"C"
 collapse_table<-LD_groups%>%group_by(Ch,group)%>%arrange(Position)%>%reframe(SNP_marker=paste0(SNP[c(1)],", ",SNP[c(n()/2)],", ",SNP[c(n())]),bp_range=paste0(min(Position),"-",max(Position)),ld)%>%unique() %>%ungroup()  
 
 collapse_table
-conversion<-LD_groups[,1:3]%>%ungroup()%>%left_join(collapse_table,by=c("Ch","group"),relationship = "many-to-many")
+conversion<-LD_groups[,1:3]%>%ungroup()%>%left_join(collapse_table,by=c("Ch","group"))%>%unique()
 ##
+conversion
 markers
 m3<-markers
 FDR_rate
@@ -767,7 +803,7 @@ marker_table2<-m3%>%filter(p.value<FDR_rate)%>%left_join(test%>%dplyr::select(!p
 
 mutate(MAF=ifelse(testmax==testmin,testmax,paste0(round(testmin,3),"-",round(testmax,3))),PVE_r=ifelse(PVEmin==PVEmax,PVEmax,paste0(round(PVEmin,3),"-",round(PVEmax,3))))%>%dplyr::select(!c("testmin","testmax","PVEmin","PVEmax"))%>%tidyr::drop_na(chrom)%>%rename(Chr=chrom,SNP=marker_collapse,Position=pos_range,Timepoints=PM_dates,PVE=PVE_r)
 
-
+marker_table2
 View(marker_table2)
 
 ```
@@ -781,7 +817,7 @@ setwd("/home/karl/git/naked_barley_GWAS/")
 #also do not add columns, that screws things up later. If you want adtnl columns merge them and use relocate at the end
 #QTL_Disease<-sig_hits_markers%>%mutate(SNP.2=SNP,Breed="1")%>%dplyr::select(SNP,SNP.2,trait,Chr,Pos,Breed,signif)%>%rename(Associated.marker=SNP,SNP.reference=SNP.2,Trait=trait,CHR=Chr,BP=Pos,Reference=signif)%>%
 
-QTL_Disease<-markers%>%mutate(Associated.marker=marker,SNP.reference=marker,Breed="1",CHR=chrom,BP=pos,Reference=ID)%>%select(Associated.marker,SNP.reference,trait,Breed,CHR,BP,Reference)%>%arrange(CHR,BP)
+QTL_Disease<-markers%>%mutate(Associated.marker=marker,SNP.reference=marker,Breed="1",CHR=chrom,BP=pos,Reference=ID)%>%select(Associated.marker,SNP.reference,trait,Breed,CHR,BP,Reference)%>%arrange(CHR,BP)%>%drop_na(BP)
 names(QTL_Disease)
 QTL_Disease$CHR
 v3<-import_gff_gtf(db_file="data/Reference_seq/V3/Hv_Morex.pgsb.Jul2020.gff3",file_type = "gff")
@@ -829,6 +865,7 @@ cds<-v3%>%filter(QTL_type=="CDS")
 mrna$chr<-substr(mrna$chr,4,4)#
 cds$chr<-substr(cds$chr,4,4)#
 hc$chr<-substr(hc$chr,4,4)#
+table(is.na(mrna$end_pos))
 source("R_scripts/GALLO_custom/splitQTL_comment.R")
 
 out.genes_mrna<-find_genes_qtls_around_markers_custom(db_file=mrna,
