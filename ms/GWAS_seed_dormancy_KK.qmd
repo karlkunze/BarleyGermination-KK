@@ -99,7 +99,7 @@ WinterGM=wmbGAPIT$GM;WinterGD=as.data.frame(wmbGAPIT$GD)
 DH2020_2021<-DH2020_2021%>%filter(!Location=="Spring")
 
 marker_ef<-WinterGD%>%as.data.frame()%>%dplyr::select("Qsd1","JHI_Hv50k_2016_311435")%>%tibble::rownames_to_column()%>%rename(GID=rowname)%>%mutate(Qsd1=as.factor(Qsd1),"JHI_Hv50k_2016_311435"=as.factor("JHI_Hv50k_2016_311435"))
-n<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")
+
 
 df_begin<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%left_join(marker_ef,by="GID")%>%mutate(type="base_data_single_step")
 ```
@@ -482,7 +482,6 @@ AlaAT_simple
 #Figure 5
 load(paste0(path,"/data/GWA_results/STP_all.Rdata"))
 
-STP_all[is.na(STP_all$chrom),]
 
 tt<-STP_all%>%ungroup()
 #View(tt)
@@ -531,9 +530,9 @@ for (i in 2:8){
 }
 winterChrLines
 
-WinterPerTPGWAS2<-%>%ungroup()%>%group_by(chrom,pos)#
+WinterPerTPGWAS2<-STP_all%>%ungroup()%>%group_by(chrom,pos)#
 
-WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2$log10PVal>3.5&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
+ WinterPerTPGWAS2[WinterPerTPGWAS2$ID=="GE-2021-PM_96"&WinterPerTPGWAS2&!is.na(WinterPerTPGWAS2$log10PVal),]$log10PVal<-0
 #this GWAS TP is giving weird assocations, so I just removed it
 ```
 
