@@ -143,12 +143,14 @@ anova(lm(GI~ taxa +Location%in%Year+replication+Year, DH2020_2021%>% filter(DH20
 ```
 ## Histogram Visualization of GE and GI for specific
 ```{r}
+library(ggplot2)
+library(Hmisc)
 
 DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(trait =='GE') %>%
-  ggplot(aes(x = value, fill = TP))+geom_density()+facet_nested(TP ~trait+Year, scales = 'free')+
+  ggplot(aes(x = value, fill = TP))+geom_density()+ggh4x::facet_nested(TP ~trait+Year, scales = 'free')+
  theme_bw()+guides(fill = "none")+
   DH2020_2021 %>% pivot_longer(cols = c(GE,GI), names_to = 'trait') %>% filter(trait =='GI') %>%
-  ggplot(aes(x = value, fill = TP))+geom_density()+facet_nested(TP ~trait+Year, scales = 'free')+
+  ggplot(aes(x = value, fill = TP))+geom_density()+ggh4x::facet_nested(TP ~trait+Year, scales = 'free')+
   theme_bw()+ guides(fill = "none")
   plot_layout(ncol = 2)
 

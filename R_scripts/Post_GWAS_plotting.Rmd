@@ -95,6 +95,7 @@ save(sum_table,file="ms/Rdata/genetic_variance_h2.Rdata")
 
 ```
 ```{r}
+
 df3<-DH2020_2021%>%mutate(GID=toupper(taxa))%>%filter(!Location=="Spring")%>%mutate(type="base_data_single_step")
 
 df3[!df3$PM_date==5,]$phs<-0
